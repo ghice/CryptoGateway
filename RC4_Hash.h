@@ -70,7 +70,6 @@ static hash_256 build_hash(char* data, int length)
   }
   hash_256 ret(char_array);
   
-  cout<<ret<<endl;
   return ret;
 }
 
