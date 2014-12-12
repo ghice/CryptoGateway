@@ -47,12 +47,16 @@ char* hash_256::get_hash()
 bool hash_256::compare(const hash_256& comp) const
 {
   int cnt = 0;
+
   while(cnt< BYTE_SIZE_HASH)
   {
     if(comp.hash_array[cnt]!=hash_array[cnt])
+	{
       return false;
+	}
     cnt++;
   }
+  cout<<"True"<<endl;
   return true;
 }
 //Assignment operator

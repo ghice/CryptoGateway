@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 9/26/2014
+//Confirmed working: 12/10/2014
 
 #ifndef RC4_HASH_H
 #define RC4_HASH_H
@@ -20,7 +20,6 @@ class hash_256
 private:
   char hash_array[BYTE_SIZE_HASH];
 
-  bool compare(const hash_256& comp) const;
 public:
   hash_256();
   hash_256(const char* input);
@@ -29,6 +28,8 @@ public:
   void push_hash(const char* input);
   char* get_hash();
   
+  bool compare(const hash_256& comp) const;
+
   const hash_256& operator=(const hash_256& equ);
   const bool operator==(const hash_256& comp) const;
   const bool operator!=(const hash_256& comp) const;
@@ -57,7 +58,7 @@ static hash_256 build_hash(char* data, int length)
     else
       len = length-value;
     
-    RCFour rc((uint8_t*)data, len);
+    RCFour rc((uint8_t*)&data[value], len);
     value = value+len;
     
     cnt = 0;
@@ -69,6 +70,7 @@ static hash_256 build_hash(char* data, int length)
   }
   hash_256 ret(char_array);
   
+  cout<<ret<<endl;
   return ret;
 }
 
