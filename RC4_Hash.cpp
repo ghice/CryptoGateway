@@ -56,7 +56,7 @@ bool hash_256::compare(const hash_256& comp) const
 	}
     cnt++;
   }
-  cout<<"True"<<endl;
+
   return true;
 }
 //Assignment operator
