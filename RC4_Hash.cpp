@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/9/2014
+//Confirmed working: 10/12/2014
 
 #ifndef RC4_HASH_CPP
 #define RC4_HASH_CPP
@@ -35,6 +35,7 @@ void hash_256::push_hash(const char* input)
   while(cnt<BYTE_SIZE_HASH)
   {
     hash_array[cnt] = input[cnt];
+	//cout<<input[cnt]<<endl;
     cnt++;
   }
 }
@@ -56,7 +57,6 @@ bool hash_256::compare(const hash_256& comp) const
 	}
     cnt++;
   }
-
   return true;
 }
 //Assignment operator
