@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 9/2/14
+//Certified working 2/14/2015
 
 #ifndef LARGE_NUMBER_CPP
 #define LARGE_NUMBER_CPP
@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 #include "large_number.h"
+#include "security_gateway.h"
 
 using namespace std;
 
@@ -72,7 +73,22 @@ using namespace std;
     }
 	return true;
   }
-  
+  bool large_number::push_array_comp_mode(uint32_t* array, int length)
+  {
+	int cnt = 0;
+
+    while(cnt<LARGE_NUMBER_SIZE&&cnt<length)
+    {
+      data[cnt] = from_comp_mode_sgtw(array[cnt]);
+      cnt++;
+    }
+    while(cnt<LARGE_NUMBER_SIZE)
+    {
+      data[cnt] = 0;
+      cnt++;
+    }
+	return true;
+  }
 //Opperators-----------------------------------------------------------
 
   //Adds two large_numbers

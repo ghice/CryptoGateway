@@ -1,5 +1,9 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/11/2014
+//Confirmed working: 2/14/2015
+
+/*
+	NOTE: This file may have endian problems
+*/
 
 #ifndef SECURITY_GATEWAY_CPP
 #define SECURITY_GATEWAY_CPP
@@ -147,7 +151,7 @@ void security_gateway::push_data(public_key_base* key_source, uint8_t type, char
   uint32_t* trc = (uint32_t*) ptr;
   while(cnt<LARGE_NUMBER_SIZE/2)
   {
-    trc[cnt] = pub_key.getArrayNumber(cnt);
+	  trc[cnt] = to_comp_mode_sgtw(pub_key.getArrayNumber(cnt));
     cnt++;
   }
   
@@ -203,6 +207,7 @@ void security_gateway::push_timestamp_initialize(interior_message* msg)
 {
   uint8_t* temp_array = msg->get_int_data();
   uint64_t timestamp = get_timestamp();
+  timestamp = to_comp_mode_sgtw(timestamp);
   uint8_t* timestamp_ptr = (uint8_t*) &timestamp;
   int cnt = 0;
   
@@ -368,6 +373,7 @@ interior_message* security_gateway::get_message()
     
     //Copy timestamps
     uint64_t timestamp = get_timestamp();
+	timestamp = to_comp_mode_sgtw(timestamp);
     uint8_t* stmp = (uint8_t*) &timestamp;
     temp[4] = stmp[0];
     temp[5] = stmp[1];
@@ -448,6 +454,7 @@ interior_message* security_gateway::get_message()
     
     //Copy timestamps
     uint64_t timestamp = get_timestamp();
+	timestamp = to_comp_mode_sgtw(timestamp);
     uint8_t* stmp = (uint8_t*) &timestamp;
     temp[4] = stmp[0];
     temp[5] = stmp[1];
@@ -579,14 +586,17 @@ bool security_gateway::process_message(interior_message* msg)
       
       //Process timestamp
       uint64_t* msg_timestamp = (uint64_t*) &message_array[cnt];
+	  *msg_timestamp = from_comp_mode_sgtw(*msg_timestamp);
+
       uint64_t tmstp = get_timestamp();
       if(msg_timestamp[0]>tmstp||tmstp-msg_timestamp[0]>TIMEOUT_VALUE)
       {
 		error = true;
       }
       
+	  *msg_timestamp = to_comp_mode_sgtw(*msg_timestamp);
       //Process public key
-      brother_key.push_array((uint32_t*)&message_array[cnt+8],LARGE_NUMBER_SIZE/2);
+      brother_key.push_array_comp_mode((uint32_t*)&message_array[cnt+8],LARGE_NUMBER_SIZE/2);
     }
     //Compare with current variables
     else
@@ -604,7 +614,7 @@ bool security_gateway::process_message(interior_message* msg)
       
       //Check public key
       large_integer hld;
-      hld.push_array((uint32_t*)&message_array[cnt+8],LARGE_NUMBER_SIZE/2);
+      hld.push_array_comp_mode((uint32_t*)&message_array[cnt+8],LARGE_NUMBER_SIZE/2);
       if(hld!=brother_key)
       {
 		error = true;

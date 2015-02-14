@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working 10/11/2014
+//Confirmed working 2/13/2015
 
 #ifndef SECURITY_GATEWAY_H
 #define SECURITY_GATEWAY_H
@@ -16,6 +16,101 @@
 
 #define ID_SIZE 20
 #define TIMEOUT_VALUE 30
+
+//Changes an int to compatibility mode
+static uint16_t to_comp_mode_sgtw(uint16_t i)
+{
+	uint16_t temp = 1;
+	//Switch little to big endian
+	if(((char*) &temp)[0] == 0)
+	{
+		((char*) &temp)[0] = ((char*) &i)[1];
+		((char*) &temp)[1] = ((char*) &i)[0];
+		return temp;
+	}
+	return i;
+}
+//Changes an int from compatibility mode to system mode
+static uint16_t from_comp_mode_sgtw(uint16_t i)
+{
+	uint16_t temp = 1;
+	//Switch little to big endian
+	if(((char*) &temp)[0] == 0)
+	{
+		((char*) &temp)[0] = ((char*) &i)[1];
+		((char*) &temp)[1] = ((char*) &i)[0];
+		return temp;
+	}
+	return i;
+}
+//Changes an int to compatibility mode
+static uint32_t to_comp_mode_sgtw(uint32_t i)
+{
+	uint32_t temp = 1;
+	//Switch little to big endian
+	if(((char*) &temp)[0] == 0)
+	{
+		((char*) &temp)[0] = ((char*) &i)[3];
+		((char*) &temp)[1] = ((char*) &i)[2];
+		((char*) &temp)[2] = ((char*) &i)[1];
+		((char*) &temp)[3] = ((char*) &i)[0];
+		return temp;
+	}
+	return i;
+}
+//Changes an int from compatibility mode to system mode
+static uint32_t from_comp_mode_sgtw(uint32_t i)
+{
+	uint32_t temp = 1;
+	//Switch little to big endian
+	if(((char*) &temp)[0] == 0)
+	{
+		((char*) &temp)[0] = ((char*) &i)[3];
+		((char*) &temp)[1] = ((char*) &i)[2];
+		((char*) &temp)[2] = ((char*) &i)[1];
+		((char*) &temp)[3] = ((char*) &i)[0];
+		return temp;
+	}
+	return i;
+}
+//Changes an int to compatibility mode
+static uint64_t to_comp_mode_sgtw(uint64_t i)
+{
+	uint64_t temp = 1;
+	//Switch little to big endian
+	if(((char*) &temp)[0] == 0)
+	{
+		((char*) &temp)[0] = ((char*) &i)[7];
+		((char*) &temp)[1] = ((char*) &i)[6];
+		((char*) &temp)[2] = ((char*) &i)[5];
+		((char*) &temp)[3] = ((char*) &i)[4];
+		((char*) &temp)[4] = ((char*) &i)[3];
+		((char*) &temp)[5] = ((char*) &i)[2];
+		((char*) &temp)[6] = ((char*) &i)[1];
+		((char*) &temp)[7] = ((char*) &i)[0];
+		return temp;
+	}
+	return i;
+}
+//Changes an int from compatibility mode to system mode
+static uint64_t from_comp_mode_sgtw(uint64_t i)
+{
+	uint64_t temp = 1;
+	//Switch little to big endian
+	if(((char*) &temp)[0] == 0)
+	{
+		((char*) &temp)[0] = ((char*) &i)[7];
+		((char*) &temp)[1] = ((char*) &i)[6];
+		((char*) &temp)[2] = ((char*) &i)[5];
+		((char*) &temp)[3] = ((char*) &i)[4];
+		((char*) &temp)[4] = ((char*) &i)[3];
+		((char*) &temp)[5] = ((char*) &i)[2];
+		((char*) &temp)[6] = ((char*) &i)[1];
+		((char*) &temp)[7] = ((char*) &i)[0];
+		return temp;
+	}
+	return i;
+}
 
 class security_gateway
 {

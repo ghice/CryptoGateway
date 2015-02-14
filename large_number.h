@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 9/2/14
+//Certified working 2/14/2015
 
 #ifndef LARGE_NUMBER_H
 #define LARGE_NUMBER_H
@@ -34,6 +34,7 @@ protected:
   virtual ~large_number();
   
   bool push_array(uint32_t* array, int length);
+  bool push_array_comp_mode(uint32_t* array, int length);
   
   //Public Arithmatic
   const large_number mod_inverse(const large_number& mod) const;
