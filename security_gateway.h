@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working 2/13/2015
+//Confirmed working 3/3/2015
 
 #ifndef SECURITY_GATEWAY_H
 #define SECURITY_GATEWAY_H
@@ -173,6 +173,7 @@ public:
   interior_message* encrypt_message(interior_message* msg);
   large_integer getBrotherKey();
   large_integer getOldBrotherKey();
+  public_key_base* getPublicKey();
 };
 
 #endif

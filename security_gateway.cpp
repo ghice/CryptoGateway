@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 2/14/2015
+//Confirmed working: 3/3/2015
 
 /*
 	NOTE: This file may have endian problems
@@ -799,6 +799,11 @@ large_integer security_gateway::getBrotherKey()
 large_integer security_gateway::getOldBrotherKey()
 {
 	return old_brother_key;
+}
+//Returns the public key base
+public_key_base* security_gateway::getPublicKey()
+{
+	return crypto_base;
 }
 
 
