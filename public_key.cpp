@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 3/5/2015
+//Certified working 4/1/2015
 
 #ifndef PUBLIC_KEY_CPP
 #define PUBLIC_KEY_CPP
@@ -586,7 +586,7 @@ large_integer public_key_base::generate_half_prime() const
   large_integer ret;
   uint32_t numArray[LARGE_NUMBER_SIZE/4];
   int cnt = 0;
- 
+  srand ( time(NULL) );
    while(cnt<(LARGE_NUMBER_SIZE/4))
    {
      numArray[cnt] = rand();
