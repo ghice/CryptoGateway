@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 3/3/2015
+//Confirmed working: 4/29/2015
 
 /*
 	NOTE: This file may have endian problems
@@ -247,13 +247,13 @@ void security_gateway::reset()
   build_encryption_stream();
 }
 //Push the old key
-void security_gateway::push_old_key(uint8_t* byte, int length)
+void security_gateway::push_old_key(uint8_t* b, int length)
 {
   int new_len = length/4;
   if(length%4)
     new_len++;
   
-  large_integer temp((uint32_t*)byte, new_len);
+  large_integer temp((uint32_t*)b, new_len);
   push_old_key(temp);
 }
 //Push the old key

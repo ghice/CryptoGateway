@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working 3/3/2015
+//Confirmed working 4/29/2015
 
 #ifndef SECURITY_GATEWAY_H
 #define SECURITY_GATEWAY_H
@@ -159,7 +159,7 @@ public:
   
   //Public Actions
   void reset();
-  void push_old_key(uint8_t* byte, int length);
+  void push_old_key(uint8_t* b, int length);
   void push_old_key(large_integer key);
   void force_error();
   void force_crypto_error();

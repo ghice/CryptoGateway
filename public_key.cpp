@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 4/1/2015
+//Certified working 4/29/2015
 
 #ifndef PUBLIC_KEY_CPP
 #define PUBLIC_KEY_CPP
@@ -583,6 +583,7 @@ bool public_key_base::load_file(const string& full_file)
 //Generates a prime with half the maximum bits
 large_integer public_key_base::generate_half_prime() const
 {
+  srand(time(NULL));
   large_integer ret;
   uint32_t numArray[LARGE_NUMBER_SIZE/4];
   int cnt = 0;
