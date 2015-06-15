@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working 4/29/2015
+//Confirmed working 5/25/2015
 
 #ifndef SECURITY_GATEWAY_H
 #define SECURITY_GATEWAY_H
@@ -174,6 +174,9 @@ public:
   large_integer getBrotherKey();
   large_integer getOldBrotherKey();
   public_key_base* getPublicKey();
+  uint8_t getBrotherStatus();
+  uint8_t getMyStatus();
+  std::string getBrotherID();
 };
 
 #endif

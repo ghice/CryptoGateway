@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 9/2/14
+//Certified working 6/7/2015
 
 #ifndef FILE_MECHANICS_H
 #define FILE_MECHANICS_H
@@ -31,6 +31,20 @@ static uint64_t get_timestamp()
 {
   time_t ttstamp = time(0);
   return (uint64_t) ttstamp;
+}
+//Returns a timestamp converted to a string
+static std::string convertTimestamp(uint64_t stamp)
+{
+	if(stamp==0)
+		return "No date";
+	time_t rawtime = (time_t) stamp;
+	struct tm timeinfo;
+	char buffer [200];
+
+	localtime_s (&timeinfo,&rawtime);
+
+	strftime (buffer,200,"%m/%d/%Y at %I:%M %p",&timeinfo);
+	return std::string(buffer);
 }
 //Tests if a character is numberic
 static bool check_numeric(const char char_to_check)

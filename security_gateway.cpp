@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 4/29/2015
+//Confirmed working: 5/24/2015
 
 /*
 	NOTE: This file may have endian problems
@@ -588,8 +588,8 @@ bool security_gateway::process_message(interior_message* msg)
       uint64_t* msg_timestamp = (uint64_t*) &message_array[cnt];
 	  *msg_timestamp = from_comp_mode_sgtw(*msg_timestamp);
 
-      uint64_t tmstp = get_timestamp();
-      if(msg_timestamp[0]>tmstp||tmstp-msg_timestamp[0]>TIMEOUT_VALUE)
+	  uint64_t tmstp = get_timestamp()+TIMEOUT_VALUE;
+      if(msg_timestamp[0]>tmstp||tmstp-msg_timestamp[0]>2*TIMEOUT_VALUE)
       {
 		error = true;
       }
@@ -644,7 +644,7 @@ bool security_gateway::process_message(interior_message* msg)
       error = true;
       return false;
     }
-    
+
     //Decrypt the array, based on the stream
     if(NULL==decryp->recieveData(&message_array[4],msg->get_length()-4,stream_flag))
     {
@@ -685,6 +685,8 @@ bool security_gateway::process_message(interior_message* msg)
     
     if(brother_key_set&&old_brother_key!=brother_key)
     {
+		cout<<old_brother_key<<endl;
+		cout<<brother_key<<endl;
       current_status = 4;
       return !(error);
     }
@@ -805,6 +807,19 @@ public_key_base* security_gateway::getPublicKey()
 {
 	return crypto_base;
 }
-
-
+//Returns the current brother status
+uint8_t security_gateway::getBrotherStatus()
+{
+	return brother_status;
+}
+//Returns the current status
+uint8_t security_gateway::getMyStatus()
+{
+	return current_status;
+}
+//Returns the ID of the brother
+std::string security_gateway::getBrotherID()
+{
+	return std::string(brother_ID);
+}
 #endif
