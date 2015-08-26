@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working 8/16/2015
+//Confirmed working 8/25/2015
 
 #ifndef SECURITY_GATEWAY_H
 #define SECURITY_GATEWAY_H
@@ -33,7 +33,7 @@ private:
   interior_message identifier_message;
   interior_message error_message;
   interior_message key_confirmation;
-  interior_message* RC_key_message;
+  smartInteriorMessage RC_key_message;
   
   bool gateway_active;
   bool initial_message;
@@ -63,7 +63,7 @@ private:
   
   //Private Functions
   void build_encryption_stream();
-  void push_timestamp_initialize(interior_message* msg);
+  void push_timestamp_initialize(interior_message& msg);
   
 public:
   //Constructor data
@@ -83,9 +83,9 @@ public:
   bool is_active();
   bool connected();
   uint64_t get_time_dif();
-  interior_message* get_message();
-  bool process_message(interior_message* msg);
-  interior_message* encrypt_message(interior_message* msg);
+  smartInteriorMessage get_message();
+  bool process_message(smartInteriorMessage msg);
+  smartInteriorMessage encrypt_message(smartInteriorMessage msg);
   const large_integer getBrotherKey();
   const large_integer getOldBrotherKey();
   public_key_base* getPublicKey();

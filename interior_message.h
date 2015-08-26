@@ -1,9 +1,10 @@
 //Primary author: Jonathan Bedard
-//Certified working 8/16/2015
+//Certified working 8/25/2015
 
 #ifndef INTERIOR_MESSAGE_H
 #define INTERIOR_MESSAGE_H
-    
+   
+#include <memory>
 #include <stdint.h>
 #include <cstdlib>
 #include <iostream>
@@ -73,6 +74,8 @@ public:
     void bind_checksum();
     bool check_checksum();
 };
+
+typedef std::shared_ptr<interior_message> smartInteriorMessage;
 
 }
 

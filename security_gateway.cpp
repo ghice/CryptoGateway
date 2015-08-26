@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/21/2015
+//Confirmed working: 8/25/2015
 
 /*
 	NOTE: This file may have endian problems
@@ -111,8 +111,6 @@ security_gateway::~security_gateway()
     
   if(encry!=NULL)
     delete(encry);
-  if(RC_key_message!=NULL)
-    delete(RC_key_message);
 }
 //Initialize data
 void security_gateway::push_data(public_key_base* key_source, uint8_t type, char* ID)
@@ -195,9 +193,7 @@ void security_gateway::build_encryption_stream()
   key_coded = false;
   
   //Initialize message
-  if(RC_key_message!=NULL)
-    delete(RC_key_message);
-  RC_key_message = new interior_message();
+  RC_key_message = smartInteriorMessage(new interior_message());
   RC_key_message->push_length(LARGE_NUMBER_SIZE*2+4);
   //Construct the stream encrypter, with message constructing in mind
   uint8_t* RC4_array = RC_key_message->get_int_data();
@@ -231,9 +227,9 @@ void security_gateway::build_encryption_stream()
   encry = new streamEncrypter(temp_RC4);
 }
 //Places the proper timestamp on 
-void security_gateway::push_timestamp_initialize(interior_message* msg)
+void security_gateway::push_timestamp_initialize(interior_message& msg)
 {
-  uint8_t* temp_array = msg->get_int_data();
+  uint8_t* temp_array = msg.get_int_data();
   uint64_t timestamp = get_timestamp();
   timestamp = to_comp_mode_sgtw(timestamp);
   uint8_t* timestamp_ptr = (uint8_t*) &timestamp;
@@ -329,7 +325,7 @@ uint64_t security_gateway::get_time_dif()
   return (get_timestamp()-last_timestamp);
 }
 //Return the current message
-interior_message* security_gateway::get_message()
+smartInteriorMessage security_gateway::get_message()
 {
   //Send a null message if the gateway is not active
   if(!gateway_active)
@@ -354,15 +350,15 @@ interior_message* security_gateway::get_message()
     err[2] = 0;
     err[3] = 0;
     error_message.push_length(4);
-    return &error_message;
+    return smartInteriorMessage(new interior_message(error_message));
   }
   //No connection received
   if(brother_status == 0 && !error)
   {
     identifier_message.get_int_data()[0] = MESSAGE_INITIAL;
     identifier_message.get_int_data()[1] = current_status;
-    push_timestamp_initialize(&identifier_message);
-    return &identifier_message;
+    push_timestamp_initialize(identifier_message);
+    return smartInteriorMessage(new interior_message(identifier_message));
   }
   //Initial connection made, trade keys
   if(brother_status == 1 && !error)
@@ -389,8 +385,8 @@ interior_message* security_gateway::get_message()
     {
       identifier_message.get_int_data()[0] = MESSAGE_INITIAL;
       identifier_message.get_int_data()[1] = current_status;
-      push_timestamp_initialize(&identifier_message);
-      return &identifier_message;
+      push_timestamp_initialize(identifier_message);
+      return smartInteriorMessage(new interior_message(identifier_message));
     }
   }
   //Keys exchanged, attempt to sign
@@ -463,7 +459,7 @@ interior_message* security_gateway::get_message()
     temp[2] = (stream_flag>>8);
     temp[3] = (uint8_t) stream_flag;
 
-    return &key_confirmation;
+    return smartInteriorMessage(new interior_message(key_confirmation));
   }
   //Send a message indicating continued connection but no information
   if(brother_status == 3 && !error)
@@ -474,7 +470,7 @@ interior_message* security_gateway::get_message()
     err[2] = 0;
     err[3] = 0;
     error_message.push_length(4);
-    return &error_message;
+    return smartInteriorMessage(new interior_message(error_message));
   }
   //Sign with the old key
   if(brother_status == 4 && !error)
@@ -546,7 +542,7 @@ interior_message* security_gateway::get_message()
     temp[2] = (stream_flag>>8);
     temp[3] = (uint8_t) stream_flag;
 
-    return &key_confirmation;
+    return smartInteriorMessage(new interior_message(key_confirmation));
   }
   //Confirm brother's error status
   if(brother_status == 255 && !error)
@@ -557,7 +553,7 @@ interior_message* security_gateway::get_message()
     err[2] = 0;
     err[3] = 0;
     error_message.push_length(4);
-    return &error_message;
+    return smartInteriorMessage(new interior_message(error_message));
   }
   
   //Return error message
@@ -567,10 +563,10 @@ interior_message* security_gateway::get_message()
   err[2] = 0;
   err[3] = 0;
   error_message.push_length(4);
-  return &error_message;
+  return smartInteriorMessage(new interior_message(error_message));
 }
 //Processes the message
-bool security_gateway::process_message(interior_message* msg)
+bool security_gateway::process_message(smartInteriorMessage msg)
 {
   //Check for error status
   if(msg==NULL)
@@ -868,7 +864,7 @@ bool security_gateway::process_message(interior_message* msg)
   return (!error);
 }
 //Encrypt a message based on the security gateway
-interior_message* security_gateway::encrypt_message(interior_message* msg)
+smartInteriorMessage security_gateway::encrypt_message(smartInteriorMessage msg)
 {
   if(!connected())
     return NULL;
