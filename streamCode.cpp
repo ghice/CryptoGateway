@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 9/26/2014
+//Confirmed working: 8/21/2015
 
 //The stream sender/reciever header file
 
@@ -9,10 +9,12 @@
 #include <string>
 #include <iostream>
 #include <stdlib.h>
+#include "cryptoLogging.h"
 #include "streamCode.h"
 #include "RC4.h"
 
 using namespace std;
+using namespace crypto;
 
 //Stream Encrypter---------------------------------------------------------------------------
 
@@ -40,7 +42,7 @@ using namespace std;
   {
     if(len>PACKETSIZE)
     {
-      cerr<<"Invalid packet size for stream encrypter!"<<endl;
+      cryptoerr<<"Invalid packet size for stream encrypter!"<<endl;
       exit(EXIT_FAILURE);
     }
     
@@ -143,7 +145,7 @@ using namespace std;
   {
     if(len>PACKETSIZE)
     {
-      cerr<<"Invalid packet size for stream decrypter!"<<endl;
+      cryptoerr<<"Invalid packet size for stream decrypter!"<<endl;
       exit(EXIT_FAILURE);
     }
     
@@ -161,7 +163,7 @@ using namespace std;
     //Check if we have found the packet
     if(!found)
     {
-      cerr<<"Stream broken.  Return NULL"<<endl;
+      cryptoerr<<"Stream broken.  Return NULL"<<endl;
       return NULL;
     }
 
@@ -170,7 +172,7 @@ using namespace std;
     
     //Change save array
     last_value = (cnt+last_value+DECRYSIZE-BACKCHECK)%DECRYSIZE;
-    //cout<<"Last value:"<<last_value<<"\tMid value:"<<mid_value<<endl;
+    //cryptoout<<"Last value:"<<last_value<<"\tMid value:"<<mid_value<<endl;
     if((last_value<mid_value && last_value>((mid_value-LAGCATCH+DECRYSIZE) % DECRYSIZE)) ||
       (mid_value<((mid_value-LAGCATCH+DECRYSIZE) % DECRYSIZE) && (last_value<mid_value || last_value>((mid_value-LAGCATCH+DECRYSIZE) % DECRYSIZE)))||
     last_value==mid_value)

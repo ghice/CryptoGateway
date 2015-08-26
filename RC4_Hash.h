@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/10/2014
+//Confirmed working: 7/29/2015
 
 #ifndef RC4_HASH_H
 #define RC4_HASH_H
@@ -10,8 +10,8 @@
 
 #include "RC4.h"
 
-using namespace std;
-
+namespace crypto {
+        
 #define BYTE_SIZE_HASH 32
 
 //This is the 
@@ -33,7 +33,19 @@ public:
   const hash_256& operator=(const hash_256& equ);
   const bool operator==(const hash_256& comp) const;
   const bool operator!=(const hash_256& comp) const;
-  friend std::ostream& operator<<(std::ostream& os, const hash_256& obj);
+  friend std::ostream& operator<<(std::ostream& os, const hash_256& obj)
+  {
+    int cnt = 0;
+        
+    while(cnt<BYTE_SIZE_HASH)
+    {
+        os<<((unsigned int)(unsigned char) obj.hash_array[cnt]);
+        cnt++;
+        if(cnt<BYTE_SIZE_HASH)
+            os<<':';
+    }
+    return os;
+  }
 };
 
 static hash_256 build_hash(char* data, int length)
@@ -71,6 +83,8 @@ static hash_256 build_hash(char* data, int length)
   hash_256 ret(char_array);
   
   return ret;
+}
+
 }
 
 #endif

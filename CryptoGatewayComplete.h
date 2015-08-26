@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 9/26/2014
+//Confirmed working: 8/21/2015
 
 #ifndef CRYPTOGATEWAYCOMPLETE_H
 #define CRYPTOGATEWAYCOMPLETE_H
@@ -13,5 +13,6 @@
 #include "RC4_Hash.cpp"
 #include "security_gateway.cpp"
 #include "streamCode.cpp"
+#include "cryptoLogging.cpp"
 
 #endif

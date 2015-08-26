@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 2/14/2015
+//Certified working 8/21/2015
 
 #ifndef LARGE_NUMBER_CPP
 #define LARGE_NUMBER_CPP
@@ -9,10 +9,12 @@
 #include <iostream>
 #include <stdlib.h>
 
+#include "cryptoLogging.h"
 #include "large_number.h"
 #include "security_gateway.h"
 
 using namespace std;
+using namespace crypto;
 
 //Constructors----------------------------------------------------------
   //Default large_number constructor
@@ -337,8 +339,8 @@ using namespace std;
     
     if(this->gcd(mod).compare(one)!=0)
     {
-      cerr<<"Impossible to preform modular inverse!"<<endl;
-      cerr<<"GCD is not one"<<endl;
+      cryptoerr<<"Impossible to preform modular inverse!"<<endl;
+      cryptoerr<<"GCD is not one"<<endl;
       return one;
     }
     
@@ -374,7 +376,7 @@ using namespace std;
     
     if(r.compare(one)==1)
     {
-      cerr<<"There is no modular inverse!"<<endl;
+      cryptoerr<<"There is no modular inverse!"<<endl;
       return one;
     }
     
@@ -395,9 +397,9 @@ using namespace std;
       if(pow.getBit(cnt))
       {
 	/*ret.printHex();
-	cout<<endl;
+	cryptoout<<endl;
 	trace.printHex();
-	cout<<endl<<endl;*/
+	cryptoout<<endl<<endl;*/
 	
 	ret = ret.multiply(trace);
 	ret = ret.mod(mod);
@@ -555,10 +557,10 @@ using namespace std;
     int cnt = LARGE_NUMBER_SIZE-1;
     while(cnt>=0)
     {
-      cout<<hex<<data[cnt];
+      cryptoout<<hex<<data[cnt];
       cnt--;
       if(cnt>=0)
-	cout<<":";
+	cryptoout<<":";
     }
   }
   //Prints the binary of the number
@@ -569,29 +571,15 @@ using namespace std;
     while(cnt>=0)
     {
       if(getBit(cnt))
-	cout<<1;
+	cryptoout<<1;
       else
-	cout<<0;
+	cryptoout<<0;
       
       if(cnt%32==0&&cnt-1>0)
-	cout<<" : ";
+	cryptoout<<" : ";
       
       cnt--;
     }
-  }
-  //The ostrem operator
-  std::ostream& operator<<(std::ostream& os, const large_number& obj)
-  {
-    int cnt = LARGE_NUMBER_SIZE-1;
-    
-    while(cnt>=0)
-    {
-      os<<dec<<obj.data[cnt];
-      cnt--;
-      if(cnt>=0)
-	os<<":";
-    }
-    return os;
   }
   
 //Operators------------------------------------------------------------

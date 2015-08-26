@@ -5,10 +5,12 @@
 
 #ifndef STREAMCODE_H
 #define STREAMCODE_H
-
+    
 #include <stdint.h>
 #include "RC4.h"
 
+namespace crypto {
+    
 #define PACKETSIZE 508
 #define DECRYSIZE 100
 #define BACKCHECK 10
@@ -47,5 +49,7 @@ public:
   
   
 };
+    
+}
 
 #endif

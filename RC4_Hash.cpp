@@ -1,12 +1,14 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/12/2014
+//Confirmed working: 8/21/2015
 
 #ifndef RC4_HASH_CPP
 #define RC4_HASH_CPP
 
+#include "cryptoLogging.h"
 #include "RC4_Hash.h"
 
 using namespace std;
+using namespace crypto;
 
 //Default hash constructor
 hash_256::hash_256()
@@ -35,7 +37,7 @@ void hash_256::push_hash(const char* input)
   while(cnt<BYTE_SIZE_HASH)
   {
     hash_array[cnt] = input[cnt];
-	//cout<<input[cnt]<<endl;
+	//cryptoout<<input[cnt]<<endl;
     cnt++;
   }
 }
@@ -73,20 +75,6 @@ const bool hash_256::operator==(const hash_256& comp) const
 const bool hash_256::operator!=(const hash_256& comp) const
 {
   return !compare(comp);
-}
-//Stream operator
-std::ostream& operator<<(std::ostream& os, const hash_256& obj)
-{
-  int cnt = 0;
-  
-  while(cnt<BYTE_SIZE_HASH)
-  {
-    os<<((unsigned int)(unsigned char) obj.hash_array[cnt]);
-    cnt++;
-    if(cnt<BYTE_SIZE_HASH)
-      os<<':';
-  }
-  return os;
 }
 
 #endif

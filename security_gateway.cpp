@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 5/24/2015
+//Confirmed working: 8/21/2015
 
 /*
 	NOTE: This file may have endian problems
@@ -12,6 +12,7 @@
 #include <iostream>
 #include <stdlib.h>
 
+#include "cryptoLogging.h"
 #include "file_mechanics.h"
 #include "interior_message.h"
 #include "public_key.h"
@@ -19,6 +20,20 @@
 #include "RC4.h"
 
 #include "security_gateway.h"
+
+#define MESSAGE_INITIAL 0
+#define MESSAGE_EXCHANGE_STREAM 1
+#define MESSAGE_SIGN 2
+#define MESSAGE_PING 3
+#define MESSAGE_DECRYPT 4
+#define MESSAGE_CONFIRM_OLD 5
+
+#define MESSAGE_CRYPTO_ERROR 253
+#define MESSAGE_ERROR_CONFIRM 254
+#define MESSAGE_ERROR 255
+
+using namespace std;
+using namespace crypto;
 
 //Constructors-------------------------------------------------------------------
 
@@ -32,6 +47,8 @@ security_gateway::security_gateway()
   connection_signed = false;
   key_coded = false;
   brother_key_set = false;
+    
+  last_message_type = MESSAGE_INITIAL;
   
   connection_type = 0;
   current_status = 0;
@@ -61,6 +78,8 @@ security_gateway::security_gateway(public_key_base* key_source, uint8_t type, ch
   key_coded = false;
   brother_key_set = false;
   
+  last_message_type = MESSAGE_INITIAL;
+    
   connection_type = 0;
   current_status = 0;
   brother_status = 0;
@@ -85,8 +104,11 @@ security_gateway::security_gateway(public_key_base* key_source, uint8_t type, ch
 security_gateway::~security_gateway()
 {
   //Note: do not delete the crypto base, it is shared
+  decrypLock.acquire();
   if(decryp!=NULL)
     delete(decryp);
+  decrypLock.release();
+    
   if(encry!=NULL)
     delete(encry);
   if(RC_key_message!=NULL)
@@ -191,11 +213,17 @@ void security_gateway::build_encryption_stream()
   srand(time(NULL));
 
   //Randomly set the key
-  while(cnt<LARGE_NUMBER_SIZE*2+3)
+  while(cnt<LARGE_NUMBER_SIZE*2+4)
   {
 	RC4_array[cnt] = (uint8_t) (rand());
     cnt++;
   }
+    
+  //Zero out last few bytes
+  RC4_array[LARGE_NUMBER_SIZE*2]=0;
+  RC4_array[LARGE_NUMBER_SIZE*2+1]=0;
+  RC4_array[LARGE_NUMBER_SIZE*2+2]=0;
+  RC4_array[LARGE_NUMBER_SIZE*2+3]=0;
   
   if(encry!=NULL)
     delete(encry);
@@ -241,7 +269,11 @@ void security_gateway::reset()
   last_timestamp = 0;
   
   encry = NULL;
+  decrypLock.acquire();
+  if(decryp!=NULL)
+      delete decryp;
   decryp = NULL;
+  decrypLock.release();
   RC_key_message = NULL;
   
   build_encryption_stream();
@@ -259,7 +291,9 @@ void security_gateway::push_old_key(uint8_t* b, int length)
 //Push the old key
 void security_gateway::push_old_key(large_integer key)
 {
+  oldBrotherKeyLock.acquire();
   old_brother_key = key;
+  oldBrotherKeyLock.release();
   brother_key_set = true;
 }
 //Triggers an error in the gateway
@@ -283,7 +317,7 @@ bool security_gateway::is_active()
 }
 bool security_gateway::connected()
 {
-  if(connection_signed&&!error&&!crypto_error&&brother_status!=255)
+  if(connection_signed && !error && !crypto_error && brother_status!=255 && brother_status>=3)
     return true;
   return false;
 }
@@ -315,7 +349,7 @@ interior_message* security_gateway::get_message()
     }
     
     uint8_t* err = error_message.get_int_data();
-    err[0] = 253;
+    err[0] = MESSAGE_CRYPTO_ERROR;
     err[1] = 255;
     err[2] = 0;
     err[3] = 0;
@@ -325,6 +359,7 @@ interior_message* security_gateway::get_message()
   //No connection received
   if(brother_status == 0 && !error)
   {
+    identifier_message.get_int_data()[0] = MESSAGE_INITIAL;
     identifier_message.get_int_data()[1] = current_status;
     push_timestamp_initialize(&identifier_message);
     return &identifier_message;
@@ -335,6 +370,7 @@ interior_message* security_gateway::get_message()
     //This gateway has received the initial message
     if(initial_message)
     {
+      RC_key_message->get_int_data()[0] = MESSAGE_EXCHANGE_STREAM;
       RC_key_message->get_int_data()[1] = current_status;
       //Encrypt the message, only once
       if(!key_coded)
@@ -342,13 +378,16 @@ interior_message* security_gateway::get_message()
 		key_coded = true;
 		temp = RC_key_message->get_int_data();
 		temp = &temp[4];
+        brotherKeyLock.acquire();
 		crypto_base->encode((char*)temp,LARGE_NUMBER_SIZE*2,brother_key);
+        brotherKeyLock.release();
       }
       return RC_key_message;
     }
     //This gateway has not received the intial message, request it
     else
     {
+      identifier_message.get_int_data()[0] = MESSAGE_INITIAL;
       identifier_message.get_int_data()[1] = current_status;
       push_timestamp_initialize(&identifier_message);
       return &identifier_message;
@@ -368,7 +407,7 @@ interior_message* security_gateway::get_message()
 	}
 
     key_confirmation.push_length(12+LARGE_NUMBER_SIZE*2);
-    temp[0] = 2;
+    temp[0] = MESSAGE_SIGN;
     temp[1] = current_status;
     
     //Copy timestamps
@@ -394,11 +433,13 @@ interior_message* security_gateway::get_message()
     }
     temp_cnt = 0;
     //Copy the brother ID
+    brotherIDLock.acquire();
     while(temp_cnt<ID_SIZE)
     {
       temp[12+ID_SIZE+temp_cnt] = brother_ID[temp_cnt];
       temp_cnt++;
     }
+    brotherIDLock.release();
     
     //Run hash function
     hash_256 hash = build_hash((char*) &temp[8],4+ID_SIZE*2);
@@ -428,7 +469,7 @@ interior_message* security_gateway::get_message()
   if(brother_status == 3 && !error)
   {
     uint8_t* err = error_message.get_int_data();
-    err[0] = 3;
+    err[0] = MESSAGE_PING;
     err[1] = current_status;
     err[2] = 0;
     err[3] = 0;
@@ -449,7 +490,7 @@ interior_message* security_gateway::get_message()
 	}
 
     key_confirmation.push_length(8+LARGE_NUMBER_SIZE*2);
-    temp[0] = 5;
+    temp[0] = MESSAGE_CONFIRM_OLD;
     temp[1] = current_status;
     
     //Copy timestamps
@@ -475,11 +516,13 @@ interior_message* security_gateway::get_message()
     }
     temp_cnt = 0;
     //Copy the brother ID
+    brotherIDLock.acquire();
     while(temp_cnt<ID_SIZE)
     {
       temp[12+ID_SIZE+temp_cnt] = brother_ID[temp_cnt];
       temp_cnt++;
     }
+    brotherIDLock.release();
     
     //Run hash function
     hash_256 hash = build_hash((char*) &temp[8],4+ID_SIZE*2);
@@ -509,7 +552,7 @@ interior_message* security_gateway::get_message()
   if(brother_status == 255 && !error)
   {
     uint8_t* err = error_message.get_int_data();
-    err[0] = 254;
+    err[0] = MESSAGE_ERROR_CONFIRM;
     err[1] = current_status;
     err[2] = 0;
     err[3] = 0;
@@ -519,7 +562,7 @@ interior_message* security_gateway::get_message()
   
   //Return error message
   uint8_t* err = error_message.get_int_data();
-  err[0] = -1;
+  err[0] = MESSAGE_ERROR;
   err[1] = current_status;
   err[2] = 0;
   err[3] = 0;
@@ -540,9 +583,9 @@ bool security_gateway::process_message(interior_message* msg)
   uint8_t message_type = message_array[0];
   uint16_t stream_flag = (((uint16_t) message_array[2])<<8)^message_array[3];
   brother_status = message_array[1];
-  
+    
   //Crypto error
-  if(message_type==253)
+  if(message_type==MESSAGE_CRYPTO_ERROR)
   {
     reset();
     last_timestamp = get_timestamp();
@@ -550,7 +593,7 @@ bool security_gateway::process_message(interior_message* msg)
   }
   
   //Brother confirmed your error
-  if(message_type==254)
+  if(message_type==MESSAGE_ERROR_CONFIRM)
   {
     reset();
     
@@ -559,7 +602,7 @@ bool security_gateway::process_message(interior_message* msg)
   }
   
   //Brother has thrown an error, reset
-  if(message_type==255)
+  if(message_type==MESSAGE_ERROR)
   {
     reset();
     brother_status = 255;
@@ -569,7 +612,7 @@ bool security_gateway::process_message(interior_message* msg)
   }
   
   //Initial message
-  if(message_type==0)
+  if(message_type==MESSAGE_INITIAL)
   {
     //First process
     if(!initial_message)
@@ -578,11 +621,13 @@ bool security_gateway::process_message(interior_message* msg)
       current_status = 1;
       
       //Process ID
+      brotherIDLock.acquire();
       while(cnt<ID_SIZE+4)
       {
 		brother_ID[cnt-4] = message_array[cnt];
 		cnt++;
       }
+      brotherIDLock.release();
       
       //Process timestamp
       uint64_t* msg_timestamp = (uint64_t*) &message_array[cnt];
@@ -596,12 +641,15 @@ bool security_gateway::process_message(interior_message* msg)
       
 	  *msg_timestamp = to_comp_mode_sgtw(*msg_timestamp);
       //Process public key
+      brotherKeyLock.acquire();
       brother_key.push_array_comp_mode((uint32_t*)&message_array[cnt+8],LARGE_NUMBER_SIZE/2);
+      brotherKeyLock.release();
     }
     //Compare with current variables
     else
     {
       //Check ID
+      brotherIDLock.acquire();
       while(cnt<ID_SIZE+4)
       {
 		if(brother_ID[cnt-4] != message_array[cnt])
@@ -610,38 +658,54 @@ bool security_gateway::process_message(interior_message* msg)
 		}
 		cnt++;
       }
+      brotherIDLock.release();
       //Ignore timestamp
       
       //Check public key
       large_integer hld;
       hld.push_array_comp_mode((uint32_t*)&message_array[cnt+8],LARGE_NUMBER_SIZE/2);
+      brotherKeyLock.acquire();
       if(hld!=brother_key)
       {
 		error = true;
       }
+      brotherKeyLock.release();
     }
     last_timestamp = get_timestamp();
   }
   
   //Exchange stream key
-  if(message_type==1)
+  if(message_type==MESSAGE_EXCHANGE_STREAM && decryp==NULL)
   {
-    message_array = &message_array[4];
-    crypto_base->decode((char*)message_array,LARGE_NUMBER_SIZE*2);
+    if(message_type==last_message_type)
+        last_timestamp = get_timestamp();
+    else
+    {
+        message_array = &message_array[4];
+        crypto_base->decode((char*)message_array,LARGE_NUMBER_SIZE*2);
     
-	current_status = 2;
-    RCFour* rc_temp = new RCFour(message_array, LARGE_NUMBER_SIZE*2-1);
-    decryp = new streamDecrypter(rc_temp);
-    last_timestamp = get_timestamp();
+        current_status = 2;
+        decrypLock.acquire();
+        if(decryp!=NULL)
+            delete decryp;
+        decrypLock.release();
+        RCFour* rc_temp = new RCFour(message_array, LARGE_NUMBER_SIZE*2-1);
+        decrypLock.acquire();
+        decryp = new streamDecrypter(rc_temp);
+        decrypLock.release();
+        last_timestamp = get_timestamp();
+    }
   }
   
   //Attempt signatures
-  if(message_type==2)
+  if(message_type==MESSAGE_SIGN)
   {
+      //cryptoout<<"Checking signature"<<endl;
     //Test for a valid decryption array
     if(decryp == NULL)
     {
       error = true;
+        //cryptoout<<"Failed 1"<<endl;
       return false;
     }
 
@@ -649,7 +713,15 @@ bool security_gateway::process_message(interior_message* msg)
     if(NULL==decryp->recieveData(&message_array[4],msg->get_length()-4,stream_flag))
     {
       error = true;
+        //cryptoout<<"Failed 2"<<endl;
       return false;
+    }
+      
+    //Just confirmed a signature, don't do it again
+    if(message_type==last_message_type)
+    {
+        //cryptoout<<"Already done"<<endl;
+        return true;
     }
     
     //Build the hash
@@ -659,11 +731,13 @@ bool security_gateway::process_message(interior_message* msg)
     hash_comp[1] = message_array[5];
     hash_comp[2] = message_array[6];
     hash_comp[3] = message_array[7];
+    brotherIDLock.acquire();
     while(cnt<ID_SIZE)
     {
       hash_comp[4+cnt] = brother_ID[cnt];
       cnt++;
     }
+    brotherIDLock.release();
     cnt=0;
     while(cnt<ID_SIZE)
     {
@@ -673,23 +747,31 @@ bool security_gateway::process_message(interior_message* msg)
     hash_256 hash = build_hash((char*) hash_comp,4+2*ID_SIZE);
     
     //Decrypt message
+    brotherKeyLock.acquire();
     crypto_base->encode((char*)&message_array[8],LARGE_NUMBER_SIZE*2,brother_key);
-    
+    brotherKeyLock.release();
+      
     //Compare two hashes
     hash_256 inbound((char*)&message_array[8]);
     if(hash!=inbound)
     {
       force_crypto_error();
+        //cryptoout<<"Failed 3"<<endl;
       return false;
     }
     
+    brotherKeyLock.acquire();
+    oldBrotherKeyLock.acquire();
     if(brother_key_set&&old_brother_key!=brother_key)
     {
-		cout<<old_brother_key<<endl;
-		cout<<brother_key<<endl;
+      brotherKeyLock.release();
+      oldBrotherKeyLock.release();
+        
       current_status = 4;
       return !(error);
     }
+    brotherKeyLock.release();
+    oldBrotherKeyLock.release();
     current_status = 3;
     connection_signed = true;
     
@@ -697,13 +779,13 @@ bool security_gateway::process_message(interior_message* msg)
   }
   
   //Continued connection, no action taken
-  if(message_type==3)
+  if(message_type==MESSAGE_PING)
   {
 	  last_timestamp = get_timestamp();
   }
   
   //Decrypt the message
-  if(message_type==4)
+  if(message_type==MESSAGE_DECRYPT)
   {
     //Test for a valid decryption array
     if(decryp == NULL || !connection_signed)
@@ -722,7 +804,7 @@ bool security_gateway::process_message(interior_message* msg)
   }
   
   //Confirm signature from old key
-  if(message_type==5)
+  if(message_type==MESSAGE_CONFIRM_OLD)
   {
     //Test for a valid decryption array
     if(decryp == NULL)
@@ -731,6 +813,10 @@ bool security_gateway::process_message(interior_message* msg)
       return false;
     }
     
+    //Just confirmed a signature, don't do it again
+    if(message_type==last_message_type)
+        return true;
+      
     //Decrypt the array, based on the stream
     if(NULL==decryp->recieveData(&message_array[4],msg->get_length()-4,stream_flag))
     {
@@ -745,11 +831,13 @@ bool security_gateway::process_message(interior_message* msg)
     hash_comp[1] = message_array[5];
     hash_comp[2] = message_array[6];
     hash_comp[3] = message_array[7];
+    brotherIDLock.acquire();
     while(cnt<ID_SIZE)
     {
       hash_comp[4+cnt] = brother_ID[cnt];
       cnt++;
     }
+    brotherIDLock.release();
     cnt=0;
     while(cnt<ID_SIZE)
     {
@@ -759,7 +847,9 @@ bool security_gateway::process_message(interior_message* msg)
     hash_256 hash = build_hash((char*) hash_comp,4+2*ID_SIZE);
     
     //Decrypt message
+    oldBrotherKeyLock.acquire();
     crypto_base->encode((char*)&message_array[8],LARGE_NUMBER_SIZE*2,old_brother_key);
+    oldBrotherKeyLock.release();
     
     //Compare two hashes
     hash_256 inbound((char*)&message_array[8]);
@@ -793,14 +883,20 @@ interior_message* security_gateway::encrypt_message(interior_message* msg)
   return msg;
 }
 //Returns the brother key
-large_integer security_gateway::getBrotherKey()
+const large_integer security_gateway::getBrotherKey()
 {
-	return brother_key;
+    brotherKeyLock.acquire();
+    large_integer ret = brother_key;
+    brotherKeyLock.release();
+	return ret;
 }
 //Returns the old brother key
-large_integer security_gateway::getOldBrotherKey()
+const large_integer security_gateway::getOldBrotherKey()
 {
-	return old_brother_key;
+    oldBrotherKeyLock.acquire();
+    large_integer ret = old_brother_key;
+    oldBrotherKeyLock.release();
+    return ret;
 }
 //Returns the public key base
 public_key_base* security_gateway::getPublicKey()
@@ -820,6 +916,9 @@ uint8_t security_gateway::getMyStatus()
 //Returns the ID of the brother
 std::string security_gateway::getBrotherID()
 {
-	return std::string(brother_ID);
+    brotherIDLock.acquire();
+    std:string ret = std::string(brother_ID);
+    brotherIDLock.release();
+    return ret;
 }
 #endif

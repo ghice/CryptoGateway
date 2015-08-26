@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 6/7/2015
+//Certified working 7/29/2015
 
 #ifndef FILE_MECHANICS_H
 #define FILE_MECHANICS_H
@@ -9,14 +9,109 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
-#include <math.h> 
+#include <cmath>
 
-using namespace std;
+namespace crypto {
+    
+//Changes an int to compatibility mode
+static uint16_t to_comp_mode_sgtw(uint16_t i)
+{
+    uint16_t temp = 1;
+    //Switch little to big endian
+    if(((char*) &temp)[0] == 0)
+    {
+        ((char*) &temp)[0] = ((char*) &i)[1];
+        ((char*) &temp)[1] = ((char*) &i)[0];
+        return temp;
+    }
+    return i;
+}
+//Changes an int from compatibility mode to system mode
+static uint16_t from_comp_mode_sgtw(uint16_t i)
+{
+    uint16_t temp = 1;
+    //Switch little to big endian
+    if(((char*) &temp)[0] == 0)
+    {
+        ((char*) &temp)[0] = ((char*) &i)[1];
+        ((char*) &temp)[1] = ((char*) &i)[0];
+        return temp;
+    }
+    return i;
+}
+//Changes an int to compatibility mode
+static uint32_t to_comp_mode_sgtw(uint32_t i)
+{
+    uint32_t temp = 1;
+    //Switch little to big endian
+    if(((char*) &temp)[0] == 0)
+    {
+        ((char*) &temp)[0] = ((char*) &i)[3];
+        ((char*) &temp)[1] = ((char*) &i)[2];
+        ((char*) &temp)[2] = ((char*) &i)[1];
+        ((char*) &temp)[3] = ((char*) &i)[0];
+        return temp;
+    }
+    return i;
+}
+//Changes an int from compatibility mode to system mode
+static uint32_t from_comp_mode_sgtw(uint32_t i)
+{
+    uint32_t temp = 1;
+    //Switch little to big endian
+    if(((char*) &temp)[0] == 0)
+    {
+        ((char*) &temp)[0] = ((char*) &i)[3];
+        ((char*) &temp)[1] = ((char*) &i)[2];
+        ((char*) &temp)[2] = ((char*) &i)[1];
+        ((char*) &temp)[3] = ((char*) &i)[0];
+        return temp;
+    }
+    return i;
+}
+//Changes an int to compatibility mode
+static uint64_t to_comp_mode_sgtw(uint64_t i)
+{
+    uint64_t temp = 1;
+    //Switch little to big endian
+    if(((char*) &temp)[0] == 0)
+    {
+        ((char*) &temp)[0] = ((char*) &i)[7];
+        ((char*) &temp)[1] = ((char*) &i)[6];
+        ((char*) &temp)[2] = ((char*) &i)[5];
+        ((char*) &temp)[3] = ((char*) &i)[4];
+        ((char*) &temp)[4] = ((char*) &i)[3];
+        ((char*) &temp)[5] = ((char*) &i)[2];
+        ((char*) &temp)[6] = ((char*) &i)[1];
+        ((char*) &temp)[7] = ((char*) &i)[0];
+        return temp;
+    }
+    return i;
+}
+//Changes an int from compatibility mode to system mode
+static uint64_t from_comp_mode_sgtw(uint64_t i)
+{
+    uint64_t temp = 1;
+    //Switch little to big endian
+    if(((char*) &temp)[0] == 0)
+    {
+        ((char*) &temp)[0] = ((char*) &i)[7];
+        ((char*) &temp)[1] = ((char*) &i)[6];
+        ((char*) &temp)[2] = ((char*) &i)[5];
+        ((char*) &temp)[3] = ((char*) &i)[4];
+        ((char*) &temp)[4] = ((char*) &i)[3];
+        ((char*) &temp)[5] = ((char*) &i)[2];
+        ((char*) &temp)[6] = ((char*) &i)[1];
+        ((char*) &temp)[7] = ((char*) &i)[0];
+        return temp;
+    }
+    return i;
+}
 
 //Test if a file exists
-static bool file_exists(const string& file_name)
+static bool file_exists(const std::string& file_name)
 {
-  ifstream tst(file_name.c_str());
+  std::ifstream tst(file_name.c_str());
   if(tst.good())
   {
     tst.close();
@@ -41,7 +136,11 @@ static std::string convertTimestamp(uint64_t stamp)
 	struct tm timeinfo;
 	char buffer [200];
 
+    #ifdef _WIN32
 	localtime_s (&timeinfo,&rawtime);
+    #else
+    localtime_r (&rawtime,&timeinfo);
+    #endif
 
 	strftime (buffer,200,"%m/%d/%Y at %I:%M %p",&timeinfo);
 	return std::string(buffer);
@@ -97,7 +196,7 @@ static int conver_char_int(const char char_to_check)
   return 0;
 }
 //Converts a string to an unsigned 64 bit integer
-static uint64_t convert_64(const string& str)
+static uint64_t convert_64(const std::string& str)
 {
   uint64_t ret = 0;
   int hld;
@@ -111,6 +210,8 @@ static uint64_t convert_64(const string& str)
   }
   
   return ret;
+}
+
 }
 
 #endif

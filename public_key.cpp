@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 4/29/2015
+//Certified working 8/21/2015
 
 #ifndef PUBLIC_KEY_CPP
 #define PUBLIC_KEY_CPP
@@ -9,12 +9,14 @@
 #include <stdlib.h>
 #include "file_mechanics.h"
 
+#include "cryptoLogging.h"
 #include "large_number.h"
 #include "public_key.h"
 #include "streamCode.h"
 #include "security_gateway.h"
 
 using namespace std;
+using namespace crypto;
 
 //Constructors---------------------------------------------------------------
 
@@ -30,6 +32,8 @@ public_key_base::public_key_base()
   eArray[0] = (1<<16)+1;
   e.push_array(eArray, 1);
   
+  log_error = false;
+    
   //Generate/find keys
   if(!file_exists(full_file)|| !load_file(full_file))
     build_file(full_file);
@@ -44,6 +48,8 @@ public_key_base::public_key_base(const string& fileloc)
   uint32_t eArray[1];
   eArray[0] = (1<<16)+1;
   e.push_array(eArray, 1);
+
+  log_error = false;
   
   //Generate/find keys
   if(!file_exists(full_file) || !load_file(full_file))
@@ -60,6 +66,8 @@ public_key_base::public_key_base(const string& username, const string& password)
   uint32_t eArray[1];
   eArray[0] = (1<<16)+1;
   e.push_array(eArray, 1);
+
+  log_error = false;
   
   //Generate/find keys
   if(!file_exists(full_file)|| !load_file(full_file))
@@ -75,6 +83,8 @@ public_key_base::public_key_base(const string& fileloc, const string& username, 
   uint32_t eArray[1];
   eArray[0] = (1<<16)+1;
   e.push_array(eArray, 1);
+
+  log_error = false;
   
   //Generate/find keys
   if(!file_exists(full_file) || !load_file(full_file))
@@ -90,7 +100,8 @@ public_key_base::~public_key_base()
 //Builds the file
 bool public_key_base::build_file(const string& full_file)
 {
-  cout<<"Generating public and private keys..."<<endl;
+  if(log_error)
+      cryptoout<<"Generating public and private keys..."<<endl;
   large_integer p = generate_half_prime();
   large_integer q = generate_half_prime();
   
@@ -120,8 +131,8 @@ bool public_key_base::save_file(const string& full_file)
   if(!output.good())
   {
     output.close();
-    cerr<<"Cannot construct the \""<<KEY_FILE_NAME<<"\" in the indicated directory"<<endl;
-    cerr<<"Aborting program!"<<endl;
+    cryptoerr<<"Cannot construct the \""<<KEY_FILE_NAME<<"\" in the indicated directory"<<endl;
+    cryptoerr<<"Aborting program!"<<endl;
     exit(EXIT_FAILURE);
     return false;
   }
@@ -246,8 +257,8 @@ bool public_key_base::load_file(const string& full_file)
   if(!input.good())
   {
     input.close();
-    cerr<<"Cannot load the \""<<KEY_FILE_NAME<<"\" in the indicated directory"<<endl;
-    cerr<<"Attempting to construct file instead"<<endl;
+    cryptoerr<<"Cannot load the \""<<KEY_FILE_NAME<<"\" in the indicated directory"<<endl;
+    cryptoerr<<"Attempting to construct file instead"<<endl;
     return false;
   }
   
@@ -260,8 +271,11 @@ bool public_key_base::load_file(const string& full_file)
   if(input.eof())
   {
     input.close();
-    cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-    cerr<<"Attempting to construct file instead"<<endl;
+    if(log_error)
+    {
+        cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+        cryptoerr<<"Attempting to construct file instead"<<endl;
+    }
     return false;
   }
   input>>temp;
@@ -278,8 +292,11 @@ bool public_key_base::load_file(const string& full_file)
   if(input.eof())
   {
     input.close();
-    cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-    cerr<<"Attempting to construct file instead"<<endl;
+    if(log_error)
+    {
+        cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+        cryptoerr<<"Attempting to construct file instead"<<endl;
+    }
     return false;
   }
   
@@ -287,8 +304,11 @@ bool public_key_base::load_file(const string& full_file)
   if(convert_64(stmp)>get_timestamp())
   {
     input.close();
-    cerr<<"Invalid timestamp"<<endl;
-    cerr<<"Constructing keys instead"<<endl;
+    if(log_error)
+    {
+        cryptoerr<<"Invalid timestamp"<<endl;
+        cryptoerr<<"Constructing keys instead"<<endl;
+    }
     return false;
   }
   
@@ -301,8 +321,11 @@ bool public_key_base::load_file(const string& full_file)
   if(input.eof())
   {
     input.close();
-    cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-    cerr<<"Attempting to construct file instead"<<endl;
+    if(log_error)
+    {
+          cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+          cryptoerr<<"Attempting to construct file instead"<<endl;
+    }
     return false;
   }
   input>>temp;
@@ -311,8 +334,11 @@ bool public_key_base::load_file(const string& full_file)
   if(input.eof())
   {
     input.close();
-    cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-    cerr<<"Attempting to construct file instead"<<endl;
+    if(log_error)
+    {
+        cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+        cryptoerr<<"Attempting to construct file instead"<<endl;
+    }
     return false;
   }
   
@@ -356,8 +382,11 @@ bool public_key_base::load_file(const string& full_file)
     if(input.eof())
     {
       input.close();
-      cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-      cerr<<"Attempting to construct file instead"<<endl;
+      if(log_error)
+      {
+          cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+          cryptoerr<<"Attempting to construct file instead"<<endl;
+      }
       return false;
     }
     input>>temp;
@@ -368,8 +397,11 @@ bool public_key_base::load_file(const string& full_file)
       if(!check_numeric(temp)||input.eof())
       {
 		input.close();
-		cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-		cerr<<"Attempting to construct file instead"<<endl;
+        if(log_error)
+        {
+            cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+            cryptoerr<<"Attempting to construct file instead"<<endl;
+        }
 		if(encry_stream!=NULL)
 			delete encry_stream;
 		return false;
@@ -411,8 +443,11 @@ bool public_key_base::load_file(const string& full_file)
     if(input.eof())
     {
       input.close();
-      cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-      cerr<<"Attempting to construct file instead"<<endl;
+      if(log_error)
+      {
+          cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+          cryptoerr<<"Attempting to construct file instead"<<endl;
+      }
 	  if(encry_stream!=NULL)
 			delete encry_stream;
       return false;
@@ -425,8 +460,11 @@ bool public_key_base::load_file(const string& full_file)
       if(!check_numeric(temp)||input.eof())
       {
 		input.close();
-		cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-		cerr<<"Attempting to construct file instead"<<endl;
+        if(log_error)
+        {
+            cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+              cryptoerr<<"Attempting to construct file instead"<<endl;
+        }
 		if(encry_stream!=NULL)
 			delete encry_stream;
 		return false;
@@ -467,8 +505,11 @@ bool public_key_base::load_file(const string& full_file)
     if(input.eof())
     {
       input.close();
-      cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-      cerr<<"Attempting to construct file instead"<<endl;
+      if(log_error)
+      {
+            cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+            cryptoerr<<"Attempting to construct file instead"<<endl;
+      }
 	  if(encry_stream!=NULL)
 			delete encry_stream;
       return false;
@@ -481,9 +522,12 @@ bool public_key_base::load_file(const string& full_file)
       if(!check_numeric(temp)||input.eof())
       {
 		input.close();
-		cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-		cerr<<"Attempting to construct file instead"<<endl;
-		if(encry_stream!=NULL)
+        if(log_error)
+        {
+            cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+            cryptoerr<<"Attempting to construct file instead"<<endl;
+        }
+        if(encry_stream!=NULL)
 			delete encry_stream;
 		return false;
       }
@@ -524,8 +568,11 @@ bool public_key_base::load_file(const string& full_file)
     if(input.eof())
     {
       input.close();
-      cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-      cerr<<"Attempting to construct file instead"<<endl;
+      if(log_error)
+      {
+          cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+          cryptoerr<<"Attempting to construct file instead"<<endl;
+      }
 	  if(encry_stream!=NULL)
 			delete encry_stream;
       return false;
@@ -538,8 +585,11 @@ bool public_key_base::load_file(const string& full_file)
       if(!check_numeric(temp)||input.eof())
       {
 		input.close();
-		cerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
-		cerr<<"Attempting to construct file instead"<<endl;
+        if(log_error)
+        {
+            cryptoerr<<"Error in loading the \""<<KEY_FILE_NAME<<"\""<<endl;
+            cryptoerr<<"Attempting to construct file instead"<<endl;
+        }
 		if(encry_stream!=NULL)
 			delete encry_stream;
 		return false;
@@ -619,8 +669,8 @@ bool public_key_base::generate_new_keys()
   if(!output.good())
   {
     output.close();
-    cerr<<"Cannot construct the \""<<KEY_FILE_NAME<<"\" in the indicated directory"<<endl;
-    cerr<<"Aborting program!"<<endl;
+    cryptoerr<<"Cannot construct the \""<<KEY_FILE_NAME<<"\" in the indicated directory"<<endl;
+    cryptoerr<<"Aborting program!"<<endl;
     exit(EXIT_FAILURE);
     return false;
   }
@@ -628,7 +678,8 @@ bool public_key_base::generate_new_keys()
   output<<"Timestamp:"<<get_timestamp()<<endl;
   output<<"Type:"<<0<<endl;
   
-  cout<<"Generating public and private keys..."<<endl;
+  if(log_error)
+      cryptoout<<"Generating public and private keys..."<<endl;
   large_integer p = generate_half_prime();
   large_integer q = generate_half_prime();
   
@@ -721,18 +772,18 @@ int public_key_base::get_message_cap() const
 //Encodes based on some public n
 large_integer public_key_base::encode(const large_integer& code, const large_integer& pub_n) const
 {
-  if(code>n)
-    cerr<<"Warning: code is larger than public key"<<endl;
+  if(code>n && log_error)
+    cryptoerr<<"Warning: code is larger than public key (encode)"<<endl;
   return code.modExpo(e,pub_n);
 }
 //Encode a byte array
 char* public_key_base::encode(char* code, const int code_len, const large_integer& pub_key) const
 {
   //Test code length
-  if(code_len>get_message_cap())
+  if(code_len>get_message_cap()&& log_error)
   {
-    cerr<<"Message length is larger than the cap"<<endl;
-    cerr<<"Message will be culled"<<endl;
+    cryptoerr<<"Message length is larger than the cap"<<endl;
+    cryptoerr<<"Message will be culled"<<endl;
   }
 
   //Build array
@@ -785,10 +836,10 @@ char* public_key_base::encode(char* code, const int code_len, const large_intege
 char* public_key_base::encode(char* code, const int code_len,const char* key, const int key_len) const
 {
   //Test code length
-  if(key_len>get_message_cap())
+  if(key_len>get_message_cap()&& log_error)
   {
-    cerr<<"Key length is larger than the cap"<<endl;
-    cerr<<"Key will be culled"<<endl;
+    cryptoerr<<"Key length is larger than the cap"<<endl;
+    cryptoerr<<"Key will be culled"<<endl;
   }
   //Build array
   char array[LARGE_NUMBER_SIZE*2];
@@ -821,18 +872,18 @@ char* public_key_base::encode(char* code, const int code_len,const char* key, co
 //Decodes based on this private key
 large_integer public_key_base::decode(const large_integer& code) const
 {
-  if(code>n)
-    cerr<<"Warning: code is larger than public key"<<endl;
+  if(code>n&& log_error)
+    cryptoerr<<"Warning: code is larger than public key (decode)"<<endl;
   return code.modExpo(d,n);
 }
 //Decodes a byte array
 char* public_key_base::decode(char* code, const int code_len) const
 {
   //Test code length
-  if(code_len>get_message_cap())
+  if(code_len>get_message_cap()&& log_error)
   {
-    cerr<<"Message length is larger than the cap"<<endl;
-    cerr<<"Message will be culled"<<endl;
+    cryptoerr<<"Message length is larger than the cap"<<endl;
+    cryptoerr<<"Message will be culled"<<endl;
   }
   
   //Build array
@@ -884,18 +935,18 @@ char* public_key_base::decode(char* code, const int code_len) const
 //Decodes based on this private key
 large_integer public_key_base::old_decode(const large_integer& code) const
 {
-  if(code>n)
-    cerr<<"Warning: code is larger than public key"<<endl;
+  if(code>n&& log_error)
+    cryptoerr<<"Warning: code is larger than public key (old decode)"<<endl;
   return code.modExpo(old_d,old_n);
 }
 //Decodes a byte array
 char* public_key_base::old_decode(char* code, const int code_len) const
 {
   //Test code length
-  if(code_len>get_message_cap())
+  if(code_len>get_message_cap()&& log_error)
   {
-    cerr<<"Message length is larger than the cap"<<endl;
-    cerr<<"Message will be culled"<<endl;
+    cryptoerr<<"Message length is larger than the cap"<<endl;
+    cryptoerr<<"Message will be culled"<<endl;
   }
   
   //Build array
