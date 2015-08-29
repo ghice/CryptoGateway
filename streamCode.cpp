@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/21/2015
+//Confirmed working: 8/27/2015
 
 //The stream sender/reciever header file
 

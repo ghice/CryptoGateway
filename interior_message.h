@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 8/25/2015
+//Certified working 8/26/2015
 
 #ifndef INTERIOR_MESSAGE_H
 #define INTERIOR_MESSAGE_H
@@ -24,6 +24,7 @@ public:
   interior_message();
   interior_message(char* data, int len);
   interior_message(uint8_t* data, int len);
+    //virtual ~interior_message() { std::cout<<"msg delete: "<<std::hex<<this<<std::endl; }
   
   interior_message(const interior_message& source);
   const interior_message& operator=(const interior_message& equ);

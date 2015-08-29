@@ -27,6 +27,7 @@ private:
   public_key_base* crypto_base;
 
   sgSpinLock decrypLock;
+  sgSpinLock encryLock;
   streamDecrypter* decryp;
   streamEncrypter* encry;
   

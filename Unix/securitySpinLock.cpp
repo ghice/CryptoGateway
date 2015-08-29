@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/16/2015
+//Confirmed working: 8/29/2015
 
 /*
 UNIX ONLY
@@ -17,10 +17,13 @@ using namespace crypto;
 //Default constructor
 sgSpinLock::sgSpinLock()
 {
-	release();
+	pthread_mutex_init(&spinlock, NULL);
 }
 //Default destructor
-sgSpinLock::~sgSpinLock(){}
+sgSpinLock::~sgSpinLock()
+{
+	pthread_mutex_destroy(&spinlock);
+}
 //Acquire the lock
 void sgSpinLock::acquire()
 {

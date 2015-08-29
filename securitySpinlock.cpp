@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/16/2015
+//Confirmed working: 8/19/2015
 
 /*
 WINDOWS ONLY
@@ -26,7 +26,7 @@ sgSpinLock::~sgSpinLock(){}
 void sgSpinLock::acquire()
 {
 	while (lock.test_and_set(memory_order_acquire))
-	{Sleep(0);}
+	{Sleep(1);}
 	taken = true;
 }
 //Release the lock

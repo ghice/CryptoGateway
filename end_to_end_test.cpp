@@ -45,7 +45,7 @@ int main()
   //Testing security gateway
   
   //Establish connection
-  interior_message* msg_test;
+  smartInteriorMessage msg_test;
   
   cnt = 0;
   

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/25/2015
+//Confirmed working: 8/27/2015
 
 /*
 	NOTE: This file may have endian problems
@@ -58,7 +58,7 @@ security_gateway::security_gateway()
   
   encry = NULL;
   decryp = NULL;
-  RC_key_message = NULL;
+  RC_key_message = smartInteriorMessage(new interior_message);
   
   int cnt = 0;
   while(cnt<ID_SIZE)
@@ -88,7 +88,7 @@ security_gateway::security_gateway(public_key_base* key_source, uint8_t type, ch
   
   encry = NULL;
   decryp = NULL;
-  RC_key_message = NULL;
+  RC_key_message = smartInteriorMessage(new interior_message);
   
   //Set brother ID to NULL
   int cnt = 0;
@@ -109,8 +109,10 @@ security_gateway::~security_gateway()
     delete(decryp);
   decrypLock.release();
     
+  encryLock.acquire();
   if(encry!=NULL)
     delete(encry);
+  encryLock.release();
 }
 //Initialize data
 void security_gateway::push_data(public_key_base* key_source, uint8_t type, char* ID)
@@ -193,7 +195,6 @@ void security_gateway::build_encryption_stream()
   key_coded = false;
   
   //Initialize message
-  RC_key_message = smartInteriorMessage(new interior_message());
   RC_key_message->push_length(LARGE_NUMBER_SIZE*2+4);
   //Construct the stream encrypter, with message constructing in mind
   uint8_t* RC4_array = RC_key_message->get_int_data();
@@ -221,10 +222,12 @@ void security_gateway::build_encryption_stream()
   RC4_array[LARGE_NUMBER_SIZE*2+2]=0;
   RC4_array[LARGE_NUMBER_SIZE*2+3]=0;
   
+  encryLock.acquire();
   if(encry!=NULL)
     delete(encry);
   RCFour* temp_RC4 = new RCFour(&RC4_array[4],LARGE_NUMBER_SIZE*2-1);
   encry = new streamEncrypter(temp_RC4);
+  encryLock.release();
 }
 //Places the proper timestamp on 
 void security_gateway::push_timestamp_initialize(interior_message& msg)
@@ -264,13 +267,16 @@ void security_gateway::reset()
   
   last_timestamp = 0;
   
-  encry = NULL;
   decrypLock.acquire();
   if(decryp!=NULL)
       delete decryp;
   decryp = NULL;
   decrypLock.release();
-  RC_key_message = NULL;
+  encryLock.acquire();
+  if(encry!=NULL)
+      delete encry;
+  encry = NULL;
+  encryLock.release();
   
   build_encryption_stream();
 }
@@ -330,7 +336,7 @@ smartInteriorMessage security_gateway::get_message()
   //Send a null message if the gateway is not active
   if(!gateway_active)
   {
-	return NULL;
+	return smartInteriorMessage(NULL);
   }
   
   uint8_t* temp;
@@ -373,9 +379,8 @@ smartInteriorMessage security_gateway::get_message()
       {
 		key_coded = true;
 		temp = RC_key_message->get_int_data();
-		temp = &temp[4];
         brotherKeyLock.acquire();
-		crypto_base->encode((char*)temp,LARGE_NUMBER_SIZE*2,brother_key);
+		crypto_base->encode((char*)&temp[4],LARGE_NUMBER_SIZE*2,brother_key);
         brotherKeyLock.release();
       }
       return RC_key_message;
@@ -455,7 +460,9 @@ smartInteriorMessage security_gateway::get_message()
     crypto_base->decode((char*)&temp[8],LARGE_NUMBER_SIZE*2);
 
     uint16_t stream_flag;
+    encryLock.acquire();
     encry->sendData(&temp[4],8+LARGE_NUMBER_SIZE*2,(uint16_t*) &stream_flag);
+    encryLock.release();
     temp[2] = (stream_flag>>8);
     temp[3] = (uint8_t) stream_flag;
 
@@ -538,7 +545,9 @@ smartInteriorMessage security_gateway::get_message()
     crypto_base->old_decode((char*)&temp[8],LARGE_NUMBER_SIZE*2);
 
     uint16_t stream_flag;
+    encryLock.acquire();
     encry->sendData(&temp[4],8+LARGE_NUMBER_SIZE*2,(uint16_t*) &stream_flag);
+    encryLock.release();
     temp[2] = (stream_flag>>8);
     temp[3] = (uint8_t) stream_flag;
 
@@ -569,7 +578,7 @@ smartInteriorMessage security_gateway::get_message()
 bool security_gateway::process_message(smartInteriorMessage msg)
 {
   //Check for error status
-  if(msg==NULL)
+  if(!msg)
     return false;
 
   int cnt = 4;
@@ -684,9 +693,8 @@ bool security_gateway::process_message(smartInteriorMessage msg)
         decrypLock.acquire();
         if(decryp!=NULL)
             delete decryp;
-        decrypLock.release();
+        
         RCFour* rc_temp = new RCFour(message_array, LARGE_NUMBER_SIZE*2-1);
-        decrypLock.acquire();
         decryp = new streamDecrypter(rc_temp);
         decrypLock.release();
         last_timestamp = get_timestamp();
@@ -698,10 +706,11 @@ bool security_gateway::process_message(smartInteriorMessage msg)
   {
       //cryptoout<<"Checking signature"<<endl;
     //Test for a valid decryption array
+      decrypLock.acquire();
     if(decryp == NULL)
     {
       error = true;
-        //cryptoout<<"Failed 1"<<endl;
+      decrypLock.release();
       return false;
     }
 
@@ -709,14 +718,14 @@ bool security_gateway::process_message(smartInteriorMessage msg)
     if(NULL==decryp->recieveData(&message_array[4],msg->get_length()-4,stream_flag))
     {
       error = true;
-        //cryptoout<<"Failed 2"<<endl;
+      decrypLock.release();
       return false;
     }
+    decrypLock.release();
       
     //Just confirmed a signature, don't do it again
     if(message_type==last_message_type)
     {
-        //cryptoout<<"Already done"<<endl;
         return true;
     }
     
@@ -783,10 +792,12 @@ bool security_gateway::process_message(smartInteriorMessage msg)
   //Decrypt the message
   if(message_type==MESSAGE_DECRYPT)
   {
+    decrypLock.acquire();
     //Test for a valid decryption array
     if(decryp == NULL || !connection_signed)
     {
       error = true;
+      decrypLock.release();
       return false;
     }
     
@@ -794,8 +805,10 @@ bool security_gateway::process_message(smartInteriorMessage msg)
     if(NULL==decryp->recieveData(&message_array[4],msg->get_length()-4,stream_flag))
     {
       error = true;
+      decrypLock.release();
       return false;
     }
+    decrypLock.release();
     last_timestamp = get_timestamp();
   }
   
@@ -803,22 +816,29 @@ bool security_gateway::process_message(smartInteriorMessage msg)
   if(message_type==MESSAGE_CONFIRM_OLD)
   {
     //Test for a valid decryption array
+    decrypLock.acquire();
     if(decryp == NULL)
     {
       error = true;
+      decrypLock.release();
       return false;
     }
     
     //Just confirmed a signature, don't do it again
     if(message_type==last_message_type)
+    {
+        decrypLock.release();
         return true;
+    }
       
     //Decrypt the array, based on the stream
     if(NULL==decryp->recieveData(&message_array[4],msg->get_length()-4,stream_flag))
     {
       error = true;
+      decrypLock.release();
       return false;
     }
+    decrypLock.release();
     
     //Build the hash
     uint8_t hash_comp[4+2*ID_SIZE];
@@ -857,7 +877,6 @@ bool security_gateway::process_message(smartInteriorMessage msg)
     }
     current_status = 3;
     connection_signed = true;
-    
     last_timestamp = get_timestamp();
   }
   
@@ -867,10 +886,12 @@ bool security_gateway::process_message(smartInteriorMessage msg)
 smartInteriorMessage security_gateway::encrypt_message(smartInteriorMessage msg)
 {
   if(!connected())
-    return NULL;
+    return smartInteriorMessage(NULL);
   uint8_t* temp = msg->get_int_data();
   uint16_t stream_flag;
+  encryLock.acquire();
   encry->sendData(&temp[4],msg->get_length()-4,(uint16_t*) &stream_flag);
+  encryLock.release();
   temp[0] = 4;
   temp[1] = current_status;
   temp[2] = (stream_flag>>8);
