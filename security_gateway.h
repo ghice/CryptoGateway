@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working 8/25/2015
+//Confirmed working 8/29/2015
 
 #ifndef SECURITY_GATEWAY_H
 #define SECURITY_GATEWAY_H
@@ -20,6 +20,7 @@ namespace crypto {
     
 #define ID_SIZE 20
 #define TIMEOUT_VALUE 15
+extern bool global_logging;
 
 class security_gateway
 {

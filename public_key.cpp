@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 8/21/2015
+//Certified working 8/29/2015
 
 #ifndef PUBLIC_KEY_CPP
 #define PUBLIC_KEY_CPP
@@ -32,7 +32,7 @@ public_key_base::public_key_base()
   eArray[0] = (1<<16)+1;
   e.push_array(eArray, 1);
   
-  log_error = false;
+  log_error = global_logging;
     
   //Generate/find keys
   if(!file_exists(full_file)|| !load_file(full_file))
@@ -49,7 +49,7 @@ public_key_base::public_key_base(const string& fileloc)
   eArray[0] = (1<<16)+1;
   e.push_array(eArray, 1);
 
-  log_error = false;
+  log_error = global_logging;
   
   //Generate/find keys
   if(!file_exists(full_file) || !load_file(full_file))
@@ -67,7 +67,7 @@ public_key_base::public_key_base(const string& username, const string& password)
   eArray[0] = (1<<16)+1;
   e.push_array(eArray, 1);
 
-  log_error = false;
+  log_error = global_logging;
   
   //Generate/find keys
   if(!file_exists(full_file)|| !load_file(full_file))
@@ -84,7 +84,7 @@ public_key_base::public_key_base(const string& fileloc, const string& username, 
   eArray[0] = (1<<16)+1;
   e.push_array(eArray, 1);
 
-  log_error = false;
+  log_error = global_logging;
   
   //Generate/find keys
   if(!file_exists(full_file) || !load_file(full_file))
@@ -119,6 +119,8 @@ bool public_key_base::build_file(const string& full_file)
 
   d = e.mod_inverse(phi);
   old_d = d;
+  if(log_error)
+      cryptoout<<"Keys generated.  Saving keys."<<endl;
   
   return save_file(full_file);
 }

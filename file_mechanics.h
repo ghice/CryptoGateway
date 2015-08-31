@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 7/29/2015
+//Certified working 8/29/2015
 
 #ifndef FILE_MECHANICS_H
 #define FILE_MECHANICS_H
@@ -12,7 +12,8 @@
 #include <cmath>
 
 namespace crypto {
-    
+extern bool global_logging;
+
 //Changes an int to compatibility mode
 static uint16_t to_comp_mode_sgtw(uint16_t i)
 {

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 7/29/2014
+//Confirmed working: 8/29/2014
 
 //Defines an RC4 stream cipher
 
@@ -7,6 +7,7 @@
 #define RC4_H
     
 #include <stdint.h>
+extern bool global_logging;
 
 namespace crypto {
     

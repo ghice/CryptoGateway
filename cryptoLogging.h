@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/21/2015
+//Confirmed working: 8/29/2015
 
 #ifndef CRYPTO_LOGGING_H
 #define CRYPTO_LOGGING_H
@@ -10,6 +10,7 @@ namespace crypto
 {
 
     //OS Logger Streams
+	extern bool global_logging;
     extern std::ostream* cryptoout_ptr;
     extern std::ostream* cryptoerr_ptr;
     #define cryptoout (*cryptoout_ptr)

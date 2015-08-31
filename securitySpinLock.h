@@ -12,6 +12,7 @@ WINDOWS ONLY
 
 namespace crypto
 {
+extern bool global_logging;
 
 //This is a simple spinlock class
 class sgSpinLock

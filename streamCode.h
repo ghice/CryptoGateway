@@ -15,6 +15,7 @@ namespace crypto {
 #define DECRYSIZE 100
 #define BACKCHECK 10
 #define LAGCATCH ((int) DECRYSIZE/4)
+extern bool global_logging;
 
 //Encrypts a byte stream
 class streamEncrypter

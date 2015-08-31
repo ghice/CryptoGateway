@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 7/29/2015
+//Confirmed working: 8/29/2015
 
 #ifndef RC4_HASH_H
 #define RC4_HASH_H
@@ -13,6 +13,7 @@
 namespace crypto {
         
 #define BYTE_SIZE_HASH 32
+extern bool global_logging;
 
 //This is the 
 class hash_256

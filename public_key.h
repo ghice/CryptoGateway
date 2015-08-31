@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 8/15/2015
+//Certified working 8/29/2015
 
 #ifndef PUBLIC_KEY_H
 #define PUBLIC_KEY_H
@@ -11,6 +11,7 @@
 namespace crypto {
     
 #define KEY_FILE_NAME "private_RSA_key.rcf"
+extern bool global_logging;
 
 class public_key_base
 {

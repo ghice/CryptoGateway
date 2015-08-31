@@ -1,8 +1,13 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/21/2015
+//Confirmed working: 8/29/2015
 
 #ifndef CRYPTOGATEWAY_H
 #define CRYPTOGATEWAY_H
+
+namespace crypto
+{
+	extern bool global_logging;
+}
 
 #include "cryptoLogging.h"
 #include "file_mechanics.h"
