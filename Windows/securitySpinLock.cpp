@@ -26,7 +26,7 @@ sgSpinLock::~sgSpinLock(){}
 void sgSpinLock::acquire()
 {
 	while (lock.test_and_set(memory_order_acquire))
-	{Sleep(0);}
+	{Sleep(1);}
 	taken = true;
 }
 //Release the lock
