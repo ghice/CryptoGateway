@@ -8,8 +8,8 @@ del "CryptoGateway.vcxproj"
 del "CryptoGateway.vcxproj.filters"
 del "CryptoGateway.vcxproj.users"
 del "CryptoCompile.bash"
-del "securitySpinLock.h”
-del “securitySpinLock.cpp”
+del securitySpinLock.h
+del securitySpinLock.cpp
 
 IF EXIST Debug rmdir Debug /s /q
 IF EXIST Release rmdir Release /s /q
