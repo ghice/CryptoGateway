@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/27/2015
+//Confirmed working: 9/12/2015
 
 /*
 	NOTE: This file may have endian problems
@@ -67,9 +67,15 @@ security_gateway::security_gateway()
     brother_ID[cnt] = '\0';
     cnt++;
   }
+  cnt = 0;
+  while(cnt<GROUP_SIZE)
+  {
+    target_group[cnt] = '\0';
+    cnt++;
+  }
 }
 //Complete constructor
-security_gateway::security_gateway(public_key_base* key_source, uint8_t type, char* ID)
+security_gateway::security_gateway(public_key_base* key_source, uint8_t type, const char* group_id, const char* ID)
 {
   error = false;
   crypto_error = false;
@@ -98,7 +104,7 @@ security_gateway::security_gateway(public_key_base* key_source, uint8_t type, ch
     cnt++;
   }
   
-  push_data(key_source,type,ID);
+  push_data(key_source,type,group_id,ID);
 }
 //Destructor
 security_gateway::~security_gateway()
@@ -115,13 +121,20 @@ security_gateway::~security_gateway()
   encryLock.release();
 }
 //Initialize data
-void security_gateway::push_data(public_key_base* key_source, uint8_t type, char* ID)
+void security_gateway::push_data(public_key_base* key_source, uint8_t type, const char* group_id, const char* ID)
 {
   int cnt = 0;
   //Reset the system ID
   while(cnt<ID_SIZE)
   {
     system_ID[cnt] = '\0';
+    cnt++;
+  }
+  //Reset the group ID
+  cnt = 0;
+  while(cnt<GROUP_SIZE)
+  {
+    target_group[cnt] = '\0';
     cnt++;
   }
   
@@ -141,6 +154,13 @@ void security_gateway::push_data(public_key_base* key_source, uint8_t type, char
     system_ID[cnt] = ID[cnt];
     cnt++;
   }
+  //Copy the group ID
+  cnt=0;
+  while(cnt<GROUP_SIZE && group_id[cnt]!='\0')
+  {
+      target_group[cnt]=group_id[cnt];
+      cnt++;
+  }
   //Builds the identifier
   uint8_t* temp_array = identifier_message.get_int_data();
   
@@ -150,18 +170,23 @@ void security_gateway::push_data(public_key_base* key_source, uint8_t type, char
   temp_array[2] = 0;
   temp_array[3] = 0;
   
-  //Copy in the system ID
+  //Copy in the group ID and system ID
   cnt = 4;
-  while(cnt<ID_SIZE+4)
+  while(cnt<GROUP_SIZE+4)
   {
-    temp_array[cnt] = system_ID[cnt-4];
+    temp_array[cnt] = target_group[cnt-4];
+    cnt++;
+  }
+  while(cnt<GROUP_SIZE+ID_SIZE+4)
+  {
+    temp_array[cnt] = system_ID[cnt-4-GROUP_SIZE];
     cnt++;
   }
   
   //Skip pointer ahead
   cnt = 0;
   uint8_t* ptr = temp_array;
-  while(cnt<4+ID_SIZE+8)
+  while(cnt<4+GROUP_SIZE+ID_SIZE+8)
   {
     ptr++;
     cnt++;
@@ -174,11 +199,11 @@ void security_gateway::push_data(public_key_base* key_source, uint8_t type, char
   while(cnt<LARGE_NUMBER_SIZE/2)
   {
 	  trc[cnt] = to_comp_mode_sgtw(pub_key.getArrayNumber(cnt));
-    cnt++;
+      cnt++;
   }
   
   //Set identifier message size
-  identifier_message.push_length(4+ID_SIZE+8+LARGE_NUMBER_SIZE*2);
+  identifier_message.push_length(4+GROUP_SIZE+ID_SIZE+8+LARGE_NUMBER_SIZE*2);
   
   //Sets the gateway to active
   gateway_active = true;
@@ -240,7 +265,7 @@ void security_gateway::push_timestamp_initialize(interior_message& msg)
   
   while(cnt<8)
   {
-    temp_array[4+ID_SIZE+cnt] = timestamp_ptr[cnt];
+    temp_array[4+GROUP_SIZE+ID_SIZE+cnt] = timestamp_ptr[cnt];
     cnt++;
   }
 }
@@ -625,11 +650,21 @@ bool security_gateway::process_message(smartInteriorMessage msg)
       initial_message = true;
       current_status = 1;
       
+      //Process Group
+      char received_id[GROUP_SIZE];
+      while(cnt<GROUP_SIZE+4)
+      {
+          received_id[cnt-4]=message_array[cnt];
+          cnt++;
+      }
+      if(std::string(received_id) != std::string(target_group))
+        return false;
+        
       //Process ID
       brotherIDLock.acquire();
-      while(cnt<ID_SIZE+4)
+      while(cnt<ID_SIZE+GROUP_SIZE+4)
       {
-		brother_ID[cnt-4] = message_array[cnt];
+		brother_ID[cnt-GROUP_SIZE-4] = message_array[cnt];
 		cnt++;
       }
       brotherIDLock.release();

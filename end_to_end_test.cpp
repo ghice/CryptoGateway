@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/21/2015
+//Confirmed working: 9/12/2015
 
 //For testing purposes only
 
@@ -35,8 +35,8 @@ int main()
   security_gateway new_gate;
   security_gateway gate_pair;
   
-  new_gate.push_data(&pubKey,0,(char*)"ID_8362_Initial");
-  gate_pair.push_data(&pubKeyII,0,(char*)"ID_234_Other_Pair");
+  new_gate.push_data(&pubKey,0,(char*)"ID_8362_Initial","CRYPTO_TEST");
+  gate_pair.push_data(&pubKeyII,0,(char*)"ID_234_Other_Pair","CRYPTO_TEST");
   
   int cnt = 0;
   new_gate.push_old_key(pubKeyII.get_old_n());

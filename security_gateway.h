@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working 8/29/2015
+//Confirmed working 9/12/2015
 
 #ifndef SECURITY_GATEWAY_H
 #define SECURITY_GATEWAY_H
@@ -17,7 +17,8 @@
 #include "file_mechanics.h"
 
 namespace crypto {
-    
+
+#define GROUP_SIZE 20
 #define ID_SIZE 20
 #define TIMEOUT_VALUE 15
 extern bool global_logging;
@@ -50,6 +51,7 @@ private:
   uint64_t last_timestamp;
   
   uint8_t current_status;
+  char target_group[GROUP_SIZE];
   char system_ID[ID_SIZE];
   
   uint8_t brother_status;
@@ -70,9 +72,9 @@ private:
 public:
   //Constructor data
   security_gateway();
-  security_gateway(public_key_base* key_source, uint8_t type, char* ID);
+  security_gateway(public_key_base* key_source, uint8_t type, const char* group_id, const char* ID);
  virtual  ~security_gateway();
-  void push_data(public_key_base* key_source, uint8_t type, char* ID);
+  void push_data(public_key_base* key_source, uint8_t type, const char* group_id, const char* ID);
   
   //Public Actions
   void reset();
@@ -94,6 +96,7 @@ public:
   uint8_t getBrotherStatus();
   uint8_t getMyStatus();
   std::string getBrotherID();
+  std::string getGroupID() const {return std::string(target_group);}
 };
     
 }
