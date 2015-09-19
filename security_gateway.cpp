@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 9/12/2015
+//Confirmed working: 9/19/2015
 
 /*
 	NOTE: This file may have endian problems
@@ -688,14 +688,20 @@ bool security_gateway::process_message(smartInteriorMessage msg)
     //Compare with current variables
     else
     {
-      //Check ID
-      brotherIDLock.acquire();
-      while(cnt<ID_SIZE+4)
+      //Check Group
+	  while(cnt<GROUP_SIZE+4)
       {
-		if(brother_ID[cnt-4] != message_array[cnt])
-		{
+		if(target_group[cnt-4] != message_array[cnt])
 		  error = true;
-		}
+		cnt++;
+      }
+
+	  //Check brother ID
+      brotherIDLock.acquire();
+	  while(cnt<GROUP_SIZE+ID_SIZE+4)
+      {
+		  if(brother_ID[cnt-4-ID_SIZE] != message_array[cnt])
+		  error = true;
 		cnt++;
       }
       brotherIDLock.release();
@@ -739,7 +745,6 @@ bool security_gateway::process_message(smartInteriorMessage msg)
   //Attempt signatures
   if(message_type==MESSAGE_SIGN)
   {
-      //cryptoout<<"Checking signature"<<endl;
     //Test for a valid decryption array
       decrypLock.acquire();
     if(decryp == NULL)
