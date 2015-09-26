@@ -117,10 +117,10 @@ bool interior_message::push_string(std::string s)
         cryptoerr<<"String length greater than allowed!  Returning true to exit logic"<<endl;
         return true;
     }
-    if(get_length()+s.length()+1>get_full_length())
+	if(get_data_end()+s.length()+1>get_full_length())
         return false;
-    int old_len = get_length();
-    push_length(get_length()+s.length()+1);
+    int old_len = get_data_end();
+    push_length(get_data_end()+s.length()+1);
     int trace = 0;
     while(trace<s.length())
     {
@@ -147,7 +147,7 @@ std::string interior_message::pop_string()
         cnt++;
     }
     
-    push_length(data_end-targ_len);
+    push_length(data_end-(targ_len));
     return ret;
 }
 
@@ -161,11 +161,11 @@ checksum_message::checksum_message()
     //Default constructor implicitly called
 }
 checksum_message::checksum_message(char* data, int len):
-    interior_message(data,len) {}
+	interior_message(data,len) {push_length(len);}
 checksum_message::checksum_message(uint8_t* data, int len):
-    interior_message(data,len) {}
+	interior_message(data,len) {push_length(len);}
 checksum_message::checksum_message(const interior_message& source):
-    interior_message(source) {}
+	interior_message(source) {}
 
 //Returns the last data position
 int checksum_message::get_data_end()
@@ -241,7 +241,10 @@ void checksum_message::bind_checksum()
 bool checksum_message::check_checksum()
 {
     if(get_checksum()!=generate_checksum())
+	{
+		cryptoout<<get_checksum()<<" : "<<generate_checksum()<<std::endl;
         return false;
+	}
     return true;
 }
 
