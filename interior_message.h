@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 9/21/2015
+//Certified working 10/6/2015
 
 #ifndef INTERIOR_MESSAGE_H
 #define INTERIOR_MESSAGE_H
@@ -11,8 +11,8 @@
 
 namespace crypto {
     
-#define MESSAGE_MAX 512
-#define CHECKSUM_SIZE 4
+const unsigned int MESSAGE_MAX=512;
+const unsigned int CHECKSUM_SIZE=4;
 extern bool global_logging;
 
 class checksum_message;

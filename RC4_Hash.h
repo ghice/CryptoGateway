@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/29/2015
+//Confirmed working: 10/6/2015
 
 #ifndef RC4_HASH_H
 #define RC4_HASH_H
@@ -11,8 +11,8 @@
 #include "RC4.h"
 
 namespace crypto {
-        
-#define BYTE_SIZE_HASH 32
+
+const unsigned int BYTE_SIZE_HASH=32;
 extern bool global_logging;
 
 //This is the 

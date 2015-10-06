@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/29/2014
+//Confirmed working: 10/6/2014
 
 //Defines an RC4 stream cipher
 
@@ -11,7 +11,8 @@ extern bool global_logging;
 
 namespace crypto {
     
-#define RC4MAX 2506
+const unsigned int RC4MAX=2506;
+
 class RCFour
 {
 private:

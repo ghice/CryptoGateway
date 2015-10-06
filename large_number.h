@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 7/29/2015
+//Certified working 10/6/2015
 
 #ifndef LARGE_NUMBER_H
 #define LARGE_NUMBER_H
@@ -10,8 +10,8 @@
 
 namespace crypto {
     
-#define LARGE_NUMBER_SIZE 32
-#define PRIME_TEST_ITERATION 10
+const unsigned int LARGE_NUMBER_SIZE=32;
+const unsigned int PRIME_TEST_ITERATION=10;
 
 class large_number
 {
