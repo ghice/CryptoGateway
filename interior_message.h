@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 10/6/2015
+//Certified working 10/15/2015
 
 #ifndef INTERIOR_MESSAGE_H
 #define INTERIOR_MESSAGE_H
@@ -78,7 +78,7 @@ public:
     bool check_checksum();
 };
 
-typedef std::shared_ptr<interior_message> smartInteriorMessage;
+typedef os::smart_ptr<interior_message> smartInteriorMessage;
 
 }
 

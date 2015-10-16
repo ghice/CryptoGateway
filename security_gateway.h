@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working 9/12/2015
+//Confirmed working 10/12/2015
 
 #ifndef SECURITY_GATEWAY_H
 #define SECURITY_GATEWAY_H
@@ -26,12 +26,12 @@ extern bool global_logging;
 class security_gateway
 {
 private:
-  public_key_base* crypto_base;
+  os::smart_ptr<public_key_base> crypto_base;
 
   sgSpinLock decrypLock;
   sgSpinLock encryLock;
-  streamDecrypter* decryp;
-  streamEncrypter* encry;
+  os::smart_ptr<streamDecrypter> decryp;
+  os::smart_ptr<streamEncrypter> encry;
   
   interior_message identifier_message;
   interior_message error_message;
@@ -72,9 +72,9 @@ private:
 public:
   //Constructor data
   security_gateway();
-  security_gateway(public_key_base* key_source, uint8_t type, const char* group_id, const char* ID);
+  security_gateway(os::smart_ptr<public_key_base> key_source, uint8_t type, const char* group_id, const char* ID);
  virtual  ~security_gateway();
-  void push_data(public_key_base* key_source, uint8_t type, const char* group_id, const char* ID);
+  void push_data(os::smart_ptr<public_key_base> key_source, uint8_t type, const char* group_id, const char* ID);
   
   //Public Actions
   void reset();
@@ -92,7 +92,7 @@ public:
   smartInteriorMessage encrypt_message(smartInteriorMessage msg);
   const large_integer getBrotherKey();
   const large_integer getOldBrotherKey();
-  public_key_base* getPublicKey();
+  os::smart_ptr<public_key_base> getPublicKey();
   uint8_t getBrotherStatus();
   uint8_t getMyStatus();
   std::string getBrotherID();

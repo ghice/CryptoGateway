@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 9/19/2015
+//Confirmed working: 10/15/2015
 
 /*
 	NOTE: This file may have endian problems
@@ -21,16 +21,16 @@
 
 #include "security_gateway.h"
 
-#define MESSAGE_INITIAL 0
-#define MESSAGE_EXCHANGE_STREAM 1
-#define MESSAGE_SIGN 2
-#define MESSAGE_PING 3
-#define MESSAGE_DECRYPT 4
-#define MESSAGE_CONFIRM_OLD 5
+unsigned char MESSAGE_INITIAL=0;
+unsigned char MESSAGE_EXCHANGE_STREAM=1;
+unsigned char MESSAGE_SIGN=2;
+unsigned char MESSAGE_PING=3;
+unsigned char MESSAGE_DECRYPT=4;
+unsigned char MESSAGE_CONFIRM_OLD=5;
 
-#define MESSAGE_CRYPTO_ERROR 253
-#define MESSAGE_ERROR_CONFIRM 254
-#define MESSAGE_ERROR 255
+unsigned char MESSAGE_CRYPTO_ERROR=253;
+unsigned char MESSAGE_ERROR_CONFIRM=254;
+unsigned char MESSAGE_ERROR=255;
 
 using namespace std;
 using namespace crypto;
@@ -75,7 +75,7 @@ security_gateway::security_gateway()
   }
 }
 //Complete constructor
-security_gateway::security_gateway(public_key_base* key_source, uint8_t type, const char* group_id, const char* ID)
+security_gateway::security_gateway(os::smart_ptr<public_key_base> key_source, uint8_t type, const char* group_id, const char* ID)
 {
   error = false;
   crypto_error = false;
@@ -111,17 +111,15 @@ security_gateway::~security_gateway()
 {
   //Note: do not delete the crypto base, it is shared
   decrypLock.acquire();
-  if(decryp!=NULL)
-    delete(decryp);
+  decryp=NULL;
   decrypLock.release();
     
   encryLock.acquire();
-  if(encry!=NULL)
-    delete(encry);
+  encry = NULL;
   encryLock.release();
 }
 //Initialize data
-void security_gateway::push_data(public_key_base* key_source, uint8_t type, const char* group_id, const char* ID)
+void security_gateway::push_data(os::smart_ptr<public_key_base> key_source, uint8_t type, const char* group_id, const char* ID)
 {
   int cnt = 0;
   //Reset the system ID
@@ -248,10 +246,9 @@ void security_gateway::build_encryption_stream()
   RC4_array[LARGE_NUMBER_SIZE*2+3]=0;
   
   encryLock.acquire();
-  if(encry!=NULL)
-    delete(encry);
-  RCFour* temp_RC4 = new RCFour(&RC4_array[4],LARGE_NUMBER_SIZE*2-1);
-  encry = new streamEncrypter(temp_RC4);
+  encry=NULL;
+  os::smart_ptr<RCFour> temp_RC4 = os::smart_ptr<RCFour>(new RCFour(&RC4_array[4],LARGE_NUMBER_SIZE*2-1),os::shared_type);
+  encry = os::smart_ptr<streamEncrypter>(new streamEncrypter(temp_RC4),os::shared_type);
   encryLock.release();
 }
 //Places the proper timestamp on 
@@ -293,13 +290,9 @@ void security_gateway::reset()
   last_timestamp = 0;
   
   decrypLock.acquire();
-  if(decryp!=NULL)
-      delete decryp;
   decryp = NULL;
   decrypLock.release();
   encryLock.acquire();
-  if(encry!=NULL)
-      delete encry;
   encry = NULL;
   encryLock.release();
   
@@ -732,11 +725,10 @@ bool security_gateway::process_message(smartInteriorMessage msg)
     
         current_status = 2;
         decrypLock.acquire();
-        if(decryp!=NULL)
-            delete decryp;
+        decryp=NULL;
         
-        RCFour* rc_temp = new RCFour(message_array, LARGE_NUMBER_SIZE*2-1);
-        decryp = new streamDecrypter(rc_temp);
+		os::smart_ptr<RCFour> rc_temp = os::smart_ptr<RCFour>(new RCFour(message_array, LARGE_NUMBER_SIZE*2-1),os::shared_type);
+		decryp = os::smart_ptr<streamDecrypter>(new streamDecrypter(rc_temp),os::shared_type);
         decrypLock.release();
         last_timestamp = get_timestamp();
     }
@@ -956,20 +948,11 @@ const large_integer security_gateway::getOldBrotherKey()
     return ret;
 }
 //Returns the public key base
-public_key_base* security_gateway::getPublicKey()
-{
-	return crypto_base;
-}
+os::smart_ptr<public_key_base> security_gateway::getPublicKey(){return crypto_base;}
 //Returns the current brother status
-uint8_t security_gateway::getBrotherStatus()
-{
-	return brother_status;
-}
+uint8_t security_gateway::getBrotherStatus(){return brother_status;}
 //Returns the current status
-uint8_t security_gateway::getMyStatus()
-{
-	return current_status;
-}
+uint8_t security_gateway::getMyStatus(){return current_status;}
 //Returns the ID of the brother
 std::string security_gateway::getBrotherID()
 {

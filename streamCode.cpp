@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/27/2015
+//Confirmed working: 10/12/2015
 
 //The stream sender/reciever header file
 
@@ -19,7 +19,7 @@ using namespace crypto;
 //Stream Encrypter---------------------------------------------------------------------------
 
   //Constructor
-  streamEncrypter::streamEncrypter(RCFour* c)
+  streamEncrypter::streamEncrypter(os::smart_ptr<RCFour> c)
   {
     cipher = c;
     last_loc = 0;
@@ -35,7 +35,7 @@ using namespace crypto;
   //Destructor
   streamEncrypter::~streamEncrypter()
   {
-    delete(cipher);
+    cipher=NULL;
   }
   //Encrypts an array
   uint8_t* streamEncrypter::sendData(uint8_t* array, int len, uint16_t* flag)
@@ -51,7 +51,7 @@ using namespace crypto;
     bool packet_found = false;
     do
     {
-      en = new codePacket (cipher, PACKETSIZE);
+      en = new codePacket (cipher.get(), PACKETSIZE);
       ID_check[last_loc] = (uint16_t) en->getIdentifier();
       
       int cnt = 0;
@@ -82,7 +82,7 @@ using namespace crypto;
 //Stream Decypter----------------------------------------------------------------------------
 
   //Constructor
-  streamDecrypter::streamDecrypter(RCFour* c)
+  streamDecrypter::streamDecrypter(os::smart_ptr<RCFour> c)
   {
     cipher = c;
     last_value = 0;
@@ -105,7 +105,7 @@ using namespace crypto;
       bool good_packet;
       do
       {
-			packetArray[cnt] = new codePacket(cipher, PACKETSIZE);
+			packetArray[cnt] = new codePacket(cipher.get(), PACKETSIZE);
 			good_packet = true;
 	
 			if(packetArray[cnt]->getIdentifier()==0)
@@ -138,7 +138,7 @@ using namespace crypto;
       cnt++;
     }
     delete(packetArray);
-    delete(cipher);
+    cipher=NULL;
   }
   //Encrypts an array
   uint8_t* streamDecrypter::recieveData(uint8_t* array, int len, uint16_t flag)
@@ -191,7 +191,7 @@ using namespace crypto;
 	good_packet = true;
 	if(packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE]!=NULL)
 	  delete(packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE]);
-	packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE] = new codePacket(cipher, PACKETSIZE);
+	packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE] = new codePacket(cipher.get(), PACKETSIZE);
 	
 	if(packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE]->getIdentifier()==0)
 	  good_packet = false;
@@ -211,4 +211,5 @@ using namespace crypto;
     
     return array;
   }
+
 #endif
