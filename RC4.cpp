@@ -1,11 +1,12 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 9/26/2014
+//Confirmed working: 8/21/2015
 
 //The implementation of the basic RC4 cipher and its packet
 
 #ifndef RC4_CPP
 #define RC4_CPP
 
+#include "cryptoLogging.h"
 #include "RC4.h"
 
 #include <string>
@@ -13,6 +14,7 @@
 #include <stdlib.h>
 
 using namespace std;
+using namespace crypto;
 
 //Default RC4-----------------------------------------------------------------
 
@@ -22,7 +24,7 @@ using namespace std;
     //Check the array length
     if(RC4MAX<len)
     {
-      cerr<<"Invalid initialization array in the default RCFour"<<endl;
+      cryptoerr<<"Invalid initialization array in the default RCFour"<<endl;
       exit(EXIT_FAILURE);
     }
 
@@ -83,12 +85,12 @@ using namespace std;
       size = s;
     else
     {
-      cerr<<"Negative size bound in the codePacket constructor"<<endl;
+      cryptoerr<<"Negative size bound in the codePacket constructor"<<endl;
       exit(EXIT_FAILURE);
     }
     if(s<20)
     {
-      cerr<<"Warning: This buffer length may give away too much information about the secret key: codePacket"<<endl;
+      cryptoerr<<"Warning: This buffer length may give away too much information about the secret key: codePacket"<<endl;
     }
 
     //Initialize the packet Array
@@ -132,7 +134,7 @@ using namespace std;
   {
     if(!surpress && len>size)
     {
-      cerr<<"The length of your input to codePacket.encrypt() is unsecure!  Abort!"<<endl;
+      cryptoerr<<"The length of your input to codePacket.encrypt() is unsecure!  Abort!"<<endl;
       exit(EXIT_FAILURE);
     }
     int cnt = 0;

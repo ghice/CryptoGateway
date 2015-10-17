@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 9/26/2014
+//Confirmed working: 10/12/2015
 
 //The stream sender/reciever header file
 
@@ -9,15 +9,17 @@
 #include <string>
 #include <iostream>
 #include <stdlib.h>
+#include "cryptoLogging.h"
 #include "streamCode.h"
 #include "RC4.h"
 
 using namespace std;
+using namespace crypto;
 
 //Stream Encrypter---------------------------------------------------------------------------
 
   //Constructor
-  streamEncrypter::streamEncrypter(RCFour* c)
+  streamEncrypter::streamEncrypter(os::smart_ptr<RCFour> c)
   {
     cipher = c;
     last_loc = 0;
@@ -33,14 +35,14 @@ using namespace std;
   //Destructor
   streamEncrypter::~streamEncrypter()
   {
-    delete(cipher);
+    cipher=NULL;
   }
   //Encrypts an array
   uint8_t* streamEncrypter::sendData(uint8_t* array, int len, uint16_t* flag)
   {
     if(len>PACKETSIZE)
     {
-      cerr<<"Invalid packet size for stream encrypter!"<<endl;
+      cryptoerr<<"Invalid packet size for stream encrypter!"<<endl;
       exit(EXIT_FAILURE);
     }
     
@@ -49,7 +51,7 @@ using namespace std;
     bool packet_found = false;
     do
     {
-      en = new codePacket (cipher, PACKETSIZE);
+      en = new codePacket (cipher.get(), PACKETSIZE);
       ID_check[last_loc] = (uint16_t) en->getIdentifier();
       
       int cnt = 0;
@@ -80,7 +82,7 @@ using namespace std;
 //Stream Decypter----------------------------------------------------------------------------
 
   //Constructor
-  streamDecrypter::streamDecrypter(RCFour* c)
+  streamDecrypter::streamDecrypter(os::smart_ptr<RCFour> c)
   {
     cipher = c;
     last_value = 0;
@@ -103,7 +105,7 @@ using namespace std;
       bool good_packet;
       do
       {
-			packetArray[cnt] = new codePacket(cipher, PACKETSIZE);
+			packetArray[cnt] = new codePacket(cipher.get(), PACKETSIZE);
 			good_packet = true;
 	
 			if(packetArray[cnt]->getIdentifier()==0)
@@ -136,14 +138,14 @@ using namespace std;
       cnt++;
     }
     delete(packetArray);
-    delete(cipher);
+    cipher=NULL;
   }
   //Encrypts an array
   uint8_t* streamDecrypter::recieveData(uint8_t* array, int len, uint16_t flag)
   {
     if(len>PACKETSIZE)
     {
-      cerr<<"Invalid packet size for stream decrypter!"<<endl;
+      cryptoerr<<"Invalid packet size for stream decrypter!"<<endl;
       exit(EXIT_FAILURE);
     }
     
@@ -161,7 +163,7 @@ using namespace std;
     //Check if we have found the packet
     if(!found)
     {
-      cerr<<"Stream broken.  Return NULL"<<endl;
+      cryptoerr<<"Stream broken.  Return NULL"<<endl;
       return NULL;
     }
 
@@ -170,7 +172,7 @@ using namespace std;
     
     //Change save array
     last_value = (cnt+last_value+DECRYSIZE-BACKCHECK)%DECRYSIZE;
-    //cout<<"Last value:"<<last_value<<"\tMid value:"<<mid_value<<endl;
+    //cryptoout<<"Last value:"<<last_value<<"\tMid value:"<<mid_value<<endl;
     if((last_value<mid_value && last_value>((mid_value-LAGCATCH+DECRYSIZE) % DECRYSIZE)) ||
       (mid_value<((mid_value-LAGCATCH+DECRYSIZE) % DECRYSIZE) && (last_value<mid_value || last_value>((mid_value-LAGCATCH+DECRYSIZE) % DECRYSIZE)))||
     last_value==mid_value)
@@ -189,7 +191,7 @@ using namespace std;
 	good_packet = true;
 	if(packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE]!=NULL)
 	  delete(packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE]);
-	packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE] = new codePacket(cipher, PACKETSIZE);
+	packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE] = new codePacket(cipher.get(), PACKETSIZE);
 	
 	if(packetArray[(mid_value+DECRYSIZE-LAGCATCH+cnt+1)%DECRYSIZE]->getIdentifier()==0)
 	  good_packet = false;
@@ -209,4 +211,5 @@ using namespace std;
     
     return array;
   }
+
 #endif

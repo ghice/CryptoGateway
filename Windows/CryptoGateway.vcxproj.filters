@@ -45,11 +45,14 @@
     <ClInclude Include="CryptoGatewayComplete.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="cryptoLogging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="securitySpinLock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="end_to_end_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="interior_message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,6 +72,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="streamCode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cryptoLogging.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="securitySpinlock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

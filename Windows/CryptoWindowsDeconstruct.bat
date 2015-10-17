@@ -7,8 +7,11 @@ copy /Y "%cd%\CryptoGateway.vcxproj.users" "%cd%\Windows\CryptoGateway.vcxproj.u
 del "CryptoGateway.vcxproj"
 del "CryptoGateway.vcxproj.filters"
 del "CryptoGateway.vcxproj.users"
-
-del "CryptoTest"
 del "CryptoCompile.bash"
+del securitySpinLock.h
+del securitySpinLock.cpp
+
+IF EXIST Debug rmdir Debug /s /q
+IF EXIST Release rmdir Release /s /q
 
 cd Windows

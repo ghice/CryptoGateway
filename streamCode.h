@@ -1,29 +1,33 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 9/29/2014
+//Confirmed working: 10/12/2014
 
 //The stream sender/reciever header file
 
 #ifndef STREAMCODE_H
 #define STREAMCODE_H
-
+    
 #include <stdint.h>
 #include "RC4.h"
+#include "smartPointer.h"
 
+namespace crypto {
+    
 #define PACKETSIZE 508
 #define DECRYSIZE 100
 #define BACKCHECK 10
 #define LAGCATCH ((int) DECRYSIZE/4)
+extern bool global_logging;
 
 //Encrypts a byte stream
 class streamEncrypter
 {
 private:
-  RCFour* cipher;
+  os::smart_ptr<RCFour> cipher;
   int last_loc;
   uint16_t ID_check[BACKCHECK];
 
 public:
-  streamEncrypter(RCFour* c);
+  streamEncrypter(os::smart_ptr<RCFour> c);
   virtual ~streamEncrypter();
 
   uint8_t* sendData(uint8_t* array, int len, uint16_t* flag);
@@ -33,13 +37,13 @@ public:
 class streamDecrypter
 {
 private:
-  RCFour* cipher;
+  os::smart_ptr<RCFour> cipher;
   codePacket** packetArray;
   int last_value;
   int mid_value;
   
 public:
-  streamDecrypter(RCFour* c);
+  streamDecrypter(os::smart_ptr<RCFour> c);
   virtual ~streamDecrypter();
 
   
@@ -47,5 +51,7 @@ public:
   
   
 };
+    
+}
 
 #endif

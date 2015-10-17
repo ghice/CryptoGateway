@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/6/2014
+//Confirmed working: 9/12/2015
 
 //For testing purposes only
 
@@ -10,10 +10,12 @@
 #include <iostream>
 #include <stdlib.h>
 
+#include "cryptoLogging.h"
 #include "public_key.h"
 #include "security_gateway.h"
 
 using namespace std;
+using namespace crypto;
 
 #ifndef MAIN
 #define MAIN
@@ -23,7 +25,7 @@ int main()
   //Seed the random
   srand(time(NULL));
   
-  cout<<endl<<"End to end test"<<endl<<endl;
+  cryptoout<<endl<<"End to end test"<<endl<<endl;
   
   //Generate the key infrastructure
   public_key_base pubKey(".");
@@ -33,8 +35,8 @@ int main()
   security_gateway new_gate;
   security_gateway gate_pair;
   
-  new_gate.push_data(&pubKey,0,(char*)"ID_8362_Initial");
-  gate_pair.push_data(&pubKeyII,0,(char*)"ID_234_Other_Pair");
+  new_gate.push_data(&pubKey,0,(char*)"ID_8362_Initial","CRYPTO_TEST");
+  gate_pair.push_data(&pubKeyII,0,(char*)"ID_234_Other_Pair","CRYPTO_TEST");
   
   int cnt = 0;
   new_gate.push_old_key(pubKeyII.get_old_n());
@@ -43,14 +45,14 @@ int main()
   //Testing security gateway
   
   //Establish connection
-  interior_message* msg_test;
+  smartInteriorMessage msg_test;
   
   cnt = 0;
   
   while(cnt<100)
   {
     msg_test= new_gate.get_message();
-	cout<<"Remote Processing"<<endl;
+	cryptoout<<"Remote Processing"<<endl;
 
 	int cnt2 = msg_test->get_length();
 	while(cnt2<msg_test->get_full_length())
@@ -60,15 +62,15 @@ int main()
 	}
 
     gate_pair.process_message(msg_test);
-    cout<<"Iteration: "<<cnt+1<<endl;
+    cryptoout<<"Iteration: "<<cnt+1<<endl;
     if(new_gate.connected())
-      cout<<"\tNew gate is connected: ";
+      cryptoout<<"\tNew gate is connected: ";
     else
-      cout<<"\tNew gate is not connected: ";
-    cout<<endl;
+      cryptoout<<"\tNew gate is not connected: ";
+    cryptoout<<endl;
     
     msg_test = gate_pair.get_message();
-	cout<<"Base Processing"<<endl;
+	cryptoout<<"Base Processing"<<endl;
 
 	cnt2 = msg_test->get_length();
 	while(cnt2<msg_test->get_full_length())
@@ -79,16 +81,16 @@ int main()
 
     new_gate.process_message(msg_test);
     if(gate_pair.connected())
-      cout<<"\tGate pair is connected: ";
+      cryptoout<<"\tGate pair is connected: ";
     else
-      cout<<"\tGate pair is not connected: ";
-    cout<<endl;
+      cryptoout<<"\tGate pair is not connected: ";
+    cryptoout<<endl;
     cnt++;
   }
  
   
   
-  cout<<endl<<"Completed test"<<endl<<endl;
+  cryptoout<<endl<<"Completed test"<<endl<<endl;
   int finish;
   cin>>finish;
 }

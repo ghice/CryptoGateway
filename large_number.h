@@ -1,15 +1,17 @@
 //Primary author: Jonathan Bedard
-//Certified working 2/14/2015
+//Certified working 10/6/2015
 
 #ifndef LARGE_NUMBER_H
 #define LARGE_NUMBER_H
-
+    
 #include <stdint.h>
 #include <cstdlib>
 #include <time.h>
 
-#define LARGE_NUMBER_SIZE 32
-#define PRIME_TEST_ITERATION 10
+namespace crypto {
+    
+const unsigned int LARGE_NUMBER_SIZE=32;
+const unsigned int PRIME_TEST_ITERATION=10;
 
 class large_number
 {
@@ -50,7 +52,19 @@ protected:
   //Output
   void printHex() const;
   void printBinary() const;
-  friend std::ostream& operator<<(std::ostream& os, const large_number& obj);
+  friend std::ostream& operator<<(std::ostream& os, const large_number& obj)
+  {
+    int cnt = LARGE_NUMBER_SIZE-1;
+        
+    while(cnt>=0)
+    {
+        os<<std::dec<<obj.data[cnt];
+        cnt--;
+        if(cnt>=0)
+            os<<":";
+    }
+    return os;
+  }
   
   //Operator
   const large_number& operator=(const large_number& equ);
@@ -78,5 +92,7 @@ public:
   const large_integer operator%(const large_integer& modu) const;
   const large_integer operator/(const large_integer& div) const;
 };
+
+}
 
 #endif

@@ -1,14 +1,18 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/9/2014
+//Confirmed working: 10/6/2014
 
 //Defines an RC4 stream cipher
 
 #ifndef RC4_H
 #define RC4_H
-
+    
 #include <stdint.h>
+extern bool global_logging;
 
-#define RC4MAX 2506
+namespace crypto {
+    
+const unsigned int RC4MAX=2506;
+
 class RCFour
 {
 private:
@@ -42,6 +46,6 @@ public:
   uint8_t* encrypt(uint8_t* pt, int len, bool surpress);
 };
 
-
+}
 
 #endif
