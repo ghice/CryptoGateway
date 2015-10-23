@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 8/29/2015
+//Confirmed working: 10/23/2015
 
 /*
 UNIX ONLY
@@ -8,7 +8,7 @@ UNIX ONLY
 #ifndef SECURITYSPINLOCK_CPP
 #define SECURITYSPINLOCK_CPP
 
-#include "securitySpinLock.h"
+#include "../securitySpinLock.h"
 #include <pthread.h>
 
 using namespace std;
