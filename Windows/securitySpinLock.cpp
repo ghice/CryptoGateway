@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/23/2015
+//Confirmed working: 10/24/2015
 
 /*
 WINDOWS ONLY
@@ -8,7 +8,7 @@ WINDOWS ONLY
 #ifndef SECURITYSPINLOCK_CPP
 #define SECURITYSPINLOCK_CPP
 
-#include "securitySpinLock.h"
+#include "../securitySpinLock.h"
 #include <process.h>
 #include <Windows.h>
 
