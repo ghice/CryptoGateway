@@ -2,6 +2,7 @@ IF(NOT CRYPTOGATEWAY_CMAKE)
 SET(CRYPTOGATEWAY_CMAKE 1)
 
 INCLUDE(${GLOBAL_DIR}/Datastructures/CMakeLists.txt)
+INCLUDE(${GLOBAL_DIR}/UnitTest/CMakeLists.txt)
 
 MESSAGE(STATUS )
 MESSAGE(STATUS ========= CryptoGateway ==========)

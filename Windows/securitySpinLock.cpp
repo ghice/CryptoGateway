@@ -8,7 +8,7 @@ WINDOWS ONLY
 #ifndef SECURITYSPINLOCK_CPP
 #define SECURITYSPINLOCK_CPP
 
-#include "../securitySpinLock.h"
+#include "securitySpinLock.h"
 #include <process.h>
 #include <Windows.h>
 

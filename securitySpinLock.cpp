@@ -1,8 +1,43 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/17/2015
+//Confirmed working: 10/23/2015
 
-#ifdef _WIN32
-#include "Windows/securitySpinLock.cpp"
-#else
-#include "Unix/securitySpinLock.cpp"
+/*
+WINDOWS ONLY
+*/
+
+#ifndef SECURITYSPINLOCK_CPP
+#define SECURITYSPINLOCK_CPP
+
+#include "securitySpinLock.h"
+#include <process.h>
+#include <Windows.h>
+
+using namespace std;
+using namespace crypto;
+
+//Default constructor
+sgSpinLock::sgSpinLock()
+{
+	release();
+}
+//Default destructor
+sgSpinLock::~sgSpinLock(){}
+//Acquire the lock
+void sgSpinLock::acquire()
+{
+	while (lock.test_and_set(memory_order_acquire))
+	{Sleep(1);}
+	taken = true;
+}
+//Release the lock
+void sgSpinLock::release()
+{
+	lock.clear(memory_order_release);
+	taken = false;
+}
+//Test the lock (non blocking)
+bool sgSpinLock::isTaken()
+{
+	return taken;
+}
 #endif

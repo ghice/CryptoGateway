@@ -1,8 +1,32 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/17/2015
+//Confirmed working: 8/16/2015
 
-#ifdef _WIN32
-#include "Windows/securitySpinLock.h"
-#else
-#include "Unix/securitySpinLock.h"
+/*
+WINDOWS ONLY
+*/
+
+#ifndef SECURITYSPINLOCK_H
+#define SECUROTYSPINLOCK_H
+
+#include <atomic>
+
+namespace crypto
+{
+
+//This is a simple spinlock class
+class sgSpinLock
+{
+private:
+    std::atomic_flag lock;
+	bool taken;
+public:
+	sgSpinLock();
+	~sgSpinLock();
+    void acquire();
+    void release();
+	bool isTaken();
+};
+    
+}
+
 #endif
