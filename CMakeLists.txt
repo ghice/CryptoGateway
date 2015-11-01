@@ -22,7 +22,9 @@ SET( SRC_H
 	${CUR_SRC}/RC4.h
 	${CUR_SRC}/security_gateway.h
 	${CUR_SRC}/streamCode.h
-	${CUR_SRC}/securitySpinLock.cpp
+	${CUR_SRC}/securitySpinLock.h
+	${CUR_SRC}/cryptoFrameworks.h
+	${CUR_SRC}/cryptoException.h
 )
 
 SET( SRC_CPP
@@ -34,7 +36,8 @@ SET( SRC_CPP
 	${CUR_SRC}/RC4.cpp
 	${CUR_SRC}/security_gateway.cpp
 	${CUR_SRC}/streamCode.cpp
-	${CUR_SRC}/securitySpinLock.h
+	${CUR_SRC}/securitySpinLock.cpp
+	${CUR_SRC}/cryptoFrameworks.cpp
 )
 
 ADD_LIBRARY( CryptoGateway STATIC
