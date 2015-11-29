@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/28/2015
+//Confirmed working: 11/29/2015
 
 #ifndef C_CRYPTO_TESTING_CPP
 #define C_CRYPTO_TESTING_CPP
@@ -274,8 +274,62 @@ using namespace os;
     
         src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
         src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+        
+        //1<<1
+        src1[0]=1;
+        src2[0]=2;
+        ret = _baseType->rightShift(src1,1,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1<<1 failed!",locString),shared_type);
+        
+        //1<<32
+        src1[0]=1;
+        src2[0]=0;
+        src2[1]=1;
+        ret = _baseType->rightShift(src1,32,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1<<32 failed!",locString),shared_type);
+        
+        //1<<33
+        src1[0]=1;
+        src2[1]=2;
+        ret = _baseType->rightShift(src1,33,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1<<33 failed!",locString),shared_type);
+        
+        //Split Shift
+        src1[0]=1|(1<<31);
+        src2[0]=0;
+        src2[1]=2;
+        src2[2]=1;
+        ret = _baseType->rightShift(src1,33,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("Split shift failed!",locString),shared_type);
+        
+        //Split Shift 2
+        src1[0]=1|(1<<31);
+        src2[0]=0;
+        src2[1]=0;
+        src2[2]=2;
+        src2[3]=1;
+        ret = _baseType->rightShift(src1,65,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("Split shift 2 failed!",locString),shared_type);
+        
+        //Overflow (a little)
+        ret = _baseType->rightShift(src1,97,dest1,4);
+        if(ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("Overflow (a little) failed!",locString),shared_type);
+        
+        //Overflow (a lot)
+        src1[0]=0;
+        src1[1]=1;
+        ret = _baseType->rightShift(src1,129,dest1,4);
+        if(ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("Overflow (a lot) failed!",locString),shared_type);
+        
     }
-    //Division test
+    //Left shift test
     void base10leftShiftTest() throw(os::smart_ptr<std::exception>)
     {
         struct numberType* _baseType = typeCheckBase10();
@@ -289,6 +343,44 @@ using namespace os;
     
         src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
         src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+        
+        //1>>1
+        src1[0]=1;
+        ret = _baseType->leftShift(src1,1,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1>>1 failed!",locString),shared_type);
+        
+        //2>>1
+        src1[0]=2;
+        src2[0]=1;
+        ret = _baseType->leftShift(src1,1,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2>>1 failed!",locString),shared_type);
+        
+        //0:0:1:0>>32
+        src1[0]=0;
+        src1[1]=1;
+        ret = _baseType->leftShift(src1,32,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:0>>32 failed!",locString),shared_type);
+        
+        //0:0:1:0>>31
+        src1[0]=0;
+        src1[1]=1;
+        src2[0]=2;
+        ret = _baseType->leftShift(src1,31,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:0>>31 failed!",locString),shared_type);
+        
+        //0:3:0:0>>33
+        src1[0]=0;
+        src1[1]=0;
+        src1[2]=3;
+        src2[0]=1<<31;
+        src2[1]=1;
+        ret = _baseType->leftShift(src1,33,dest1,4);
+        if(_baseType->compare(src2,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:3:0:0>>33 failed!",locString),shared_type);
     }
     //Multiplication test
     void base10multiplicationTest() throw(os::smart_ptr<std::exception>)

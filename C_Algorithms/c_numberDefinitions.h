@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/28/2015
+//Confirmed working: 11/29/2015
 
 #ifndef C_NUMBER_DEFINITIONS_H
 #define C_NUMBER_DEFINITIONS_H
