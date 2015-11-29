@@ -24,6 +24,12 @@ using namespace os;
         
         if(_nullType->addition != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type addition defined!!",locString),shared_type);
         if(_nullType->subtraction != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type subtraction defined!!",locString),shared_type);
+        
+        if(_nullType->rightShift != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type right shift defined!!",locString),shared_type);
+        if(_nullType->leftShift != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type left shift defined!!",locString),shared_type);
+        
+        if(_nullType->multiplication != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type multiplication defined!!",locString),shared_type);
+        if(_nullType->division != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type division defined!!",locString),shared_type);
     }
     //Checks if the base-10 type is constructed properly
     struct numberType* typeCheckBase10(bool errorType=false)throw(os::smart_ptr<std::exception>)
@@ -63,6 +69,28 @@ using namespace os;
         if(_baseType->subtraction == NULL)
         {
             if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type addition undefined!",locString),shared_type);
+            else throw defThrow;
+        }
+        
+        if(_baseType->rightShift == NULL)
+        {
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type right shift undefined!",locString),shared_type);
+            else throw defThrow;
+        }
+        if(_baseType->leftShift == NULL)
+        {
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type left shift undefined!",locString),shared_type);
+            else throw defThrow;
+        }
+        
+        if(_baseType->multiplication == NULL)
+        {
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("NULL type multiplication defined!!",locString),shared_type);
+            else throw defThrow;
+        }
+        if(_baseType->division == NULL)
+        {
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("NULL type division defined!!",locString),shared_type);
             else throw defThrow;
         }
         
@@ -216,6 +244,81 @@ using namespace os;
         ret = _baseType->subtraction(src1,src2,dest1,4);
         if(_baseType->compare(src1,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("0-0 failed!",locString),shared_type);
+        
+        //4-0
+        src1[0]=4;
+        ret = _baseType->subtraction(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("4-0 failed!",locString),shared_type);
+        //0-4
+        src1[0]=0;
+        src2[0]=4;
+        ret = _baseType->subtraction(src1,src2,dest1,4);
+        if(ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0-4 didn't overflow!",locString),shared_type);
+        ret = _baseType->addition(dest1,src2,dest2,4);
+        if(ret || _baseType->compare(src1,dest2,4)!=0)
+            throw os::smart_ptr<std::exception>(new generalTestException("Overflow carries from 0-4 are incorrect!",locString),shared_type);
+    }
+    //Right shift test
+    void base10rightShiftTest() throw(os::smart_ptr<std::exception>)
+    {
+        struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10rightShiftTest()";
+    
+        uint32_t src1[4];
+        uint32_t src2[4];
+        uint32_t dest1[4];
+        uint32_t dest2[4];
+        int ret;
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+        src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+    }
+    //Division test
+    void base10leftShiftTest() throw(os::smart_ptr<std::exception>)
+    {
+        struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10leftShiftTest()";
+    
+        uint32_t src1[4];
+        uint32_t src2[4];
+        uint32_t dest1[4];
+        uint32_t dest2[4];
+        int ret;
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+        src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+    }
+    //Multiplication test
+    void base10multiplicationTest() throw(os::smart_ptr<std::exception>)
+    {
+        struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10multiplicationTest()";
+    
+        uint32_t src1[4];
+        uint32_t src2[4];
+        uint32_t dest1[4];
+        uint32_t dest2[4];
+        int ret;
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+        src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+    }
+    //Division test
+    void base10divisionTest() throw(os::smart_ptr<std::exception>)
+    {
+        struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10divisionTest()";
+    
+        uint32_t src1[4];
+        uint32_t src2[4];
+        uint32_t dest1[4];
+        uint32_t dest2[4];
+        int ret;
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+        src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
     }
 
 /*================================================================
@@ -231,6 +334,10 @@ using namespace os;
         pushTest("Compare",&base10compareTest);
         pushTest("Addition",&base10additionTest);
         pushTest("Subtraction",&base10subtractionTest);
+        pushTest("Right Shift",&base10rightShiftTest);
+        pushTest("Left Shift",&base10leftShiftTest);
+        pushTest("Multiplicaiton",&base10multiplicationTest);
+        pushTest("Division",&base10divisionTest);
     }
 
 #endif

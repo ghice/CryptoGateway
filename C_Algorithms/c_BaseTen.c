@@ -26,6 +26,12 @@ extern "C" {
         _baseTen.addition = &base10Addition;
         _baseTen.subtraction = &base10Subtraction;
         
+        _baseTen.rightShift = &standardRightShift;
+        _baseTen.leftShift = &standardLeftShift;
+        
+        _baseTen.multiplication = base10Multiplication;
+        _baseTen.division = base10Division;
+        
         baseTenInit = true;
         return &_baseTen;
     }
@@ -79,7 +85,19 @@ extern "C" {
         if(borrow>0) return 0;
         return 1;
     }
-    
+    //Multiplication
+    int base10Multiplication(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+    {
+        if(length<=0) return 0;
+        return 1;
+    }
+    //Division
+    int base10Division(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+    {
+        if(length<=0) return 0;
+        return 1;
+    }
+
 #ifdef __cplusplus
 }
 #endif

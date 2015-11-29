@@ -14,6 +14,8 @@ extern "C" {
 
     int base10Addition(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length);
     int base10Subtraction(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length);
+    int base10Multiplication(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length);
+    int base10Division(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length);
     
 #ifdef __cplusplus
 }

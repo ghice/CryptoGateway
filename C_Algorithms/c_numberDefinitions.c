@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/28/2015
+//Confirmed working: 11/29/2015
 
 #ifndef C_NUMBER_DEFINITIONS_C
 #define C_NUMBER_DEFINITIONS_C
@@ -26,6 +26,12 @@ extern "C" {
         _nullType.addition = NULL;
         _nullType.subtraction = NULL;
         
+        _nullType.rightShift = NULL;
+        _nullType.leftShift = NULL;
+        
+        _nullType.multiplication = NULL;
+        _nullType.division = NULL;
+        
         nullInit = true;
         return &_nullType;
     }
@@ -40,6 +46,18 @@ extern "C" {
                 return -1;
         }
         return 0;
+    }
+    //Standard right shift function
+    int standardRightShift(uint32_t* src1, uint16_t src2, uint32_t* dest, uint16_t length)
+    {
+        if(length<=0) return 0;
+        return 1;
+    }
+    //Standard left shift function
+    int standardLeftShift(uint32_t* src1, uint16_t src2, uint32_t* dest, uint16_t length)
+    {
+        if(length<=0) return 0;
+        return 1;
     }
     
 #ifdef __cplusplus
