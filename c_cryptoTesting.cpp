@@ -18,7 +18,7 @@ using namespace os;
         if(_nullType == NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type could not be built!",locString),shared_type);
         
         if(_nullType->typeID != 0) throw os::smart_ptr<std::exception>(new generalTestException("NULL type ID wrong!",locString),shared_type);
-        if(_nullType->name != "NULL Type") throw os::smart_ptr<std::exception>(new generalTestException("NULL type name wrong!",locString),shared_type);
+        if(std::string(_nullType->name) != std::string("NULL Type")) throw os::smart_ptr<std::exception>(new generalTestException("NULL type name wrong!",locString),shared_type);
         
         if(_nullType->compare != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type compare defined!!",locString),shared_type);
         
@@ -49,7 +49,7 @@ using namespace os;
             if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type ID wrong!",locString),shared_type);
             else throw defThrow;
         }
-        if(_baseType->name != "Base 10 Type")
+        if(std::string(_baseType->name) != std::string("Base 10 Type"))
         {
             if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type name wrong!",locString),shared_type);
             else throw defThrow;
