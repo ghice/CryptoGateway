@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/29/2015
+//Confirmed working: 11/30/2015
 
 #ifndef C_NUMBER_DEFINITIONS_C
 #define C_NUMBER_DEFINITIONS_C
@@ -31,7 +31,11 @@ extern "C" {
         
         _nullType.multiplication = NULL;
         _nullType.division = NULL;
+		_nullType.modulo = NULL;
         
+		_nullType.exponentiation = NULL;
+		_nullType.moduloExponentiation = NULL;
+
         nullInit = true;
         return &_nullType;
     }
@@ -50,13 +54,50 @@ extern "C" {
     //Standard right shift function
     int standardRightShift(uint32_t* src1, uint16_t src2, uint32_t* dest, uint16_t length)
     {
-        if(length<=0) return 0;
+		if(length<=0) return 0;
+        
+		uint32_t* targ = (uint32_t*) malloc(length*sizeof(uint32_t));
+        uint16_t bigShift=src2/32;
+        uint16_t smallShift=src2%32;
         
         //Set to zero
         int cnt=0;
         for(cnt=0;cnt<length;cnt++)
-            dest[cnt]=0;
+            targ[cnt]=0;
+        if(bigShift>=length)
+		{
+			for(int cnt=0;cnt<length;cnt++)
+			dest[cnt]=targ[cnt];
+			free(targ);
+            return 1;
+		}
         
+        uint32_t carry=src1[bigShift]>>smallShift;
+        for(cnt=bigShift+1;cnt<length;cnt++)
+        {
+            if(smallShift>0)
+                targ[cnt-bigShift-1]=carry|src1[cnt]<<(32-smallShift);
+            else
+                targ[cnt-bigShift-1]=carry;
+            carry=src1[cnt]>>smallShift;
+        }
+		for(int cnt=0;cnt<length;cnt++)
+			dest[cnt]=targ[cnt];
+		free(targ);
+        return 1;
+    }
+    //Standard left shift function
+    int standardLeftShift(uint32_t* src1, uint16_t src2, uint32_t* dest, uint16_t length)
+    {
+        if(length<=0) return 0;
+        
+        //Set to zero
+		uint32_t* targ = (uint32_t*) malloc(length*sizeof(uint32_t));
+        int cnt=0;
+        for(cnt=0;cnt<length;cnt++)
+            targ[cnt]=0;
+        
+		
         uint16_t bigShift=src2/32;
         uint16_t smallShift=src2%32;
         uint32_t oldVal = 0;
@@ -65,44 +106,22 @@ extern "C" {
         {
             if(smallShift>0)
             {
-                dest[cnt+bigShift]=oldVal | (src1[cnt]<<smallShift);
+                targ[cnt+bigShift]=oldVal | (src1[cnt]<<smallShift);
                 oldVal = src1[cnt]>>(32-smallShift);
             }
             else
-                dest[cnt+bigShift]=src1[cnt];
+                targ[cnt+bigShift]=src1[cnt];
         }
+
+		for(int cnt=0;cnt<length;cnt++)
+			dest[cnt]=targ[cnt];
+		free(targ);
         if(oldVal>0) return 0;
         
         for(;cnt<length;cnt++)
         {
             if(src1[cnt]>0)
                 return 0;
-        }
-        return 1;
-    }
-    //Standard left shift function
-    int standardLeftShift(uint32_t* src1, uint16_t src2, uint32_t* dest, uint16_t length)
-    {
-        if(length<=0) return 0;
-        
-        uint16_t bigShift=src2/32;
-        uint16_t smallShift=src2%32;
-        
-        //Set to zero
-        int cnt=0;
-        for(cnt=0;cnt<length;cnt++)
-            dest[cnt]=0;
-        if(bigShift>=length)
-            return 1;
-        
-        uint32_t carry=src1[bigShift]>>smallShift;
-        for(cnt=bigShift+1;cnt<length;cnt++)
-        {
-            if(smallShift>0)
-                dest[cnt-bigShift-1]=carry|src1[cnt]<<(32-smallShift);
-            else
-                dest[cnt-bigShift-1]=carry;
-            carry=src1[cnt]>>smallShift;
         }
         return 1;
     }

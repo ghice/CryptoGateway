@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/29/2015
+//Confirmed working: 11/30/2015
 
 #ifndef C_CRYPTO_TESTING_CPP
 #define C_CRYPTO_TESTING_CPP
@@ -30,6 +30,10 @@ using namespace os;
         
         if(_nullType->multiplication != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type multiplication defined!!",locString),shared_type);
         if(_nullType->division != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type division defined!!",locString),shared_type);
+		if(_nullType->modulo != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type modulo defined!!",locString),shared_type);
+
+		if(_nullType->exponentiation != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type exponentiation defined!!",locString),shared_type);
+		if(_nullType->moduloExponentiation != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type moduloExponentiation defined!!",locString),shared_type);
     }
     //Checks if the base-10 type is constructed properly
     struct numberType* typeCheckBase10(bool errorType=false)throw(os::smart_ptr<std::exception>)
@@ -85,12 +89,28 @@ using namespace os;
         
         if(_baseType->multiplication == NULL)
         {
-            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("NULL type multiplication defined!!",locString),shared_type);
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type multiplication undefined!!",locString),shared_type);
             else throw defThrow;
         }
         if(_baseType->division == NULL)
         {
-            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("NULL type division defined!!",locString),shared_type);
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type division undefined!!",locString),shared_type);
+            else throw defThrow;
+        }
+		if(_baseType->modulo == NULL)
+        {
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type modulo undefined!!",locString),shared_type);
+            else throw defThrow;
+        }
+
+		 if(_baseType->exponentiation == NULL)
+        {
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type exponentiation undefined!!",locString),shared_type);
+            else throw defThrow;
+        }
+		if(_baseType->moduloExponentiation == NULL)
+        {
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type moduloExponentiation undefined!!",locString),shared_type);
             else throw defThrow;
         }
         
@@ -260,8 +280,8 @@ using namespace os;
         if(ret || _baseType->compare(src1,dest2,4)!=0)
             throw os::smart_ptr<std::exception>(new generalTestException("Overflow carries from 0-4 are incorrect!",locString),shared_type);
     }
-    //Right shift test
-    void base10rightShiftTest() throw(os::smart_ptr<std::exception>)
+    //Left shift test
+    void base10leftShiftTest() throw(os::smart_ptr<std::exception>)
     {
         struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10rightShiftTest()";
@@ -278,7 +298,7 @@ using namespace os;
         //1<<1
         src1[0]=1;
         src2[0]=2;
-        ret = _baseType->rightShift(src1,1,dest1,4);
+        ret = _baseType->leftShift(src1,1,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("1<<1 failed!",locString),shared_type);
         
@@ -286,14 +306,14 @@ using namespace os;
         src1[0]=1;
         src2[0]=0;
         src2[1]=1;
-        ret = _baseType->rightShift(src1,32,dest1,4);
+        ret = _baseType->leftShift(src1,32,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("1<<32 failed!",locString),shared_type);
         
         //1<<33
         src1[0]=1;
         src2[1]=2;
-        ret = _baseType->rightShift(src1,33,dest1,4);
+        ret = _baseType->leftShift(src1,33,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("1<<33 failed!",locString),shared_type);
         
@@ -302,7 +322,7 @@ using namespace os;
         src2[0]=0;
         src2[1]=2;
         src2[2]=1;
-        ret = _baseType->rightShift(src1,33,dest1,4);
+        ret = _baseType->leftShift(src1,33,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("Split shift failed!",locString),shared_type);
         
@@ -312,25 +332,25 @@ using namespace os;
         src2[1]=0;
         src2[2]=2;
         src2[3]=1;
-        ret = _baseType->rightShift(src1,65,dest1,4);
+        ret = _baseType->leftShift(src1,65,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("Split shift 2 failed!",locString),shared_type);
         
         //Overflow (a little)
-        ret = _baseType->rightShift(src1,97,dest1,4);
+        ret = _baseType->leftShift(src1,97,dest1,4);
         if(ret)
             throw os::smart_ptr<std::exception>(new generalTestException("Overflow (a little) failed!",locString),shared_type);
         
         //Overflow (a lot)
         src1[0]=0;
         src1[1]=1;
-        ret = _baseType->rightShift(src1,129,dest1,4);
+        ret = _baseType->leftShift(src1,129,dest1,4);
         if(ret)
             throw os::smart_ptr<std::exception>(new generalTestException("Overflow (a lot) failed!",locString),shared_type);
         
     }
-    //Left shift test
-    void base10leftShiftTest() throw(os::smart_ptr<std::exception>)
+    //Right shift test
+    void base10rightShiftTest() throw(os::smart_ptr<std::exception>)
     {
         struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10leftShiftTest()";
@@ -346,21 +366,21 @@ using namespace os;
         
         //1>>1
         src1[0]=1;
-        ret = _baseType->leftShift(src1,1,dest1,4);
+		ret = _baseType->rightShift(src1,1,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("1>>1 failed!",locString),shared_type);
         
         //2>>1
         src1[0]=2;
         src2[0]=1;
-        ret = _baseType->leftShift(src1,1,dest1,4);
+        ret = _baseType->rightShift(src1,1,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("2>>1 failed!",locString),shared_type);
         
         //0:0:1:0>>32
         src1[0]=0;
         src1[1]=1;
-        ret = _baseType->leftShift(src1,32,dest1,4);
+        ret = _baseType->rightShift(src1,32,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:0>>32 failed!",locString),shared_type);
         
@@ -368,7 +388,7 @@ using namespace os;
         src1[0]=0;
         src1[1]=1;
         src2[0]=2;
-        ret = _baseType->leftShift(src1,31,dest1,4);
+        ret = _baseType->rightShift(src1,31,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:0>>31 failed!",locString),shared_type);
         
@@ -378,7 +398,7 @@ using namespace os;
         src1[2]=3;
         src2[0]=1<<31;
         src2[1]=1;
-        ret = _baseType->leftShift(src1,33,dest1,4);
+        ret = _baseType->rightShift(src1,33,dest1,4);
         if(_baseType->compare(src2,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("0:3:0:0>>33 failed!",locString),shared_type);
     }
@@ -391,11 +411,53 @@ using namespace os;
         uint32_t src1[4];
         uint32_t src2[4];
         uint32_t dest1[4];
-        uint32_t dest2[4];
         int ret;
     
         src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
         src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+
+		//0*0
+		ret=_baseType->multiplication(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0*0 failed!",locString),shared_type);
+
+		//0*1
+		src2[0]=1;
+		ret=_baseType->multiplication(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0*1 failed!",locString),shared_type);
+
+		//2*1
+		src2[0]=1;
+		src1[0]=2;
+		ret=_baseType->multiplication(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2*1 failed!",locString),shared_type);
+
+		//2*0:0:1:1
+		src2[1]=1;
+		ret=_baseType->multiplication(src1,src2,dest1,4);
+		src1[1]=2;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2*0:0:1:1 failed!",locString),shared_type);
+
+		//Carry test
+		src1[1]=0;
+		src2[0]=1<<31;
+		ret=_baseType->multiplication(src1,src2,dest1,4);
+		src1[0]=0;
+		src1[1]=3;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("Carry failed!",locString),shared_type);
+
+		//Overflow test
+		src2[3]=1<<30;
+		ret=_baseType->multiplication(src1,src2,dest1,4);
+		if(ret)
+			throw os::smart_ptr<std::exception>(new generalTestException("Overflow 1 failed!",locString),shared_type);
+		ret=_baseType->multiplication(src2,src1,dest1,4);
+		if(ret)
+			throw os::smart_ptr<std::exception>(new generalTestException("Overflow 2 failed!",locString),shared_type);
     }
     //Division test
     void base10divisionTest() throw(os::smart_ptr<std::exception>)
@@ -406,12 +468,131 @@ using namespace os;
         uint32_t src1[4];
         uint32_t src2[4];
         uint32_t dest1[4];
-        uint32_t dest2[4];
         int ret;
     
         src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
         src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+
+		//0/0
+		ret=_baseType->division(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0/0 failed!",locString),shared_type);
+
+		//0/1
+		src2[0]=1;
+		ret=_baseType->division(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0/1 failed!",locString),shared_type);
+
+		//1/1
+		src1[0]=1;
+		ret=_baseType->division(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1/1 failed!",locString),shared_type);
+
+		//2/1
+		src1[0]=2;
+		ret=_baseType->division(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2/1 failed!",locString),shared_type);
+
+		//5/2
+		src1[0]=5;
+		src2[0]=2;
+		ret=_baseType->division(src1,src2,dest1,4);
+		src1[0]=2;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("5/2 failed!",locString),shared_type);
+
+		//5/3
+		src1[0]=5;
+		src2[0]=3;
+		ret=_baseType->division(src1,src2,dest1,4);
+		src1[0]=1;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("5/3 failed!",locString),shared_type);
+
+		//0:0:2:2/2
+		src1[0]=2;
+		src1[1]=2;
+		src2[0]=2;
+		ret=_baseType->division(src1,src2,dest1,4);
+		src1[0]=1;
+		src1[1]=1;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:0:2:2/2 failed!",locString),shared_type);
+
+		//0:0:2:2/0:0:1:1
+		src1[0]=2;
+		src1[1]=2;
+		src2[0]=1;
+		src2[1]=1;
+		ret=_baseType->division(src1,src2,dest1,4);
+		src1[0]=2;
+		src1[1]=0;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:0:2:2/0:0:1:1 failed!",locString),shared_type);
     }
+	//Modulo
+	void base10moduloTest() throw(os::smart_ptr<std::exception>)
+	{
+		struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10moduloTest()";
+    
+        uint32_t src1[4];
+        uint32_t src2[4];
+        uint32_t dest1[4];
+        int ret;
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+        src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+
+		//0%0
+		ret=_baseType->modulo(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0%0 failed!",locString),shared_type);
+
+		//0%2
+		src1[0]=0;
+		src2[0]=2;
+		ret=_baseType->modulo(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0%2 failed!",locString),shared_type);
+
+		//1%2
+		src1[0]=1;
+		src2[0]=2;
+		ret=_baseType->modulo(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1%2 failed!",locString),shared_type);
+
+		//2%2
+		src1[0]=2;
+		src2[0]=2;
+		ret=_baseType->modulo(src1,src2,dest1,4);
+		src1[0]=0;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2%2 failed!",locString),shared_type);
+
+		//3%2
+		src1[0]=3;
+		src2[0]=2;
+		ret=_baseType->modulo(src1,src2,dest1,4);
+		src1[0]=1;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("3%2 failed!",locString),shared_type);
+
+		//0:0:1:3%0:0:1:0
+		src1[1]=1;
+		src1[0]=3;
+		src2[1]=1;
+		src2[0]=0;
+		ret=_baseType->modulo(src1,src2,dest1,4);
+		src1[1]=0;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:3%0:0:1:0 failed!",locString),shared_type);
+
+	}
 
 /*================================================================
 	C Test Suites
@@ -430,6 +611,7 @@ using namespace os;
         pushTest("Left Shift",&base10leftShiftTest);
         pushTest("Multiplicaiton",&base10multiplicationTest);
         pushTest("Division",&base10divisionTest);
+		pushTest("Modulo",&base10moduloTest);
     }
 
 #endif

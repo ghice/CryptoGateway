@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/29/2015
+//Confirmed working: 11/30/2015
 
 #ifndef C_NUMBER_DEFINITIONS_H
 #define C_NUMBER_DEFINITIONS_H
@@ -10,6 +10,7 @@ extern "C" {
     
     #include <stdio.h>
     #include <stdint.h>
+	#include <stdlib.h>
     
     //Typedef for operator function
     typedef int (*operatorFunction)(uint32_t*,uint32_t*,uint32_t*,uint16_t);
@@ -33,6 +34,10 @@ extern "C" {
         
         operatorFunction multiplication;
         operatorFunction division;
+		operatorFunction modulo;
+
+		operatorFunction exponentiation;
+		operatorFunction moduloExponentiation;
     };
 
     struct numberType* buildNullNumberType();
