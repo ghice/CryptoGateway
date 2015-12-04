@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/30/2015
+//Confirmed working: 12/4/2015
 
 #ifndef C_NUMBER_DEFINITIONS_H
 #define C_NUMBER_DEFINITIONS_H
@@ -11,6 +11,7 @@ extern "C" {
     #include <stdio.h>
     #include <stdint.h>
 	#include <stdlib.h>
+	#include <string.h>
     
     //Typedef for operator function
     typedef int (*operatorFunction)(uint32_t*,uint32_t*,uint32_t*,uint16_t);

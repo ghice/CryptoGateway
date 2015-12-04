@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/30/2015
+//Confirmed working: 12/4/2015
 
 #ifndef C_BASE_TEN_C
 #define C_BASE_TEN_C
@@ -46,16 +46,12 @@ extern "C" {
         //Zero return is error
         if(length<=0) return 0;
         
-        //Zero target
-        for(int cnt = 0;cnt<length;cnt++)
-            dest[cnt]=0;
-        
         //Add to target
         uint64_t carry = 0;
         for(int cnt =0;cnt<length;cnt++)
         {
             uint64_t tm = (uint64_t) src1[cnt] + (uint64_t) src2[cnt] +carry;
-            dest[cnt]+=(uint32_t)tm;
+            dest[cnt]=(uint32_t)tm;
             
             if(tm != (uint32_t) tm)
                 carry = (uint32_t) (tm>>32);
@@ -96,8 +92,7 @@ extern "C" {
 		uint32_t* targ = (uint32_t*) malloc(length*sizeof(uint32_t));
 
 		//Zero the target
-		for(int cnt =0;cnt<length;cnt++)
-			targ[cnt]=0;
+		memset(targ,0,sizeof(uint32_t)*length);
 		
 		//Preform multiplication
 		for(int cnt=0;cnt<length*32;cnt++)
@@ -113,8 +108,7 @@ extern "C" {
 			}
 		}
 
-		for(int cnt=0;cnt<length;cnt++)
-			dest[cnt]=targ[cnt];
+		memcpy(dest,targ,sizeof(uint32_t)*length);
 		free(targ);
 		free(temp);
         return ret;
@@ -134,8 +128,7 @@ extern "C" {
 
 		//Zero the target
 		uint32_t* targ = (uint32_t*) malloc(length*sizeof(uint32_t));
-		for(int cnt =0;cnt<length;cnt++)
-			targ[cnt]=0;
+		memset(targ,0,sizeof(uint32_t)*length);
 
 		if(!found)
 		{
@@ -199,8 +192,7 @@ extern "C" {
 		free(temp1);
 		free(temp2);
 
-		for(int cnt=0;cnt<length;cnt++)
-			dest[cnt]=targ[cnt];
+		memcpy(dest,targ,sizeof(uint32_t)*length);
 		free(targ);
         return 1;
     }
@@ -220,8 +212,7 @@ extern "C" {
 		if(!found)
 		{
 			//Zero the target
-			for(int cnt =0;cnt<length;cnt++)
-				dest[cnt]=0;
+			memset((void*) dest,0,sizeof(uint32_t)*length);
 			return 0;
 		}
 
@@ -229,8 +220,7 @@ extern "C" {
 		uint32_t* temp2 = (uint32_t*) malloc(length*sizeof(uint32_t));
 		
 		//Set temp1 to current src1
-		for(int cnt =0;cnt<length;cnt++)
-			temp1[cnt]=src1[cnt];
+		memcpy(temp1,src1,sizeof(uint32_t)*length);
 
 		//Find starting position of src1
 		int src1_pos=length*32-1;
@@ -270,8 +260,7 @@ extern "C" {
 		}
 
 		//Copy from temp into destination
-		for(int cnt=0;cnt<length;cnt++)
-			dest[cnt] = temp1[cnt];
+		memcpy(dest,temp1,sizeof(uint32_t)*length);
 
 		free(temp1);
 		free(temp2);
@@ -286,6 +275,10 @@ extern "C" {
 		uint32_t* temp1 = (uint32_t*) malloc(length*sizeof(uint32_t));
 		uint32_t* temp2 = (uint32_t*) malloc(length*sizeof(uint32_t));
 
+		//Zero
+		memset((void*) temp1,0,sizeof(uint32_t)*length);
+		memset((void*) temp2,0,sizeof(uint32_t)*length);
+
 		free(temp1);
 		free(temp2);
 
@@ -299,6 +292,10 @@ extern "C" {
 
 		uint32_t* temp1 = (uint32_t*) malloc(length*sizeof(uint32_t));
 		uint32_t* temp2 = (uint32_t*) malloc(length*sizeof(uint32_t));
+
+		//Zero
+		memset((void*) temp1,0,sizeof(uint32_t)*length);
+		memset((void*) temp2,0,sizeof(uint32_t)*length);
 
 		free(temp1);
 		free(temp2);
