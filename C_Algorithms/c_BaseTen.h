@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/30/2015
+//Confirmed working: 12/4/2015
 
 #ifndef C_BASE_TEN_H
 #define C_BASE_TEN_H
@@ -20,7 +20,10 @@ extern "C" {
     int base10Modulo(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length);
 
 	int base10Exponentiation(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length);
-	int base10ModuloExponentiation(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length);
+	int base10ModuloExponentiation(uint32_t* src1, uint32_t* src2, uint32_t* src3, uint32_t* dest, uint16_t length);
+
+	int base10GCD(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length);
+	int base10ModInverse(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length);
 
 #ifdef __cplusplus
 }

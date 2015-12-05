@@ -33,8 +33,11 @@ extern "C" {
         _baseTen.division = &base10Division;
 		_baseTen.modulo = &base10Modulo;
         
-		_baseTen.exponentiation = base10Exponentiation;
-		_baseTen.moduloExponentiation = base10ModuloExponentiation;
+		_baseTen.exponentiation = &base10Exponentiation;
+		_baseTen.moduloExponentiation = &base10ModuloExponentiation;
+
+		_baseTen.gcd = &base10GCD;
+		_baseTen.modInverse = &base10ModInverse;
 
         baseTenInit = true;
         return &_baseTen;
@@ -269,37 +272,117 @@ extern "C" {
 	//Exponentiation
 	int base10Exponentiation(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
 	{
-		 //Zero return is error
+		//Zero return is error
         if(length<=0) return 0;
+
+		//Check if src1 is zero
+		int cnt=0;
+		for(cnt=0;cnt<length && src1[cnt]==0;cnt++)
+		{}
+		if(cnt==length && src1[cnt-1]==0)
+		{
+			memset((void*) dest,0,sizeof(uint32_t)*length);
+			return 1;
+		}
 
 		uint32_t* temp1 = (uint32_t*) malloc(length*sizeof(uint32_t));
 		uint32_t* temp2 = (uint32_t*) malloc(length*sizeof(uint32_t));
 
 		//Zero
 		memset((void*) temp1,0,sizeof(uint32_t)*length);
-		memset((void*) temp2,0,sizeof(uint32_t)*length);
+		memcpy((void*) temp2,src1,sizeof(uint32_t)*length);
+		temp1[0]=1;
+		
+		int cur_state=1;
+		int ret_state=1;
+		for(cnt=0;cnt<32*length && ret_state;cnt++)
+		{
+			int bigPos=cnt/32;
+			int smallPos=cnt%32;
+			if(src2[bigPos]&(1<<smallPos))
+			{
+				if(!cur_state || !base10Multiplication(temp1,temp2,temp1,length))
+					ret_state=0;
+			}
+			cur_state=base10Multiplication(temp2,temp2,temp2,length);
+		}
 
+		memcpy((void*) dest,temp1,sizeof(uint32_t)*length);
 		free(temp1);
 		free(temp2);
 
-		return 1;
+		return ret_state;
 	}
 	//Modulo exponentiation
-	int base10ModuloExponentiation(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+	int base10ModuloExponentiation(uint32_t* src1, uint32_t* src2,uint32_t* src3, uint32_t* dest, uint16_t length)
 	{
-		 //Zero return is error
+		//Zero return is error
         if(length<=0) return 0;
+
+		//Exit if divide by zero
+		int found = 0;
+		for(int cnt=0;cnt<length && !found;cnt++)
+		{
+			if(src3[cnt]!=0)
+				found = 1;
+		}
+		if(!found)
+		{
+			//Zero the target
+			memset((void*) dest,0,sizeof(uint32_t)*length);
+			return 0;
+		}
+
+		//Check if src1 is zero
+		int cnt=0;
+		for(cnt=0;cnt<length && src1[cnt]==0;cnt++)
+		{}
+		if(cnt==length && src1[cnt-1]==0)
+		{
+			memset((void*) dest,0,sizeof(uint32_t)*length);
+			return 1;
+		}
 
 		uint32_t* temp1 = (uint32_t*) malloc(length*sizeof(uint32_t));
 		uint32_t* temp2 = (uint32_t*) malloc(length*sizeof(uint32_t));
 
 		//Zero
 		memset((void*) temp1,0,sizeof(uint32_t)*length);
-		memset((void*) temp2,0,sizeof(uint32_t)*length);
+		memcpy((void*) temp2,src1,sizeof(uint32_t)*length);
+		temp1[0]=1;
+		
+		int cur_state=1;
+		int ret_state=1;
+		for(cnt=0;cnt<32*length && ret_state;cnt++)
+		{
+			int bigPos=cnt/32;
+			int smallPos=cnt%32;
+			if(src2[bigPos]&(1<<smallPos))
+			{
+				if(!cur_state || !base10Multiplication(temp1,temp2,temp1,length))
+					ret_state=0;
+				base10Modulo(temp1,src3,temp1,length);
+			}
+			cur_state=base10Multiplication(temp2,temp2,temp2,length);
+			base10Modulo(temp2,src3,temp2,length);
+		}
 
+		memcpy((void*) dest,temp1,sizeof(uint32_t)*length);
 		free(temp1);
 		free(temp2);
 
+		return ret_state;
+	}
+	//GCD
+	int base10GCD(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+	{
+		if(length<=0) return 0;
+		return 1;
+	}
+	//Modular inverse
+	int base10ModInverse(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+	{
+		if(length<=0) return 0;
 		return 1;
 	}
 

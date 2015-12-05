@@ -15,6 +15,7 @@ extern "C" {
     
     //Typedef for operator function
     typedef int (*operatorFunction)(uint32_t*,uint32_t*,uint32_t*,uint16_t);
+	typedef int (*tripleCalculation)(uint32_t*,uint32_t*,uint32_t*,uint32_t*,uint16_t);
     typedef int (*shiftFunction)(uint32_t*,uint16_t,uint32_t*,uint16_t);
     typedef int (*compareFunction)(uint32_t*,uint32_t*,uint16_t);
     
@@ -38,7 +39,10 @@ extern "C" {
 		operatorFunction modulo;
 
 		operatorFunction exponentiation;
-		operatorFunction moduloExponentiation;
+		tripleCalculation moduloExponentiation;
+
+		operatorFunction gcd;
+		operatorFunction modInverse;
     };
 
     struct numberType* buildNullNumberType();

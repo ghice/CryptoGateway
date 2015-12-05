@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/30/2015
+//Confirmed working: 12/4/2015
 
 #ifndef C_NUMBER_DEFINITIONS_C
 #define C_NUMBER_DEFINITIONS_C
@@ -35,6 +35,9 @@ extern "C" {
         
 		_nullType.exponentiation = NULL;
 		_nullType.moduloExponentiation = NULL;
+
+		_nullType.gcd = NULL;
+		_nullType.modInverse = NULL;
 
         nullInit = true;
         return &_nullType;

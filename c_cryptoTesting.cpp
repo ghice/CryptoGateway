@@ -34,6 +34,9 @@ using namespace os;
 
 		if(_nullType->exponentiation != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type exponentiation defined!!",locString),shared_type);
 		if(_nullType->moduloExponentiation != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type moduloExponentiation defined!!",locString),shared_type);
+
+		if(_nullType->gcd != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type gcd defined!!",locString),shared_type);
+		if(_nullType->modInverse != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type modInverse defined!!",locString),shared_type);
     }
     //Checks if the base-10 type is constructed properly
     struct numberType* typeCheckBase10(bool errorType=false)throw(os::smart_ptr<std::exception>)
@@ -103,7 +106,7 @@ using namespace os;
             else throw defThrow;
         }
 
-		 if(_baseType->exponentiation == NULL)
+		if(_baseType->exponentiation == NULL)
         {
             if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type exponentiation undefined!!",locString),shared_type);
             else throw defThrow;
@@ -111,6 +114,17 @@ using namespace os;
 		if(_baseType->moduloExponentiation == NULL)
         {
             if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type moduloExponentiation undefined!!",locString),shared_type);
+            else throw defThrow;
+        }
+
+		if(_baseType->gcd == NULL)
+        {
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type gcd undefined!!",locString),shared_type);
+            else throw defThrow;
+        }
+		if(_baseType->modInverse == NULL)
+        {
+            if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type modInverse undefined!!",locString),shared_type);
             else throw defThrow;
         }
         
@@ -593,6 +607,230 @@ using namespace os;
             throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:3%0:0:1:0 failed!",locString),shared_type);
 
 	}
+	//Base 10 exponentiation
+	void base10exponentiationTest() throw(os::smart_ptr<std::exception>)
+	{
+		struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10exponentiationTest()";
+    
+        uint32_t src1[4];
+        uint32_t src2[4];
+        uint32_t dest1[4];
+        int ret;
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+        src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+
+		//0^0
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0^0 failed!",locString),shared_type);
+
+		//0^1
+		src2[0]=1;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0^1 failed!",locString),shared_type);
+
+		//1^0
+		src1[0]=1;
+		src2[0]=1;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1^0 failed!",locString),shared_type);
+
+		//1^2
+		src1[0]=1;
+		src2[0]=2;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1^2 failed!",locString),shared_type);
+
+		//2^1
+		src1[0]=2;
+		src2[0]=1;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2^1 failed!",locString),shared_type);
+
+		//2^2
+		src1[0]=2;
+		src2[0]=2;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+		src1[0]=4;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2^2 failed!",locString),shared_type);
+
+		//2^3
+		src1[0]=2;
+		src2[0]=3;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+		src1[0]=8;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2^2 failed!",locString),shared_type);
+
+		//3^2
+		src1[0]=3;
+		src2[0]=2;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+		src1[0]=9;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("3^2 failed!",locString),shared_type);
+
+		//3^3
+		src1[0]=3;
+		src2[0]=3;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+		src1[0]=27;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("3^3 failed!",locString),shared_type);
+
+		//0:0:1:0^2
+		src1[0]=0;
+		src1[1]=1;
+		src2[0]=2;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+		src1[1]=0;
+		src1[2]=1;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:0^2 failed!",locString),shared_type);
+
+		//0:0:1:0^3
+		src1[0]=0;
+		src1[1]=1;
+		src1[2]=0;
+		src2[0]=3;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+		src1[1]=0;
+		src1[3]=1;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:0^3 failed!",locString),shared_type);
+
+		//0:0:1:0^4
+		src1[0]=0;
+		src1[1]=1;
+		src1[2]=0;
+		src1[3]=0;
+
+		src2[0]=4;
+		ret=_baseType->exponentiation(src1,src2,dest1,4);
+        if(ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("Overflow failed!",locString),shared_type);
+	}
+	//Base 10 modular exponentiation
+	void base10modularExponentiationTest() throw(os::smart_ptr<std::exception>)
+	{
+		struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10modularExponentiationTest()";
+    
+        uint32_t src1[4];
+        uint32_t src2[4];
+		uint32_t modVal[4];
+        uint32_t dest1[4];
+        int ret;
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+        src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+		modVal[3]=0;  modVal[2]=1;  modVal[1]=0;  modVal[0]=1;
+
+		//0^0
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0^0 failed!",locString),shared_type);
+
+		//0^1
+		src2[0]=1;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0^1 failed!",locString),shared_type);
+
+		//1^0
+		src1[0]=1;
+		src2[0]=1;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1^0 failed!",locString),shared_type);
+
+		//1^2
+		src1[0]=1;
+		src2[0]=2;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1^2 failed!",locString),shared_type);
+
+		//2^1
+		src1[0]=2;
+		src2[0]=1;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2^1 failed!",locString),shared_type);
+
+		//2^2
+		src1[0]=2;
+		src2[0]=2;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+		src1[0]=4;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2^2 failed!",locString),shared_type);
+
+		//2^3
+		src1[0]=2;
+		src2[0]=3;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+		src1[0]=8;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2^2 failed!",locString),shared_type);
+
+		//3^2
+		src1[0]=3;
+		src2[0]=2;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+		src1[0]=9;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("3^2 failed!",locString),shared_type);
+
+		//3^3
+		src1[0]=3;
+		src2[0]=3;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+		src1[0]=27;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("3^3 failed!",locString),shared_type);
+
+		//0:0:1:0^2
+		src1[0]=0;
+		src1[1]=1;
+		src2[0]=2;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+		src1[1]=0;
+		src1[2]=1;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:0^2 failed!",locString),shared_type);
+
+		//0:0:1:0^3
+		src1[0]=0;
+		src1[1]=1;
+		src1[2]=0;
+		src2[0]=3;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+		//testout<<dest1[3]<<":"<<dest1[2]<<":"<<dest1[1]<<":"<<dest1[0]<<std::endl;
+		src1[0]=1;
+		src1[1]=4294967295;
+		src1[2]=0;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0:0:1:0^3 failed!",locString),shared_type);
+
+		//0:0:1:0^4
+		src1[0]=0;
+		src1[1]=1;
+		src1[2]=0;
+		src1[3]=0;
+
+		src2[0]=4;
+		ret=_baseType->moduloExponentiation(src1,src2,modVal,dest1,4);
+        if(ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("Overflow failed!",locString),shared_type);
+	}
 
 /*================================================================
 	C Test Suites
@@ -612,6 +850,8 @@ using namespace os;
         pushTest("Multiplicaiton",&base10multiplicationTest);
         pushTest("Division",&base10divisionTest);
 		pushTest("Modulo",&base10moduloTest);
+		pushTest("Exponentiation",&base10exponentiationTest);
+		pushTest("Modular Exponentiation",&base10modularExponentiationTest);
     }
 
 #endif
