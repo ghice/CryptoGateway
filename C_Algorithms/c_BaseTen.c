@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/4/2015
+//Confirmed working: 12/6/2015
 
 #ifndef C_BASE_TEN_C
 #define C_BASE_TEN_C
@@ -19,7 +19,7 @@ extern "C" {
         if(baseTenInit) return &_baseTen;
         
         _baseTen.typeID = 1;
-        _baseTen.name = "Base 10 Type";
+        _baseTen.name = crypto_numbername_base10;
         
         _baseTen.compare = &standardCompare;
         
@@ -377,13 +377,232 @@ extern "C" {
 	int base10GCD(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
 	{
 		if(length<=0) return 0;
+		uint32_t* atrace=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* btrace=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* ttrace=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* zero=(uint32_t*) malloc(length*sizeof(uint32_t));
+
+		memcpy(atrace,src1,length*sizeof(uint32_t));
+		memcpy(btrace,src2,length*sizeof(uint32_t));
+		memset((void*) zero,0,sizeof(uint32_t)*length);
+
+		while(standardCompare(btrace,zero,length)!=0)
+		{
+			memcpy(ttrace,btrace,length*sizeof(uint32_t));
+			if(!base10Modulo(atrace,btrace,btrace,length))
+			{
+				free(atrace);
+				free(btrace);
+				free(ttrace);
+				free(zero);
+				memset((void*) dest,0,sizeof(uint32_t)*length);
+				dest[0]=1;
+				return 0;
+			}
+			memcpy(atrace,ttrace,length*sizeof(uint32_t));
+		}
+
+		memcpy(dest,atrace,length*sizeof(uint32_t));
+
+		free(atrace);
+		free(btrace);
+		free(ttrace);
+		free(zero);
+
 		return 1;
 	}
 	//Modular inverse
 	int base10ModInverse(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
 	{
 		if(length<=0) return 0;
-		return 1;
+
+		//Check GCD first
+		uint32_t* one=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* newr=(uint32_t*) malloc(length*sizeof(uint32_t));
+		memset(one,0,length*sizeof(uint32_t));
+		one[0]=1;
+		if(!base10GCD(src1,src2,newr,length) || standardCompare(newr,one,length)!=0)
+		{
+			memcpy(dest,one,length*sizeof(uint32_t));
+			free(one);
+			free(newr);
+			return 0;
+		}
+
+		int algoStatus = 1;
+		uint32_t* zero=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* t=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* r=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* newt =(uint32_t*) malloc(length*sizeof(uint32_t));
+
+		memset(zero,0,length*sizeof(uint32_t));
+		memset(t,0,length*sizeof(uint32_t));
+		memset(r,0,length*sizeof(uint32_t));
+		memcpy(newr,src1,length*sizeof(uint32_t));
+		memcpy(r,src2,length*sizeof(uint32_t));
+		memcpy(newt,one,length*sizeof(uint32_t));
+
+		uint32_t* quotient=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* hld=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* temp=(uint32_t*) malloc(length*sizeof(uint32_t));
+
+		while(standardCompare(newr,zero,length)!=0)
+		{
+			algoStatus&=base10Division(r,newr,quotient,length);
+
+			memcpy(temp,newt,length*sizeof(uint32_t));
+			algoStatus&=base10Multiplication(quotient,newt,hld,length);
+			algoStatus&=base10Modulo(hld,src2,hld,length);
+			if(standardCompare(t,hld,length)==-1)
+				algoStatus&=base10Addition(t,src2,t,length);
+			algoStatus&=base10Subtraction(t,hld,newt,length);
+			memcpy(t,temp,length*sizeof(uint32_t));
+
+			memcpy(temp,newr,length*sizeof(uint32_t));
+			algoStatus&=base10Multiplication(quotient,newr,hld,length);
+			algoStatus&=base10Modulo(hld,src2,hld,length);
+			if(standardCompare(r,hld,length)==-1)
+				algoStatus&=base10Addition(r,src2,r,length);
+			algoStatus&=base10Subtraction(r,hld,newr,length);
+			memcpy(r,temp,length*sizeof(uint32_t));
+
+			algoStatus&=base10Modulo(t,src2,t,length);
+		}
+
+		if(!algoStatus)
+			memcpy(dest,one,length*sizeof(uint32_t));
+		else
+			memcpy(dest,t,length*sizeof(uint32_t));
+
+		//Free all the temps
+		free(one);
+		free(newr);
+
+		free(zero);
+		free(t);
+		free(r);
+		free(newt);
+
+		free(quotient);
+		free(hld);
+		free(temp);
+		
+		return algoStatus;
+	}
+
+	//Tests if a number is prime
+	int primeTest(uint32_t* src1, uint16_t test_iteration, uint16_t length)
+	{
+		if(length<=0) return 0;
+		if(test_iteration<=2) return 0;
+
+		int trace = 1;
+		int flag = 0;
+		int algoStatus = 1;
+    
+		//Check for zero set
+		while(!flag && trace<length)
+		{
+			if(src1[trace]!=0)
+				flag = 1;
+			trace++;
+		}
+
+		//Check 0th element
+		if(!flag)
+		{
+			if(src1[0] == 0) return 0;
+			if(src1[0] == 1) return 1;
+			if(src1[0]==2) return 1;
+			if(src1[0]==3) return 1;
+		}
+
+		//Check for even case
+		if(!(src1[0]&1)) return 0;
+
+		//Miller-Rabin Test
+		uint32_t* one=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* minusOne=(uint32_t*) malloc(length*sizeof(uint32_t));
+
+		memset(one,0,length*sizeof(uint32_t));
+		one[0]=1;
+		algoStatus&=base10Subtraction(src1,one,minusOne,length);
+
+		//Find "d"
+		trace = 0;
+		flag = 0;
+		while(!flag && algoStatus)
+		{
+			trace++;
+			if(minusOne[trace/32]&(1<<(trace%32))) flag = 1;
+			if(trace+1>length*32)
+				algoStatus=0;
+		}
+
+		uint32_t* x=(uint32_t*) malloc(length*sizeof(uint32_t));
+		uint32_t* d=(uint32_t*) malloc(length*sizeof(uint32_t));
+		algoStatus&=standardLeftShift(minusOne,trace,d,length);
+		uint32_t* test=(uint32_t*) malloc(length*sizeof(uint32_t));
+		int s=trace;
+		int cnt=0;
+
+		//Preform the test
+		srand(time(NULL));
+		while(cnt<test_iteration && algoStatus)
+		{
+			if(cnt==0) test[0]=2;
+			else if(cnt == 1) test[0]=3;
+			else
+			{
+				//Randomly select a test number
+				trace=length;
+				flag=0;
+
+				while(trace>0 && algoStatus)
+				{
+					trace--;
+					if(flag)
+						test[trace]=rand()^(rand()<<1);
+					else
+						test[trace]=0;
+					if(src1[trace]!=0&&!flag)
+					{
+						flag=1;
+						test[trace] = (rand()^(rand()<<1))%src1[trace];
+					}
+				}
+				if(test[0]<3)
+					test[0]=3;
+			}
+			algoStatus&=base10ModuloExponentiation(test,d,src1,x,length);
+			if(standardCompare(x,one,length)!=0 && standardCompare(x,minusOne,length))
+			{
+				flag=0;
+				trace=1;
+				while(trace<s&&!flag&&algoStatus)
+				{
+					algoStatus&=base10Multiplication(x,x,x,length);
+					algoStatus&=base10Modulo(x,src1,x,length);
+
+					if(algoStatus&&standardCompare(x,one,length)==0)
+						algoStatus=0;
+					if(algoStatus&&standardCompare(x,minusOne,length)==0)
+						flag=1;
+
+					trace++;
+				}
+				if(!flag) algoStatus=0;
+			}
+			cnt++;
+		}
+
+		free(x);
+		free(one);
+		free(minusOne);
+		free(d);
+		free(test);
+
+		return algoStatus;
 	}
 
 #ifdef __cplusplus

@@ -1,14 +1,16 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/30/2015
+//Confirmed working: 12/6/2015
 
 #ifndef C_CRYPTO_TESTING_CPP
 #define C_CRYPTO_TESTING_CPP
 
+#include "cryptoConstants.h"
 #include "c_cryptoTesting.h"
 #include <string>
 
 using namespace test;
 using namespace os;
+using namespace crypto;
 
     //Confirms NULL value
     void nullNumberType() throw(os::smart_ptr<std::exception>)
@@ -17,8 +19,8 @@ using namespace os;
         struct numberType* _nullType = buildNullNumberType();
         if(_nullType == NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type could not be built!",locString),shared_type);
         
-        if(_nullType->typeID != 0) throw os::smart_ptr<std::exception>(new generalTestException("NULL type ID wrong!",locString),shared_type);
-        if(std::string(_nullType->name) != std::string("NULL Type")) throw os::smart_ptr<std::exception>(new generalTestException("NULL type name wrong!",locString),shared_type);
+        if(_nullType->typeID != crypto::numberType::Default) throw os::smart_ptr<std::exception>(new generalTestException("NULL type ID wrong!",locString),shared_type);
+		if(std::string(_nullType->name) != numberName::Default) throw os::smart_ptr<std::exception>(new generalTestException("NULL type name wrong!",locString),shared_type);
         
         if(_nullType->compare != NULL) throw os::smart_ptr<std::exception>(new generalTestException("NULL type compare defined!!",locString),shared_type);
         
@@ -51,12 +53,12 @@ using namespace os;
             else throw defThrow;
         }
         
-        if(_baseType->typeID != 1)
+        if(_baseType->typeID != crypto::numberType::Base10)
         {
             if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type ID wrong!",locString),shared_type);
             else throw defThrow;
         }
-        if(std::string(_baseType->name) != std::string("Base 10 Type"))
+		if(std::string(_baseType->name) != numberName::Base10)
         {
             if(errorType) throw os::smart_ptr<std::exception>(new generalTestException("Base-10 type name wrong!",locString),shared_type);
             else throw defThrow;
@@ -831,6 +833,176 @@ using namespace os;
         if(ret)
             throw os::smart_ptr<std::exception>(new generalTestException("Overflow failed!",locString),shared_type);
 	}
+	//Base 10 GCD test
+	void base10GCDTest() throw(os::smart_ptr<std::exception>)
+	{
+		struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10GCDTest()";
+
+		uint32_t src1[4];
+        uint32_t src2[4];
+        uint32_t dest1[4];
+        int ret;
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+        src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+
+		//0 gcd 0
+		ret=_baseType->gcd(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("0 gcd 0 failed!",locString),shared_type);
+
+		//1 gcd 1
+		src1[0]=1;
+		src2[0]=1;
+		ret=_baseType->gcd(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("1 gcd 1 failed!",locString),shared_type);
+
+		//2 gcd 4
+		src1[0]=2;
+		src2[0]=4;
+		ret=_baseType->gcd(src1,src2,dest1,4);
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("2 gcd 4 failed!",locString),shared_type);
+
+		//4 gcd 6
+		src1[0]=4;
+		src2[0]=6;
+		ret=_baseType->gcd(src1,src2,dest1,4);
+		src1[0]=2;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("4 gcd 6 failed!",locString),shared_type);
+
+		//6 gcd 9
+		src1[0]=6;
+		src2[0]=9;
+		ret=_baseType->gcd(src1,src2,dest1,4);
+		src1[0]=3;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("6 gcd 9 failed!",locString),shared_type);
+
+		//9 gcd 6
+		src1[0]=9;
+		src2[0]=6;
+		ret=_baseType->gcd(src1,src2,dest1,4);
+		src1[0]=3;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("9 gcd 6 failed!",locString),shared_type);
+
+		//9 gcd 6
+		src1[0]=9;
+		src2[0]=6;
+		ret=_baseType->gcd(src1,src2,dest1,4);
+		src1[0]=3;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("9 gcd 6 failed!",locString),shared_type);
+	}
+	//Base 10 Modular Inverse Test
+	void base10ModularInverseTest() throw(os::smart_ptr<std::exception>)
+	{
+		struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10ModularInverseTest()";
+
+		uint32_t src1[4];
+        uint32_t src2[4];
+        uint32_t dest1[4];
+        int ret;
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+        src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]=0;
+
+		//(3 mod 7)^-1
+		src1[0]=3;
+		src2[0]=7;
+		ret=_baseType->modInverse(src1,src2,dest1,4);
+		src1[0]=5;
+		if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("(3 mod 7)^-1 failed!",locString),shared_type);
+
+		//(4 mod 97)^-1
+		src1[0]=4;
+		src2[0]=97;
+		ret=_baseType->modInverse(src1,src2,dest1,4);
+		src1[0]=73;
+		if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("(4 mod 97)^-1 failed!",locString),shared_type);
+
+		//(300 mod 38897)^-1
+		src1[0]=300;
+		src2[0]=38897;
+		ret=_baseType->modInverse(src1,src2,dest1,4);
+		src1[0]=8687;
+		if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("(300 mod 38897)^-1 failed!",locString),shared_type);
+
+		//(6 mod 8)^-1
+		src1[0]=6;
+		src2[0]=8;
+		ret=_baseType->modInverse(src1,src2,dest1,4);
+		src1[0]=1;
+		if(_baseType->compare(src1,dest1,4)!=0 || ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("(6 mod 8)^-1 failed!",locString),shared_type);
+	}
+	//Base 10 Primality test
+	void base10PrimealityTest() throw(os::smart_ptr<std::exception>)
+	{
+		struct numberType* _baseType = typeCheckBase10();
+        std::string locString = "c_cryptoTesting.cpp, base10PrimealityTest()";
+	
+		uint32_t src1[4];
+    
+        src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
+
+		//0
+		if(primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("0 is not prime!",locString),shared_type);
+
+		//1
+		src1[0]=1;
+		if(!primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("1 is prime!",locString),shared_type);
+
+		//2
+		src1[0]=2;
+		if(!primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("2 is prime!",locString),shared_type);
+
+		//3
+		src1[0]=3;
+		if(!primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("3 is prime!",locString),shared_type);
+
+		//4
+		src1[0]=4;
+		if(primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("4 is not prime!",locString),shared_type);
+
+		//5
+		src1[0]=5;
+		if(!primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("5 is prime!",locString),shared_type);
+
+		//55
+		src1[0]=55;
+		if(primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("55 is not prime!",locString),shared_type);
+
+		//99
+		src1[0]=99;
+		if(primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("99 is not prime!",locString),shared_type);
+
+		//401
+		src1[0]=401;
+		if(!primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("401 is prime!",locString),shared_type);
+
+		//243407
+		src1[0]=243407;
+		if(primeTest(src1,10,4))
+			throw os::smart_ptr<std::exception>(new generalTestException("243407 is not prime!",locString),shared_type);
+	}
 
 /*================================================================
 	C Test Suites
@@ -852,6 +1024,9 @@ using namespace os;
 		pushTest("Modulo",&base10moduloTest);
 		pushTest("Exponentiation",&base10exponentiationTest);
 		pushTest("Modular Exponentiation",&base10modularExponentiationTest);
+		pushTest("GCD",&base10GCDTest);
+		pushTest("Modular Inverse",&base10ModularInverseTest);
+		pushTest("Prime Testing",&base10PrimealityTest);
     }
 
 #endif

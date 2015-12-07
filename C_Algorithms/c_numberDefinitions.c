@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/4/2015
+//Confirmed working: 12/6/2015
 
 #ifndef C_NUMBER_DEFINITIONS_C
 #define C_NUMBER_DEFINITIONS_C
@@ -9,7 +9,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+    const int crypto_numbertype_default=0;
+	const int crypto_numbertype_base10=1;
+
+	const char* crypto_numbername_default="NULL Type";
+	const char* crypto_numbername_base10="Base 10 Type";
+
     static bool nullInit = false;
     static struct numberType _nullType;
 
@@ -18,8 +23,8 @@ extern "C" {
     {
         if(nullInit) return &_nullType;
         
-        _nullType.typeID = 0;
-        _nullType.name = "NULL Type";
+        _nullType.typeID = crypto_numbertype_default;
+        _nullType.name = crypto_numbername_default;
         
         _nullType.compare = NULL;
         

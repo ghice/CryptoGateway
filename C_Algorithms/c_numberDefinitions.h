@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/4/2015
+//Confirmed working: 12/6/2015
 
 #ifndef C_NUMBER_DEFINITIONS_H
 #define C_NUMBER_DEFINITIONS_H
@@ -7,7 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+	#include "cryptoCConstants.h"
+
     #include <stdio.h>
     #include <stdint.h>
 	#include <stdlib.h>
@@ -24,7 +25,7 @@ extern "C" {
     {
         //Number meta-data
         int typeID;
-        char* name;
+        const char* name;
         
         compareFunction compare;
         
