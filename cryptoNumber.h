@@ -4,6 +4,7 @@
 #ifndef CRYPTO_NUMBER_H
 #define CRYPTO_NUMBER_H
 
+#include "cryptoConstants.h"
 #include "cryptoCHeaders.h"
 #include <string>
 
@@ -19,12 +20,17 @@ namespace crypto
         
         int compare(const number& num) const;
     public:
-        number(numberType* numDef=buildNullNumberType());
-        number(uint16_t size, numberType* numDef=buildNullNumberType());
-        number(uint32_t* d, uint16_t size, numberType* numDef=buildNullNumberType());
+        number(struct numberType* numDef=buildNullNumberType());
+        number(uint16_t size, struct numberType* numDef=buildNullNumberType());
+        number(uint32_t* d, uint16_t size, struct numberType* numDef=buildNullNumberType());
         number(const number& num);
+		number& operator=(const number& num);
         virtual ~number();
         
+		//Operator access
+		uint32_t operator[](uint16_t pos) const;
+		uint32_t& operator[](uint16_t pos);
+
         //Comparison functions
         const bool operator==(const number& comp) const;
         const bool operator!=(const number& comp) const;

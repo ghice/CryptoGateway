@@ -4,6 +4,7 @@
 #ifndef CRYPTO_NUMBER_CPP
 #define CRYPTO_NUMBER_CPP
 
+#include "cryptoLogging.h"
 #include "cryptoNumber.h"
 
 using namespace crypto;
@@ -13,7 +14,7 @@ using namespace crypto;
  ================================================================*/
 
     //Default constructor
-    number::number(numberType* numDef)
+    number::number(struct numberType* numDef)
     {
         _numDef=numDef;
         _size = 1;
@@ -21,7 +22,7 @@ using namespace crypto;
         _data[0]=0;
     }
     //Size constructor
-    number::number(uint16_t size, numberType* numDef)
+    number::number(uint16_t size, struct numberType* numDef)
     {
         _numDef=numDef;
         _size=size;
@@ -31,7 +32,7 @@ using namespace crypto;
         memset(_data,0,sizeof(uint32_t)*_size);
     }
     //Construct with data
-    number::number(uint32_t* d, uint16_t size, numberType* numDef)
+    number::number(uint32_t* d, uint16_t size, struct numberType* numDef)
     {
         _numDef=numDef;
         _size=size;
@@ -51,8 +52,40 @@ using namespace crypto;
         _data = new uint32_t[_size];
         memcpy(_data, num._data, sizeof(uint32_t)*_size);
     }
+	//Copy number into self
+	number& number::operator=(const number& num)
+	{
+		if(&num!=this)
+		{
+			delete [] _data;
+			_numDef=num._numDef;
+			_size=num._size;
+			_data = new uint32_t[_size];
+			memcpy(_data, num._data, sizeof(uint32_t)*_size);
+		}
+		return *this;
+	}
     //Destructor
     number::~number(){delete [] _data;}
+
+//Operator Access------------------------------------------------
+
+	//Return element at position
+	uint32_t number::operator[](uint16_t pos) const
+	{
+		if(pos>_size) return 0;
+		return _data[pos];
+	}
+	//Modify element at position
+	uint32_t& number::operator[](uint16_t pos)
+	{
+		if(pos>_size)
+		{
+			cryptoerr<<"Position "<<pos<<" is outside of the bounds of size "<<_size<<"!"<<std::endl;
+			return _data[0];
+		}
+		return _data[pos];
+	}
 
 //Comparison functions-------------------------------------------
 
@@ -65,24 +98,24 @@ using namespace crypto;
         if(_size>num._size)
         {
             comp_len=num._size;
-            for(uint16_t trc=_size-1;trc>=comp_len;trc--)
+            for(uint16_t trc=_size;trc>comp_len;trc--)
             {
-                if(_data[trc]>0) return 1;
+                if(_data[trc-1]>0) return 1;
             }
         }
         else if(_size<num._size)
         {
-            for(uint16_t trc=num._size-1;trc>=comp_len;trc--)
+            for(uint16_t trc=num._size;trc>comp_len;trc--)
             {
-                if(num._data[trc]>0) return -1;
+                if(num._data[trc-1]>0) return -1;
             }
         }
         
         //Matched size
-        for(uint16_t trc=comp_len-1;trc<(~(uint16_t)0);trc--)
+        for(uint16_t trc=comp_len;trc>0;trc--)
         {
-            if(_data[trc]>num._data[trc]) return 1;
-            else if(_data[trc]<num._data[trc]) return -1;
+            if(_data[trc-1]>num._data[trc-1]) return 1;
+            else if(_data[trc-1]<num._data[trc-1]) return -1;
         }
         return 0;
     }
