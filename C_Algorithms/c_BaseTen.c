@@ -44,7 +44,7 @@ extern "C" {
     }
     
     //Addition
-    int base10Addition(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+    int base10Addition(const uint32_t* src1, const uint32_t* src2, uint32_t* dest, uint16_t length)
     {
         //Zero return is error
         if(length<=0) return 0;
@@ -66,7 +66,7 @@ extern "C" {
         return 1;
     }
     //Subtraction
-    int base10Subtraction(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+    int base10Subtraction(const uint32_t* src1, const uint32_t* src2, uint32_t* dest, uint16_t length)
     {
         //Zero return is error
         if(length<=0) return 0;
@@ -86,7 +86,7 @@ extern "C" {
         return 1;
     }
     //Multiplication
-    int base10Multiplication(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+    int base10Multiplication(const uint32_t* src1, const uint32_t* src2, uint32_t* dest, uint16_t length)
     {
         if(length<=0) return 0;
 
@@ -117,7 +117,7 @@ extern "C" {
         return ret;
     }
     //Division
-    int base10Division(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+    int base10Division(const uint32_t* src1, const uint32_t* src2, uint32_t* dest, uint16_t length)
     {
         if(length<=0) return 0;
 
@@ -200,7 +200,7 @@ extern "C" {
         return 1;
     }
 	//Modulo
-	int base10Modulo(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+	int base10Modulo(const uint32_t* src1, const uint32_t* src2, uint32_t* dest, uint16_t length)
 	{
 		if(length<=0) return 0;
 
@@ -270,7 +270,7 @@ extern "C" {
         return 1;
 	}
 	//Exponentiation
-	int base10Exponentiation(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+	int base10Exponentiation(const uint32_t* src1, const uint32_t* src2, uint32_t* dest, uint16_t length)
 	{
 		//Zero return is error
         if(length<=0) return 0;
@@ -314,7 +314,7 @@ extern "C" {
 		return ret_state;
 	}
 	//Modulo exponentiation
-	int base10ModuloExponentiation(uint32_t* src1, uint32_t* src2,uint32_t* src3, uint32_t* dest, uint16_t length)
+	int base10ModuloExponentiation(const uint32_t* src1, const uint32_t* src2,const uint32_t* src3, uint32_t* dest, uint16_t length)
 	{
 		//Zero return is error
         if(length<=0) return 0;
@@ -374,7 +374,7 @@ extern "C" {
 		return ret_state;
 	}
 	//GCD
-	int base10GCD(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+	int base10GCD(const uint32_t* src1, const uint32_t* src2, uint32_t* dest, uint16_t length)
 	{
 		if(length<=0) return 0;
 		uint32_t* atrace=(uint32_t*) malloc(length*sizeof(uint32_t));
@@ -412,7 +412,7 @@ extern "C" {
 		return 1;
 	}
 	//Modular inverse
-	int base10ModInverse(uint32_t* src1, uint32_t* src2, uint32_t* dest, uint16_t length)
+	int base10ModInverse(const uint32_t* src1, const uint32_t* src2, uint32_t* dest, uint16_t length)
 	{
 		if(length<=0) return 0;
 
@@ -491,7 +491,7 @@ extern "C" {
 	}
 
 	//Tests if a number is prime
-	int primeTest(uint32_t* src1, uint16_t test_iteration, uint16_t length)
+	int primeTest(const uint32_t* src1, uint16_t test_iteration, uint16_t length)
 	{
 		if(length<=0) return 0;
 		if(test_iteration<=2) return 0;

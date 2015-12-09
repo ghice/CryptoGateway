@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/28/2015
+//Confirmed working: 12/8/2015
 
 #ifndef CRYPTO_TEST_H
 #define CRYPTO_TEST_H
@@ -15,6 +15,20 @@ namespace test
     public:
         CryptoGatewayLibraryTest();
         virtual ~CryptoGatewayLibraryTest(){}
+    };
+    
+    //Crypto Number tests
+    class BasicNumberTest: public testSuite
+    {
+    public:
+        BasicNumberTest();
+        virtual ~BasicNumberTest(){}
+    };
+    class Base10NumberTest: public testSuite
+    {
+    public:
+        Base10NumberTest();
+        virtual ~Base10NumberTest(){}
     };
 }
 

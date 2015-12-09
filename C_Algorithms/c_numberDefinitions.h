@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/6/2015
+//Confirmed working: 12/8/2015
 
 #ifndef C_NUMBER_DEFINITIONS_H
 #define C_NUMBER_DEFINITIONS_H
@@ -15,10 +15,10 @@ extern "C" {
 	#include <string.h>
     
     //Typedef for operator function
-    typedef int (*operatorFunction)(uint32_t*,uint32_t*,uint32_t*,uint16_t);
-	typedef int (*tripleCalculation)(uint32_t*,uint32_t*,uint32_t*,uint32_t*,uint16_t);
-    typedef int (*shiftFunction)(uint32_t*,uint16_t,uint32_t*,uint16_t);
-    typedef int (*compareFunction)(uint32_t*,uint32_t*,uint16_t);
+    typedef int (*operatorFunction)(const uint32_t*,const uint32_t*,uint32_t*,uint16_t);
+	typedef int (*tripleCalculation)(const uint32_t*,const uint32_t*,const uint32_t*,uint32_t*,uint16_t);
+    typedef int (*shiftFunction)(const uint32_t*,uint16_t,uint32_t*,uint16_t);
+    typedef int (*compareFunction)(const uint32_t*,const uint32_t*,uint16_t);
     
     //Number type struct
     struct numberType
@@ -47,9 +47,9 @@ extern "C" {
     };
 
     struct numberType* buildNullNumberType();
-    int standardCompare(uint32_t* src1, uint32_t* src2, uint16_t length);
-    int standardRightShift(uint32_t* src1, uint16_t src2, uint32_t* dest, uint16_t length);
-    int standardLeftShift(uint32_t* src1, uint16_t src2, uint32_t* dest, uint16_t length);
+    int standardCompare(const uint32_t* src1, const uint32_t* src2, uint16_t length);
+    int standardRightShift(const uint32_t* src1, uint16_t src2, uint32_t* dest, uint16_t length);
+    int standardLeftShift(const uint32_t* src1, uint16_t src2, uint32_t* dest, uint16_t length);
 
 #ifdef __cplusplus
 }
