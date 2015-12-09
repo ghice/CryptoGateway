@@ -19,7 +19,7 @@ using namespace test;
     {
         pushSuite(os::smart_ptr<testSuite>(new C_BaseTenSuite(),os::shared_type));
         pushSuite(os::smart_ptr<testSuite>(new BasicNumberTest(),os::shared_type));
-        pushSuite(os::smart_ptr<testSuite>(new Base10NumberTest(),os::shared_type));
+        pushSuite(os::smart_ptr<testSuite>(new IntegerTest(),os::shared_type));
     }
 
 #endif

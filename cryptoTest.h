@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/8/2015
+//Confirmed working: 12/9/2015
 
 #ifndef CRYPTO_TEST_H
 #define CRYPTO_TEST_H
@@ -24,11 +24,11 @@ namespace test
         BasicNumberTest();
         virtual ~BasicNumberTest(){}
     };
-    class Base10NumberTest: public testSuite
+    class IntegerTest: public testSuite
     {
     public:
-        Base10NumberTest();
-        virtual ~Base10NumberTest(){}
+        IntegerTest();
+        virtual ~IntegerTest(){}
     };
 }
 
