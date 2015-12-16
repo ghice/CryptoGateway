@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/8/2015
+//Confirmed working: 12/16/2015
 
 #ifndef CRYPTO_NUMBER_H
 #define CRYPTO_NUMBER_H
@@ -18,7 +18,7 @@ namespace crypto
         uint16_t _size;
         uint32_t* _data;
         
-        int compare(const number& num) const;
+        int _compare(const number& n2) const;
     public:
         number(struct numberType* numDef=buildNullNumberType());
         number(uint16_t size, struct numberType* numDef=buildNullNumberType());
@@ -49,7 +49,22 @@ namespace crypto
         const bool operator<(const number& comp) const;
         const bool operator>(const number& comp) const;
         
+        //Action Functions
+        int compare(const number* n2) const;
+        void addition(const number* n2, number* result) const;
+        void subtraction(const number* n2, number* result) const;
+        void rightShift(uint16_t n2, number* result) const;
+        void leftShift(uint16_t n2, number* result) const;
+        void multiplication(const number* n2, number* result) const;
+        void division(const number* n2, number* result) const;
+        void modulo(const number* n2, number* result) const;
+        void exponentiation(const number* n2, number* result) const;
+        void moduloExponentiation(const number* n2, const number* n3, number* result) const;
+        void gcd(const number* n2,number* result) const;
+        void modInverse(const number* n2, number* result) const;
+        
         //Checks if the number definition defines functions
+        inline virtual bool checkType() const {return false;}
         inline bool hasCompare() const {return _numDef->compare;}
         inline bool hasAddition() const {return _numDef->addition;}
         inline bool hasSubtraction() const {return _numDef->subtraction;}
@@ -79,10 +94,53 @@ namespace crypto
     class integer:public number
     {
     public:
+        //Singleton
+        static integer zero(){return integer();}
+        static integer one();
+        
         integer();
         integer(uint16_t size);
         integer(uint32_t* d, uint16_t size);
         integer(const integer& num);
+        
+        virtual ~integer(){}
+        
+        //Checks type
+        virtual bool checkType() const;
+        
+        //Operators
+        integer operator+(const integer& n) const;
+        integer& operator+=(const integer& n);
+        integer& operator++();
+        integer operator++(int dummy);
+        
+        integer operator-(const integer& n) const;
+        integer& operator-=(const integer& n);
+        integer& operator--();
+        integer operator--(int dummy);
+        
+        integer operator>>(uint16_t n) const;
+        integer operator<<(uint16_t n) const;
+        
+        integer operator*(const integer& n) const;
+        integer& operator*=(const integer& n);
+        
+        integer operator/(const integer& n) const;
+        integer& operator/=(const integer& n);
+        
+        integer operator%(const integer& n) const;
+        integer& operator%=(const integer& n);
+        
+        integer exponentiation(const integer& n) const;
+        integer& exponentiationEquals(const integer& n);
+        integer moduloExponentiation(const integer& n, const integer& mod) const;
+        integer& moduloExponentiationEquals(const integer& n, const integer& mod);
+        integer gcd(const integer& n) const;
+        integer& gcdEquals(const integer& n);
+        integer modInverse(const integer& m) const;
+        integer& modInverseEquals(const integer& n);
+        
+        bool prime(uint16_t testVal=algo::primeTestCycle) const;
     };
 }
 

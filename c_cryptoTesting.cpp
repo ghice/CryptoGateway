@@ -597,6 +597,13 @@ using namespace crypto;
 		src1[0]=1;
         if(_baseType->compare(src1,dest1,4)!=0 || !ret)
             throw os::smart_ptr<std::exception>(new generalTestException("3%2 failed!",locString),shared_type);
+        //3%7
+        src1[0]=3;
+        src2[0]=7;
+        ret=_baseType->modulo(src1,src2,dest1,4);
+        src1[0]=3;
+        if(_baseType->compare(src1,dest1,4)!=0 || !ret)
+            throw os::smart_ptr<std::exception>(new generalTestException("3%2 failed!",locString),shared_type);
 
 		//0:0:1:3%0:0:1:0
 		src1[1]=1;

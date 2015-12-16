@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/9/2015
+//Confirmed working: 12/16/2015
 
 #ifndef CRYPTO_NUMBER_TEST_CPP
 #define CRYPTO_NUMBER_TEST_CPP
@@ -183,9 +183,9 @@ using namespace crypto;
     void numberArrayAccessTest() throw(os::smart_ptr<std::exception>)
     {
         std::string locString = "cryptoNumberTest.cpp, numberArrayAccessTest()";
-        uint32_t arr[2];
-        arr[1]=3;   arr[0]=5;
-        number num(arr,2);
+        uint32_t arr[3];
+        arr[2]=0;   arr[1]=3;   arr[0]=5;
+        number num(arr,3);
         
         //Test positions
         if(num[0]!=5 && num[1]!=3)
@@ -193,7 +193,7 @@ using namespace crypto;
         
         //Overflow
         if(num[2]!=0)
-            throw os::smart_ptr<std::exception>(new generalTestException("Overflow failed!",locString),shared_type);
+            throw os::smart_ptr<std::exception>(new generalTestException("Overflow failed: "+std::to_string(num[2]),locString),shared_type);
         
         //Write access
         num[0]=3;
@@ -335,7 +335,7 @@ using namespace crypto;
         //Reduce (1)
         num.reduce();
         if(num.size()!=1)
-            throw os::smart_ptr<std::exception>(new generalTestException("Reduce 1 failed",locString),shared_type);
+            throw os::smart_ptr<std::exception>(new generalTestException("Reduce 1 failed, size "+std::to_string(num.size())+" value "+num.toString(),locString),shared_type);
         if(num[0]!=0)
         throw os::smart_ptr<std::exception>(new generalTestException("Reduce 1 values wrong",locString),shared_type);
         
@@ -365,6 +365,20 @@ using namespace crypto;
 /*================================================================
 	Integer Tests
  ================================================================*/
+
+    //Randomly generate two integers
+    void generateIntegers(integer& int1,integer& int2)
+    {
+        int1=integer(8);
+        int2=integer(8);
+        
+        //Size 8
+        for(int i=0;i<4;i++)
+        {
+            int1[i]=rand();
+            int2[i]=rand();
+        }
+    }
 
     //Integer type test
     void integerTypeTest() throw(os::smart_ptr<std::exception>)
@@ -398,6 +412,645 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("hasGCD failed",locString),shared_type);
         if(!num.hasModInverse())
             throw os::smart_ptr<std::exception>(new generalTestException("hasModInverse failed",locString),shared_type);
+        if(!num.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+    }
+    //Integer compare test
+    void integerCompareTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerCompareTest()";
+        integer int1;
+        integer int2;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Basic different size test
+        int1.expand(4);
+        int2=integer(2);
+        int1[3]=2;
+        int2[1]=2;
+        if(int1<=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Size diff: <= failed",locString),shared_type);
+        if(int1.compare(&int2)!=1)
+            throw os::smart_ptr<std::exception>(new generalTestException("Size diff: compare == 1 failed",locString),shared_type);
+        int1[3]=0;
+        int2[0]=5;
+        int2[1]=2;
+        if(int1>=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Size diff: >= failed",locString),shared_type);
+        if(int1.compare(&int2)!=-1)
+            throw os::smart_ptr<std::exception>(new generalTestException("Size diff: compare == -1 failed",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            int cpp_ans;
+            int c_ans;
+            generateIntegers(src1, src2);
+            
+            //src1 to src2
+            cpp_ans=src1.compare(&src2);
+            c_ans=nt->compare(src1.data(),src2.data(),src1.size());
+            
+            if(cpp_ans!=c_ans)
+                throw os::smart_ptr<std::exception>(new generalTestException("src1 comp src2 failed",locString),shared_type);
+            if(cpp_ans==0)
+            {
+                if(!(src1==src2)||src1!=src2)
+                    throw os::smart_ptr<std::exception>(new generalTestException("Random == failure!",locString),shared_type);
+            }
+            else if(cpp_ans<0)
+            {
+                if(!(src1<src2)||src1>=src2)
+                    throw os::smart_ptr<std::exception>(new generalTestException("Random < failure!",locString),shared_type);
+            }
+            else
+            {
+                if(!(src1>src2)||src1<=src2)
+                    throw os::smart_ptr<std::exception>(new generalTestException("Random > failure!",locString),shared_type);
+            }
+        }
+    }
+    //Integer addition test
+    void integerAdditionTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerAdditionTest()";
+        integer int1;
+        integer int2;
+        const struct numberType* nt=int1.numberDefinition();
+    
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Quickly test a variable size example
+        int1.expand(4);
+        int2[0]=6;
+        int1[3]=4;
+        int2=int1+int2;
+        int1[0]=6;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            generateIntegers(src1, src2);
+            ans1=src1;
+            
+            //Preform 3 versions
+            nt->addition(src1.data(),src2.data(),ans1.data(),src1.size());
+            src1.addition(&src2,&ans2);
+            ans3=src1+src2;
+            src1+=src2;
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+            if(ans1!=src1)
+                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+        }
+    }
+    //Integer subtraction test
+    void integerSubtractionTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerSubtractionTest()";
+        integer int1;
+        integer int2;
+        const struct numberType* nt=int1.numberDefinition();
+    
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+    
+        //Quickly test a variable size example
+        int1.expand(4);
+        int2[0]=6;
+        int1[0]=8;
+        int1[3]=4;
+        int2=int1-int2;
+        int1[0]=2;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            generateIntegers(src1, src2);
+            ans1=src1;
+            src1[src1.size()/2+1]=1;
+        
+            //Preform 3 versions
+            nt->subtraction(src1.data(),src2.data(),ans1.data(),src1.size());
+            src1.subtraction(&src2,&ans2);
+            ans3=src1-src2;
+            src1-=src2;
+        
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+            if(ans1!=src1)
+                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+        }
+    }
+    //Tests the incrementing and decrementing of an integer
+    void integerIncrementTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerIncrementTest()";
+        integer int1;
+        integer int2;
+        
+        int1++;
+        int2[0]++;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Increment fail: 1",locString),shared_type);
+        
+        int2[0]++;
+        if(++int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Increment fail: 2",locString),shared_type);
+        
+        if(int1++!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Increment fail: 3",locString),shared_type);
+        int2[0]++;
+        
+        int1--;
+        int2[0]--;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Decrement fail: 1",locString),shared_type);
+        
+        int2[0]--;
+        if(--int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Decrement fail: 2",locString),shared_type);
+        
+        if(int1--!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Decrement fail: 3",locString),shared_type);
+        int2[0]--;
+    }
+    //Integer subtraction test
+    void integerRightShiftTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerRightShiftTest()";
+        integer int1;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            uint16_t rshift=rand()%128;
+            
+            generateIntegers(src1, src2);
+            ans1=src1;
+            src1[src1.size()/2+1]=1;
+            
+            //Preform 3 versions
+            nt->rightShift(src1.data(),rshift,ans1.data(),src1.size());
+            src1.rightShift(rshift,&ans2);
+            ans3=src1>>rshift;
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+        }
+    }
+    //Integer left shift test
+    void integerLeftShiftTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerLeftShiftTest()";
+        integer int1;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            uint16_t rshift=rand()%128;
+            
+            generateIntegers(src1, src2);
+            ans1=src1;
+            src1[src1.size()/2+1]=1;
+            
+            //Preform 3 versions
+            nt->rightShift(src1.data(),rshift,ans1.data(),src1.size());
+            src1.rightShift(rshift,&ans2);
+            ans3=src1>>rshift;
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+        }
+    }
+    //Integer multiplicaiton test
+    void integerMultiplicationTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerMultiplicationTest()";
+        integer int1;
+        integer int2;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Quickly test a variable size example
+        int1.expand(4);
+        int2[0]=2;
+        int1[3]=4;
+        int2=int1*int2;
+        int1[3]=8;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            generateIntegers(src1, src2);
+            ans1=src1;
+            
+            //Preform 3 versions
+            nt->multiplication(src1.data(),src2.data(),ans1.data(),src1.size());
+            src1.multiplication(&src2,&ans2);
+            ans3=src1*src2;
+            src1*=src2;
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+            if(ans1!=src1)
+                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+        }
+    }
+    //Integer division test
+    void integerDivisionTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerDivisionTest()";
+        integer int1;
+        integer int2;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Quickly test a variable size example
+        int1.expand(4);
+        int2[0]=2;
+        int1[3]=6;
+        int2=int1/int2;
+        int1[3]=3;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            generateIntegers(src1, src2);
+            ans1=src1;
+            
+            //Preform 3 versions
+            nt->division(src1.data(),src2.data(),ans1.data(),src1.size());
+            src1.division(&src2,&ans2);
+            ans3=src1/src2;
+            src1/=src2;
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+            if(ans1!=src1)
+                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+        }
+    }
+    //Integer modulo test
+    void integerModuloTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerModuloTest()";
+        integer int1;
+        integer int2;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Quickly test a variable size example
+        int1.expand(4);
+        int2[0]=5;
+        int1[0]=9;
+        int1[3]=4;
+        int2=int1%int2;
+        int1[3]=0;
+        int1[0]=3;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            generateIntegers(src1, src2);
+            ans1=src1;
+            
+            //Preform 3 versions
+            nt->modulo(src1.data(),src2.data(),ans1.data(),src1.size());
+            src1.modulo(&src2,&ans2);
+            ans3=src1%src2;
+            src1%=src2;
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+            if(ans1!=src1)
+                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+        }
+    }
+    //Integer exponentiation test
+    void integerExponentiationTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerModuloTest()";
+        integer int1;
+        integer int2;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Quickly test a variable size example
+        int1.expand(4);
+        int2[0]=3;
+        int1[1]=3;
+        int2=int1.exponentiation(int2);
+        int1.expand(4);
+        int1[1]=0;
+        int1[3]=27;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            generateIntegers(src1, src2);
+            src1[3]=0;  src1[2]=0;  src1[1]=0;
+            src2[3]=0;  src2[2]=0;  src2[1]=0;  src2[0]%=5;
+            ans1=src1;
+            
+            //Preform 3 versions
+            nt->exponentiation(src1.data(),src2.data(),ans1.data(),src1.size());
+            src1.number::exponentiation(&src2,&ans2);
+            ans3=src1.exponentiation(src2);
+            src1.exponentiationEquals(src2);
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+            if(ans1!=src1)
+                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+        }
+    }
+    //Integer mod-exponentiation test
+    void integerModuloExponentiationTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerModuloExponentiationTest()";
+        integer int1;
+        integer int2;
+        integer int3;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Quickly test a variable size example
+        int1.expand(4);
+        int3[0]=2;
+        int2[0]=11;
+        int1[1]=4;
+        int1[0]=3;
+        int2=int1.moduloExponentiation(int2, int3);
+        int1[1]=0;
+        int1[0]=1;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer src3;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            generateIntegers(src1, src2);
+            generateIntegers(src2,src3);
+            ans1=src1;
+            
+            //Preform 3 versions
+            nt->moduloExponentiation(src1.data(),src2.data(),src3.data(),ans1.data(),src1.size());
+            src1.number::moduloExponentiation(&src2,&src3,&ans2);
+            ans3=src1.moduloExponentiation(src2,src3);
+            src1.moduloExponentiationEquals(src2,src3);
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+            if(ans1!=src1)
+                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+        }
+    }
+    //Integer gcd test
+    void integerGCDTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerGCDTest()";
+        integer int1;
+        integer int2;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Quickly test a variable size example
+        int1.expand(4);
+        int2[0]=6;
+        int1[3]=4;
+        int2=int1.gcd(int2);
+        int1[3]=0;
+        int1[0]=2;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            generateIntegers(src1, src2);
+            ans1=src1;
+            
+            //Preform 3 versions
+            nt->gcd(src1.data(),src2.data(),ans1.data(),src1.size());
+            src1.number::gcd(&src2,&ans2);
+            ans3=src1.gcd(src2);
+            src1.gcdEquals(src2);
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+            if(ans1!=src1)
+                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+        }
+    }
+    //Integer modInver test
+    void integerModInverseTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerModInverseTest()";
+        integer int1;
+        integer int2;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Quickly test a variable size example
+        int1.expand(4);
+        int2[0]=17;
+        int1[3]=4;
+        int1%=int2;
+        int2=int1.modInverse(int2);
+        int1[3]=0;
+        int1[0]=13;
+        if(int1!=int2)
+            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+        
+        //Run compare tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            integer ans1;
+            integer ans2;
+            integer ans3;
+            src1[0]=rand();
+            src2[0]=7919;
+            
+            //Preform 3 versions
+            nt->modInverse(src1.data(),src2.data(),ans1.data(),src1.size());
+            src1.number::modInverse(&src2,&ans2);
+            ans3=src1.modInverse(src2);
+            src1.modInverseEquals(src2);
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+            if(ans1!=src1)
+                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+        }
+    }
+    //Prime test
+    void integerPrimeTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, integerPrimeTest()";
+        integer int1;
+        const struct numberType* nt=int1.numberDefinition();
+        
+        //Check if the integer target is valid
+        if(!int1.checkType())
+            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+        
+        //Run prime tests, 20 iterations
+        for(int i=0;i<20;i++)
+        {
+            integer src1;
+            integer src2;
+            bool ans1;
+            bool ans2;
+            generateIntegers(src1, src2);
+            
+            //Preform 3 versions
+            ans1=primeTest(src1.data(),crypto::algo::primeTestCycle,src1.size());
+            ans2=src1.prime();
+            
+            //ans1 is the ref value
+            if(ans1!=ans2)
+                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+        }
     }
 
 /*================================================================
@@ -421,6 +1074,20 @@ using namespace crypto;
         testSuite("Integer")
     {
         pushTest("Type",&integerTypeTest);
+        pushTest("Integer Compare",&integerCompareTest);
+        pushTest("Addition",&integerAdditionTest);
+        pushTest("Subtraction",&integerSubtractionTest);
+        pushTest("Increment",&integerIncrementTest);
+        pushTest("Right Shift",&integerRightShiftTest);
+        pushTest("Left Shift",&integerLeftShiftTest);
+        pushTest("Multiplication",&integerMultiplicationTest);
+        pushTest("Division",&integerDivisionTest);
+        pushTest("Modulo",&integerModuloTest);
+        pushTest("Exponentiation",&integerExponentiationTest);
+        pushTest("Modulo Exponentiation",&integerModuloExponentiationTest);
+        pushTest("GCD",&integerGCDTest);
+        pushTest("Modulo Inverse",&integerModInverseTest);
+        pushTest("Prime",&integerPrimeTest);
     }
 
 #endif

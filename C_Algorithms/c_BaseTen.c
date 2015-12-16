@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/6/2015
+//Confirmed working: 12/15/2015
 
 #ifndef C_BASE_TEN_C
 #define C_BASE_TEN_C
@@ -252,6 +252,7 @@ extern "C" {
 			if(!standardLeftShift(src2,cnt,temp2,length))
 			{
 				//Shouldn't ever get here
+                memset(dest,0,sizeof(uint32_t)*length);
 				free(temp1);
 				free(temp2);
 				return 0;
@@ -419,34 +420,39 @@ extern "C" {
 		//Check GCD first
 		uint32_t* one=(uint32_t*) malloc(length*sizeof(uint32_t));
 		uint32_t* newr=(uint32_t*) malloc(length*sizeof(uint32_t));
+        uint32_t* r=(uint32_t*) malloc(length*sizeof(uint32_t));
+        uint32_t* newt =(uint32_t*) malloc(length*sizeof(uint32_t));
+        
 		memset(one,0,length*sizeof(uint32_t));
+        memset(r,0,length*sizeof(uint32_t));
+        
+        memcpy(r,src2,length*sizeof(uint32_t));
+        
+        int algoStatus=base10Modulo(src1,src2,newr,length);
 		one[0]=1;
-		if(!base10GCD(src1,src2,newr,length) || standardCompare(newr,one,length)!=0)
+		if(!base10GCD(newr,src2,newt,length) || standardCompare(newt,one,length)!=0)
 		{
 			memcpy(dest,one,length*sizeof(uint32_t));
 			free(one);
 			free(newr);
+            free(r);
+            free(newt);
 			return 0;
 		}
 
-		int algoStatus = 1;
 		uint32_t* zero=(uint32_t*) malloc(length*sizeof(uint32_t));
 		uint32_t* t=(uint32_t*) malloc(length*sizeof(uint32_t));
-		uint32_t* r=(uint32_t*) malloc(length*sizeof(uint32_t));
-		uint32_t* newt =(uint32_t*) malloc(length*sizeof(uint32_t));
 
 		memset(zero,0,length*sizeof(uint32_t));
 		memset(t,0,length*sizeof(uint32_t));
-		memset(r,0,length*sizeof(uint32_t));
-		memcpy(newr,src1,length*sizeof(uint32_t));
-		memcpy(r,src2,length*sizeof(uint32_t));
+		
 		memcpy(newt,one,length*sizeof(uint32_t));
 
 		uint32_t* quotient=(uint32_t*) malloc(length*sizeof(uint32_t));
 		uint32_t* hld=(uint32_t*) malloc(length*sizeof(uint32_t));
 		uint32_t* temp=(uint32_t*) malloc(length*sizeof(uint32_t));
-
-		while(standardCompare(newr,zero,length)!=0)
+        
+		while(standardCompare(newr,zero,length)!=0 && algoStatus)
 		{
 			algoStatus&=base10Division(r,newr,quotient,length);
 

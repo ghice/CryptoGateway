@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/6/2015
+//Confirmed working: 12/16/2015
 
 #ifndef CRYPTOCONSTANTS_H
 #define CRYPTOCONSTANTS_H
@@ -21,6 +21,10 @@ namespace crypto
 		extern const std::string Default;
 		extern const std::string Base10;
 	}
+    namespace algo
+    {
+        extern const uint16_t primeTestCycle;
+    }
 }
 
 #endif

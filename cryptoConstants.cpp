@@ -19,6 +19,10 @@ namespace crypto
 		const std::string Default=std::string(crypto_numbername_default);
 		const std::string Base10=std::string(crypto_numbername_base10);
 	}
+    namespace algo
+    {
+        const uint16_t primeTestCycle=20;
+    }
 }
 
 #endif
