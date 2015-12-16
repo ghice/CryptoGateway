@@ -329,13 +329,13 @@ using namespace crypto;
         }
     }
     //Ostream operator
-    std::ostream& crypto::operator<<(std::ostream& os, const number& num)
+    std::ostream& operator<<(std::ostream& os, const number& num)
     {
         os<<num.toString();
         return os;
     }
     //Istream operator
-    std::istream& crypto::operator>>(std::istream& is, number& num)
+    std::istream& operator>>(std::istream& is, number& num)
     {
         std::string track="";
         char cur=is.get();
