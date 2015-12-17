@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/6/2015
+//Confirmed working: 12/17/2015
 
 #ifndef CRYPTOCONSTANTS_CPP
 #define CRYPTOCONSTANTS_CPP
@@ -22,6 +22,17 @@ namespace crypto
     namespace algo
     {
         const uint16_t primeTestCycle=20;
+        
+        const uint16_t hashNULL=0;
+        const uint16_t hashXOR=1;
+    }
+    namespace size
+    {
+        const uint16_t hash64=8;
+        const uint16_t hash128=16;
+        const uint16_t hash256=32;
+        const uint16_t hash512=64;
+        const uint16_t defaultHash=hash256;
     }
 }
 

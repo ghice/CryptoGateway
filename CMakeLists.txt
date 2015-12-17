@@ -26,6 +26,7 @@ SET( SRC_H
 	${CUR_SRC}/cryptoFrameworks.h
 	${CUR_SRC}/cryptoException.h
 	${CUR_SRC}/cryptoNumber.h
+	${CUR_SRC}/cryptoHash.h
 
 	${CUR_SRC}/cryptoConstants.h
 	${CUR_SRC}/cryptoCHeaders.h
@@ -46,6 +47,7 @@ SET( SRC_CPP
 	${CUR_SRC}/securitySpinLock.cpp
 	${CUR_SRC}/cryptoFrameworks.cpp
 	${CUR_SRC}/cryptoNumber.cpp
+	${CUR_SRC}/cryptoHash.cpp
 
 	${CUR_SRC}/cryptoConstants.cpp
 	${CUR_SRC}/cryptoCSource.cpp
