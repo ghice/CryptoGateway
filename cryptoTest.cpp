@@ -6,6 +6,7 @@
 
 #include "cryptoTest.h"
 #include "c_cryptoTesting.h"
+#include "hashTest.h"
 
 using namespace test;
 
@@ -20,6 +21,7 @@ using namespace test;
         pushSuite(os::smart_ptr<testSuite>(new C_BaseTenSuite(),os::shared_type));
         pushSuite(os::smart_ptr<testSuite>(new BasicNumberTest(),os::shared_type));
         pushSuite(os::smart_ptr<testSuite>(new IntegerTest(),os::shared_type));
+        pushSuite(os::smart_ptr<testSuite>(new xorTestSuite(),os::shared_type));
     }
 
 #endif

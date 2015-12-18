@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/16/2015
+//Confirmed working: 12/18/2015
 
 #ifndef CRYPTO_NUMBER_CPP
 #define CRYPTO_NUMBER_CPP
@@ -107,161 +107,6 @@ using namespace crypto;
 
 //To and from string---------------------------------------------
 
-    //isHex char
-    static bool isHexCharacter(char c)
-    {
-        switch (c)
-        {
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-            case 'A':
-            case 'B':
-            case 'C':
-            case 'D':
-            case 'E':
-            case 'F':
-                return true;
-            default:
-                break;
-        }
-        return false;
-    }
-    //Converts a uint32 to hex
-    static std::string toHex(uint32_t i)
-    {
-        std::string ret="";
-        for(int cnt=0;cnt<8;cnt++)
-        {
-            uint16_t temp=i&15;
-            switch (temp)
-            {
-                case 0:
-                    ret='0'+ret;
-                    break;
-                case 1:
-                    ret='1'+ret;
-                    break;
-                case 2:
-                    ret='2'+ret;
-                    break;
-                case 3:
-                    ret='3'+ret;
-                    break;
-                case 4:
-                    ret='4'+ret;
-                    break;
-                case 5:
-                    ret='5'+ret;
-                    break;
-                case 6:
-                    ret='6'+ret;
-                    break;
-                case 7:
-                    ret='7'+ret;
-                    break;
-                case 8:
-                    ret='8'+ret;
-                    break;
-                case 9:
-                    ret='9'+ret;
-                    break;
-                case 10:
-                    ret='A'+ret;
-                    break;
-                case 11:
-                    ret='B'+ret;
-                    break;
-                case 12:
-                    ret='C'+ret;
-                    break;
-                case 13:
-                    ret='D'+ret;
-                    break;
-                case 14:
-                    ret='E'+ret;
-                    break;
-                case 15:
-                    ret='F'+ret;
-                    break;
-                default:
-                    cryptoerr<<"Hex conversion failed!"<<std::endl;
-                    return ret;
-            }
-            i=i>>4;
-        }
-        return ret;
-    }
-    //Converts a hex value to a uint32_t
-    static uint32_t fromHex(const std::string& str)
-    {
-        uint32_t ret=0;
-        
-        for(int i=0;i<str.length();i++)
-        {
-            ret = ret<<4;
-            switch (str[i])
-            {
-                case '0':
-                    break;
-                case '1':
-                    ret=ret|1;
-                    break;
-                case '2':
-                    ret=ret|2;
-                    break;
-                case '3':
-                    ret=ret|3;
-                    break;
-                case '4':
-                    ret=ret|4;
-                    break;
-                case '5':
-                    ret=ret|5;
-                    break;
-                case '6':
-                    ret=ret|6;
-                    break;
-                case '7':
-                    ret=ret|7;
-                    break;
-                case '8':
-                    ret=ret|8;
-                    break;
-                case '9':
-                    ret=ret|9;
-                    break;
-                case 'A':
-                    ret=ret|10;
-                    break;
-                case 'B':
-                    ret=ret|11;
-                    break;
-                case 'C':
-                    ret=ret|12;
-                    break;
-                case 'D':
-                    ret=ret|13;
-                    break;
-                case 'E':
-                    ret=ret|14;
-                    break;
-                case 'F':
-                    ret=ret|15;
-                    break;
-                defult:
-                    break;
-            }
-        }
-        return ret;
-    }
     //Converts number to string
     std::string number::toString() const
     {
@@ -325,17 +170,17 @@ using namespace crypto;
             for(;strTrace<str.length() && str[strTrace]!=':';strTrace++)
                 current+=str[strTrace];
             strTrace++;
-            _data[trc-1]=fromHex(current);
+            _data[trc-1]=fromHex32(current);
         }
     }
     //Ostream operator
-    std::ostream& operator<<(std::ostream& os, const number& num)
+    std::ostream& crypto::operator<<(std::ostream& os, const number& num)
     {
         os<<num.toString();
         return os;
     }
     //Istream operator
-    std::istream& operator>>(std::istream& is, number& num)
+    std::istream& crypto::operator>>(std::istream& is, number& num)
     {
         std::string track="";
         char cur=is.get();
@@ -368,6 +213,109 @@ using namespace crypto;
 		}
 		return _data[pos];
 	}
+
+//Bitwise operators----------------------------------------------
+
+    //OR operator
+    number number::operator|(const number& op) const
+    {
+        number ret(_size);
+        if(ret._size<op._size)
+            ret.expand(op._size);
+        
+        uint16_t i;
+        for(i=0;i<_size && i<op._size;i++)
+            ret._data[i]=_data[i]|op._data[i];
+        while(i<_size)
+        {
+            ret._data[i]=_data[i];
+            i++;
+        }
+        while(i<op._size)
+        {
+            ret._data[i]=op._data[i];
+            i++;
+        }
+        
+        return ret;
+    }
+    //OR equals operator
+    number& number::operator|=(const number& op)
+    {
+        if(_size<op._size)
+            expand(op._size);
+        for(uint16_t i=0;i<_size && i<op._size;i++)
+            _data[i]|=op._data[i];
+        return *this;
+    }
+    //AND operator
+    number number::operator&(const number& op) const
+    {
+        number ret(_size);
+        if(ret._size<op._size)
+            ret.expand(op._size);
+        
+        uint16_t i;
+        for(i=0;i<_size && i<op._size;i++)
+            ret._data[i]=_data[i]&op._data[i];
+        
+        return ret;
+    }
+    //AND equals operator
+    number& number::operator&=(const number& op)
+    {
+        if(_size<op._size)
+            expand(op._size);
+        uint16_t i;
+        for(i=0;i<_size && i<op._size;i++)
+            _data[i]&=op._data[i];
+        while(i<_size)
+        {
+            _data[i]=0;
+            i++;
+        }
+        return *this;
+    }
+    //XOR operator
+    number number::operator^(const number& op) const
+    {
+        number ret(_size);
+        if(ret._size<op._size)
+            ret.expand(op._size);
+        
+        uint16_t i;
+        for(i=0;i<_size && i<op._size;i++)
+            ret._data[i]=_data[i]^op._data[i];
+        while(i<_size)
+        {
+            ret._data[i]=_data[i];
+            i++;
+        }
+        while(i<op._size)
+        {
+            ret._data[i]=op._data[i];
+            i++;
+        }
+        
+        return ret;
+    }
+    //XOR equals operator
+    number& number::operator^=(const number& op)
+    {
+        if(_size<op._size)
+            expand(op._size);
+        for(uint16_t i=0;i<_size && i<op._size;i++)
+            _data[i]^=op._data[i];
+        return *this;
+    }
+    //Negate
+    number number::operator~() const
+    {
+        number ret(*this);
+        for(uint16_t i=0;i<ret.size();i++)
+            ret._data[i]= ~ret._data[i];
+        return ret;
+    }
 
 //Action Functions-----------------------------------------------
 

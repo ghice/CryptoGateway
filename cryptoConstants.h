@@ -1,11 +1,12 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/17/2015
+//Confirmed working: 12/18/2015
 
 #ifndef CRYPTOCONSTANTS_H
 #define CRYPTOCONSTANTS_H
 
 #include "C_Algorithms/cryptoCConstants.h"
 
+#include <stdint.h>
 #include <string>
 
 //Scoped C++ variables

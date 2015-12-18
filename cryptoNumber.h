@@ -1,9 +1,10 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/16/2015
+//Confirmed working: 12/18/2015
 
 #ifndef CRYPTO_NUMBER_H
 #define CRYPTO_NUMBER_H
 
+#include "hexConversion.h"
 #include "cryptoConstants.h"
 #include "cryptoCHeaders.h"
 #include <string>
@@ -63,6 +64,15 @@ namespace crypto
         void gcd(const number* n2,number* result) const;
         void modInverse(const number* n2, number* result) const;
         
+        //Bitwise operators
+        number operator|(const number& op) const;
+        number& operator|=(const number& op);
+        number operator&(const number& op) const;
+        number& operator&=(const number& op);
+        number operator^(const number& op) const;
+        number& operator^=(const number& op);
+        number operator~() const;
+        
         //Checks if the number definition defines functions
         inline virtual bool checkType() const {return false;}
         inline bool hasCompare() const {return _numDef->compare;}
@@ -109,6 +119,7 @@ namespace crypto
         virtual bool checkType() const;
         
         //Operators
+        inline operator number()const{return number((number)*this);}
         integer operator+(const integer& n) const;
         integer& operator+=(const integer& n);
         integer& operator++();

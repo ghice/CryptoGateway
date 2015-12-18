@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/16/2015
+//Confirmed working: 12/18/2015
 
 #ifndef CRYPTO_NUMBER_TEST_CPP
 #define CRYPTO_NUMBER_TEST_CPP
@@ -14,6 +14,18 @@ using namespace crypto;
 /*================================================================
 	Number Tests
  ================================================================*/
+
+    //Randomly generate a number
+    number generateNumber()
+    {
+        number ret=integer(8);
+        //Size 8
+        for(int i=0;i<4;i++)
+        {
+            ret[i]=rand();
+        }
+        return ret;
+    }
 
     //Number type test
     void numberTypeTest() throw(os::smart_ptr<std::exception>)
@@ -360,6 +372,203 @@ using namespace crypto;
         throw os::smart_ptr<std::exception>(new generalTestException("Expansion 3 failed",locString),shared_type);
         if(num[2]!=0 || num[1]!=10 || num[0]!=0)
         throw os::smart_ptr<std::exception>(new generalTestException("Expansion 3 values wrong",locString),shared_type);
+    }
+
+    //OR Test
+    void numberORTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, numberORTest()";
+        
+        //Variable size test
+        number s1;
+        number s2(4);
+        number hld;
+        number comp(4);
+        s1[0]=4;
+        s2[0]=1;
+        comp[0]=5;
+        s2[3]=2;
+        comp[3]=2;
+        
+        //4 different size tests
+        if((s1|s2)!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 1 wrong",locString),shared_type);
+        if((s2|s1)!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 2 wrong",locString),shared_type);
+        hld=s1;
+        s1|=s2;
+        s2|=hld;
+        if(s1!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 3 wrong",locString),shared_type);
+        if(s2!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 4 wrong",locString),shared_type);
+        
+        //Main test
+        for(int i=0;i<20;i++)
+        {
+            number num1=generateNumber();
+            number num2=generateNumber();
+            number ans1=num1|num2;
+            number ans2=num2|num1;
+            number ans3(num1);
+            
+            for(int i=0;i<ans3.size();i++)
+            {
+                ans3[i]=num1[i]|num2[i];
+            }
+            number t=num1;
+            num1|=num2;
+            num2|=t;
+                
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("ans1 wrong",locString),shared_type);
+            if(ans2!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("ans2 wrong",locString),shared_type);
+            if(num1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("num1 wrong",locString),shared_type);
+            if(num2!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("num2 wrong",locString),shared_type);
+        }
+    }
+    //OR Test
+    void numberANDTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, numberANDTest()";
+        
+        //Variable size test
+        number s1;
+        number s2(4);
+        number hld;
+        number comp(4);
+        s1[0]=6;
+        s2[0]=3;
+        comp[0]=2;
+        s2[3]=2;
+        comp[3]=0;
+        
+        //4 different size tests
+        if((s1&s2)!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 1 wrong",locString),shared_type);
+        if((s2&s1)!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 2 wrong",locString),shared_type);
+        hld=s1;
+        s1&=s2;
+        s2&=hld;
+        if(s1!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 3 wrong",locString),shared_type);
+        if(s2!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 4 wrong",locString),shared_type);
+        
+        //Main test
+        for(int i=0;i<20;i++)
+        {
+            number num1=generateNumber();
+            number num2=generateNumber();
+            number ans1=num1&num2;
+            number ans2=num2&num1;
+            number ans3(num1);
+            
+            for(int i=0;i<ans3.size();i++)
+            {
+                ans3[i]=num1[i]&num2[i];
+            }
+            number t=num1;
+            num1&=num2;
+            num2&=t;
+            
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("ans1 wrong",locString),shared_type);
+            if(ans2!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("ans2 wrong",locString),shared_type);
+            if(num1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("num1 wrong",locString),shared_type);
+            if(num2!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("num2 wrong",locString),shared_type);
+        }
+    }
+    //XOR Test
+    void numberXORTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, numberANDTest()";
+        
+        //Variable size test
+        number s1;
+        number s2(4);
+        number hld;
+        number comp(4);
+        s1[0]=6;
+        s2[0]=3;
+        comp[0]=5;
+        s2[3]=2;
+        comp[3]=2;
+        
+        
+        //4 different size tests
+        if((s1^s2)!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 1 wrong",locString),shared_type);
+        if((s2^s1)!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 2 wrong",locString),shared_type);
+        hld=s1;
+        s1^=s2;
+        s2^=hld;
+        if(s1!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 3 wrong",locString),shared_type);
+        if(s2!=comp)
+            throw os::smart_ptr<std::exception>(new generalTestException("size comp 4 wrong",locString),shared_type);
+        
+        //Main test
+        for(int i=0;i<20;i++)
+        {
+            number num1=generateNumber();
+            number num2=generateNumber();
+            number ans1=num1^num2;
+            number ans2=num2^num1;
+            number ans3(num1);
+            
+            for(int i=0;i<ans3.size();i++)
+            {
+                ans3[i]=num1[i]^num2[i];
+            }
+            number t=num1;
+            num1^=num2;
+            num2^=t;
+            
+            if(ans1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("ans1 wrong",locString),shared_type);
+            if(ans2!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("ans2 wrong",locString),shared_type);
+            if(num1!=ans3)
+                throw os::smart_ptr<std::exception>(new generalTestException("num1 wrong",locString),shared_type);
+            if(num2!=ans3)
+            {
+                testout<<num1<<std::endl;
+                testout<<num2<<" == "<<ans3<<std::endl;
+                throw os::smart_ptr<std::exception>(new generalTestException("num2 wrong",locString),shared_type);
+            }
+        }
+    }
+    //Tests negation
+    void numberNegateTest() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoNumberTest.cpp, numberNegateTest()";
+        for(int i=0;i<20;i++)
+        {
+            number t=generateNumber();
+            number comp(t);
+            
+            if(t!=comp)
+                throw os::smart_ptr<std::exception>(new generalTestException("Initial copy failed",locString),shared_type);
+            
+            t= ~t;
+            if(t==comp)
+                throw os::smart_ptr<std::exception>(new generalTestException("Negate equals to prev",locString),shared_type);
+            
+            for(int i=0;i<t.size();i++)
+                comp[i]= ~comp[i];
+            
+            if(t!=comp)
+                throw os::smart_ptr<std::exception>(new generalTestException("Negate comparison failed",locString),shared_type);
+        }
     }
 
 /*================================================================
@@ -1068,6 +1277,11 @@ using namespace crypto;
         pushTest("To String",&numberToStringTest);
         pushTest("From String",&numberFromStringTest);
         pushTest("Size Manipulation",&numberSizeManipulation);
+        
+        pushTest("OR Operator",&numberORTest);
+        pushTest("AND Operator",&numberANDTest);
+        pushTest("XOR Operator",&numberXORTest);
+        pushTest("Negate Operator",&numberNegateTest);
     }
     //Base-10 number
     IntegerTest::IntegerTest():
