@@ -94,7 +94,34 @@ using namespace crypto;
     //Convert the hash from a string
     void crypto::hash::fromString(const std::string& str)
     {
-    
+        uint16_t strLen = str.length();
+        
+        //Check length first
+        if(strLen==size::hash64*2) _size=size::hash64;
+        else if(strLen==size::hash128*2) _size=size::hash128;
+        else if(strLen==size::hash256*2) _size=size::hash256;
+        else if(strLen==size::hash512*2) _size=size::hash512;
+        else
+        {
+            cryptoerr<<"Illegal string for hash construction"<<std::endl;
+            memset(_data,0,_size);
+            return;
+        }
+        delete [] _data;
+        _data = new unsigned char[_size];
+        
+        //Read out string
+        uint16_t i=0;
+        uint16_t s=str.length();
+        while(i<_size)
+        {
+            std::string tem="";
+            tem+=str[s-2];
+            tem+=str[s-1];
+            _data[i]=fromHex8(tem);
+            i++;
+            s-=2;
+        }
     }
     //Output hash in stream
     std::ostream& crypto::operator<<(std::ostream& os, const crypto::hash& num)
@@ -105,6 +132,15 @@ using namespace crypto;
     //Input hash from a stream
     std::istream& crypto::operator>>(std::istream& is, crypto::hash& num)
     {
+        std::string track="";
+        char cur=is.get();
+        int charCount=0;
+        while(charCount<size::hash512*2 && isHexCharacter(cur))
+        {
+            track+=cur;
+            cur=is.get();
+        }
+        num.fromString(track);
         return is;
     }
 
@@ -127,6 +163,9 @@ using namespace crypto;
     //Hash function
     void xorHash::preformHash(const unsigned char* data, uint32_t dLen)
     {
-        
+        for(uint32_t i=0;i<dLen;i++)
+        {
+            _data[i%_size]^=data[i];
+        }
     }
 #endif

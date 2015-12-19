@@ -17,6 +17,7 @@ namespace crypto {
     std::string toHex(unsigned char i);
     std::string toHex(uint32_t i);
     
+    unsigned char fromHex8(const std::string& str);
     uint32_t fromHex32(const std::string& str);
 }
 

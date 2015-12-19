@@ -17,16 +17,16 @@ namespace crypto {
     class hash
     {
         uint16_t _algorithm;
+    protected:
         uint16_t _size;
         unsigned char* _data;
-    
-        int compare(const hash* _comp) const;
-    protected:
+        
         hash(uint16_t algorithm=algo::hashNULL,uint16_t size=size::defaultHash);
     public:
         hash(const hash& cpy);
         hash& operator=(const hash& cpy);
         virtual ~hash();
+        int compare(const hash* _comp) const;
         
         virtual void preformHash(unsigned char* data, uint32_t dLen){}
         

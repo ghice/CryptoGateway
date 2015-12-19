@@ -167,12 +167,75 @@ std::string crypto::toHex(uint32_t i)
     return ret;
 }
 
+//Converts a hex value to an unsigned char
+unsigned char crypto::fromHex8(const std::string& str)
+{
+    unsigned char ret=0;
+    
+    for(int i=0;i<str.length()&&i<2;i++)
+    {
+        ret = ret<<4;
+        switch (str[i])
+        {
+            case '0':
+                break;
+            case '1':
+                ret=ret|1;
+                break;
+            case '2':
+                ret=ret|2;
+                break;
+            case '3':
+                ret=ret|3;
+                break;
+            case '4':
+                ret=ret|4;
+                break;
+            case '5':
+                ret=ret|5;
+                break;
+            case '6':
+                ret=ret|6;
+                break;
+            case '7':
+                ret=ret|7;
+                break;
+            case '8':
+                ret=ret|8;
+                break;
+            case '9':
+                ret=ret|9;
+                break;
+            case 'A':
+                ret=ret|10;
+                break;
+            case 'B':
+                ret=ret|11;
+                break;
+            case 'C':
+                ret=ret|12;
+                break;
+            case 'D':
+                ret=ret|13;
+                break;
+            case 'E':
+                ret=ret|14;
+                break;
+            case 'F':
+                ret=ret|15;
+                break;
+            defult:
+                break;
+        }
+    }
+    return ret;
+}
 //Converts a hex value to a uint32_t
 uint32_t crypto::fromHex32(const std::string& str)
 {
     uint32_t ret=0;
     
-    for(int i=0;i<str.length();i++)
+    for(int i=0;i<str.length()&&i<8;i++)
     {
         ret = ret<<4;
         switch (str[i])

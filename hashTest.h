@@ -80,7 +80,25 @@ namespace test {
         {
             std::string locString = "hashTest.h, hashCompareTest::test()";
             
+            hashClass t1=crypto::hashData<hashClass>(hashTest<hashClass>::_hashSize,NULL,0);
+            hashClass t2=crypto::hashData<hashClass>(hashTest<hashClass>::_hashSize,NULL,0);
             
+            if(t1.compare(&t2)!=0)
+                throw os::smart_ptr<std::exception>(new generalTestException("t1 should equal t2",locString),os::shared_type);
+            if(t2.compare(&t1)!=0)
+                throw os::smart_ptr<std::exception>(new generalTestException("t2 should equal t1",locString),os::shared_type);
+            
+            t1[0]=10;
+            if(t1.compare(&t2)!=1)
+                throw os::smart_ptr<std::exception>(new generalTestException("t1 should be greater than t2",locString),os::shared_type);
+            if(t2.compare(&t1)!=-1)
+                throw os::smart_ptr<std::exception>(new generalTestException("t2 should be less than t1",locString),os::shared_type);
+            
+            t2[0]=12;
+            if(t1.compare(&t2)!=-1)
+                throw os::smart_ptr<std::exception>(new generalTestException("t1 should be less than t2",locString),os::shared_type);
+            if(t2.compare(&t1)!=1)
+                throw os::smart_ptr<std::exception>(new generalTestException("t2 should be greater than t1",locString),os::shared_type);
         }
     };
     
@@ -97,7 +115,83 @@ namespace test {
         {
             std::string locString = "hashTest.h, hashEqualityOperatorTest::test()";
             
+            //Attempts the random hash 20 times
+            for(int i=0;i<20;i++)
+            {
+                hashClass hsh1=randomHash<hashClass>(hashTest<hashClass>::_hashSize);
+                hashClass hsh2=randomHash<hashClass>(hashTest<hashClass>::_hashSize);
+                
+                int compVal = hsh1.compare(&hsh2);
+                
+                if(compVal==0)
+                {
+                    if(hsh1!=hsh2)
+                        throw os::smart_ptr<std::exception>(new generalTestException("Not equals failed",locString),os::shared_type);
+                    if(hsh1<hsh2)
+                        throw os::smart_ptr<std::exception>(new generalTestException("Less than failed",locString),os::shared_type);
+                    if(hsh1>hsh2)
+                        throw os::smart_ptr<std::exception>(new generalTestException("Greater than failed",locString),os::shared_type);
+                }
+                else if(compVal==1)
+                {
+                    if(hsh1==hsh2)
+                        throw os::smart_ptr<std::exception>(new generalTestException("Equals failed",locString),os::shared_type);
+                    if(hsh1<hsh2)
+                        throw os::smart_ptr<std::exception>(new generalTestException("Less than failed",locString),os::shared_type);
+                    if(hsh1<=hsh2)
+                        throw os::smart_ptr<std::exception>(new generalTestException("Less than/equal to failed",locString),os::shared_type);
+                }
+                else
+                {
+                    if(hsh1==hsh2)
+                        throw os::smart_ptr<std::exception>(new generalTestException("Equals failed",locString),os::shared_type);
+                    if(hsh1>hsh2)
+                        throw os::smart_ptr<std::exception>(new generalTestException("Greater than failed",locString),os::shared_type);
+                    if(hsh1>=hsh2)
+                        throw os::smart_ptr<std::exception>(new generalTestException("Greater than/equal to failed",locString),os::shared_type);
+                }
+            }
+        }
+    };
+    
+    //String test
+    template <class hashClass>
+    class hashStringTest:public hashTest<hashClass>
+    {
+    public:
+        hashStringTest(std::string tn,std::string hashName, uint16_t hashSize):
+        hashTest<hashClass>(tn,hashName,hashSize){}
+        virtual ~hashStringTest(){}
+        
+        virtual void test() throw(os::smart_ptr<std::exception>)
+        {
+            std::string locString = "hashTest.h, hashStringTest::test()";
             
+            hashClass hsh1=crypto::hashData<hashClass>(hashTest<hashClass>::_hashSize,NULL,0);
+            
+            std::string targ;
+            for(uint16_t i=0;i<hsh1.size()*2;i++)
+            {
+                targ+='0';
+            }
+            if(targ!=hsh1.toString())
+                throw os::smart_ptr<std::exception>(new generalTestException("To string (0) failed",locString),os::shared_type);
+            targ[targ.length()-1]='8';
+            hsh1[0]=8;
+            if(targ!=hsh1.toString())
+                throw os::smart_ptr<std::exception>(new generalTestException("To string (1) failed",locString),os::shared_type);
+            
+            //Convert to string and back
+            for(int i=0;i<20;i++)
+            {
+                hashClass hsh1=randomHash<hashClass>(hashTest<hashClass>::_hashSize);
+                hashClass hsh2;
+                std::string str=hsh1.toString();
+                
+                hsh2.fromString(str);
+                if(hsh1!=hsh2)
+                    throw os::smart_ptr<std::exception>(new generalTestException("From string failed",locString),os::shared_type);
+            }
         }
     };
     
@@ -118,8 +212,9 @@ namespace test {
                 else if(i==3) hSize=crypto::size::hash512;
                 
                 pushTest(os::smart_ptr<singleTest>(new hashConstructorTest<hashClass>("Constructor",hashName,hSize)));
-                pushTest(os::smart_ptr<singleTest>(new hashConstructorTest<hashClass>("Compare",hashName,hSize)));
-                pushTest(os::smart_ptr<singleTest>(new hashConstructorTest<hashClass>("Equality Operators",hashName,hSize)));
+                pushTest(os::smart_ptr<singleTest>(new hashCompareTest<hashClass>("Compare",hashName,hSize)));
+                pushTest(os::smart_ptr<singleTest>(new hashEqualityOperatorTest<hashClass>("Equality Operators",hashName,hSize)));
+                pushTest(os::smart_ptr<singleTest>(new hashStringTest<hashClass>("String Conversion",hashName,hSize)));
             }
         }
         virtual ~hashSuite(){}
