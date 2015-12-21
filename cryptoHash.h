@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/18/2015
+//Confirmed working: 12/21/2015
 
 #ifndef CRYPTO_HASH_H
 #define CRYPTO_HASH_H
@@ -13,6 +13,10 @@
 
 namespace crypto {
 
+    class hash;
+    std::ostream& operator<<(std::ostream& os, const hash& num);
+    std::istream& operator>>(std::istream& is, hash& num);
+    
     //Basic hash
     class hash
     {

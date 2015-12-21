@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/18/2015
+//Confirmed working: 12/21/2015
 
 #ifndef CRYPTO_NUMBER_H
 #define CRYPTO_NUMBER_H
@@ -11,6 +11,10 @@
 
 namespace crypto
 {
+    class number;
+    std::ostream& operator<<(std::ostream& os, const number& num);
+    std::istream& operator>>(std::istream& is, number& num);
+    
     //Basic number
     class number
     {
