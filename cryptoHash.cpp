@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/18/2015
+//Confirmed working: 12/21/2015
 
 #ifndef CRYPTO_HASH_CPP
 #define CRYPTO_HASH_CPP
@@ -7,6 +7,7 @@
 #include "cryptoLogging.h"
 #include "cryptoHash.h"
 #include <string>
+#include <string.h>
 
 using namespace std;
 using namespace crypto;
