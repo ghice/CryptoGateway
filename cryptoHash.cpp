@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/21/2015
+//Confirmed working: 1/10/2016
 
 #ifndef CRYPTO_HASH_CPP
 #define CRYPTO_HASH_CPP
@@ -151,13 +151,13 @@ using namespace crypto;
 
     //XOR hash with data and size
     xorHash::xorHash(const unsigned char* data, uint32_t length, uint16_t size):
-        hash(crypto::algo::hashXOR,size)
+        hash(xorHash::staticAlgorithm(),size)
     {
         preformHash(data,length);
     }
     //XOR hash with data (default size)
     xorHash::xorHash(const unsigned char* data, uint16_t size):
-        hash(crypto::algo::hashXOR,size)
+        hash(xorHash::staticAlgorithm(),size)
     {
 		//Acts as a copy constructor
 		memcpy(_data,data,size);

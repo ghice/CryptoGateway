@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/9/2016
+//Confirmed working: 1/10/2016
 
 #ifndef RC4_HASH_CPP
 #define RC4_HASH_CPP
@@ -16,13 +16,13 @@ using namespace crypto;
 
     //RC-4 hash with data and size
     rc4Hash::rc4Hash(const unsigned char* data, uint32_t length, uint16_t size):
-        hash(crypto::algo::hashXOR,size)
+        hash(rc4Hash::staticAlgorithm(),size)
     {
         preformHash(data,length);
     }
     //RC-4 hash with data (default size)
     rc4Hash::rc4Hash(const unsigned char* data, uint16_t size):
-        hash(crypto::algo::hashXOR,size)
+        hash(rc4Hash::staticAlgorithm(),size)
     {
 		//Acts as a copy constructor
 		memcpy(_data,data,size);

@@ -28,6 +28,10 @@ SET( SRC_H
 	${CUR_SRC}/cryptoNumber.h
 	${CUR_SRC}/cryptoHash.h
 
+	${CUR_SRC}/streamEXML.h
+
+	${CUR_SRC}/streamPackage.h
+
 	${CUR_SRC}/cryptoConstants.h
 	${CUR_SRC}/cryptoCHeaders.h
 	${CUR_SRC}/hexConversion.h
@@ -51,6 +55,10 @@ SET( SRC_CPP
 
 	${CUR_SRC}/cryptoNumber.cpp
 	${CUR_SRC}/cryptoHash.cpp
+
+	${CUR_SRC}/streamEXML.cpp
+
+	${CUR_SRC}/streamPackage.cpp
 
 	${CUR_SRC}/cryptoConstants.cpp
 	${CUR_SRC}/cryptoCSource.cpp

@@ -1,9 +1,10 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/9/2016
+//Confirmed working: 1/10/2016
 
 #ifndef STREAM_CIPHER_H
 #define STREAM_CIPHER_H
 
+#include "Datastructures.h"
 #include "cryptoConstants.h"
 #include <stdint.h>
 
@@ -17,27 +18,15 @@ namespace crypto {
 	public:
 		virtual ~streamCipher(){}
 		virtual uint8_t getNext() {return 0;}
-		inline virtual uint16_t algorithmKey() const {return algo::streamNULL;}
-		inline virtual const std::string algorithmName() const {return "NULL Algorithm";}
+        
+        inline static uint16_t staticAlgorithm() {return algo::streamNULL;}
+        inline static std::string staticAlgorithmName() {return "NULL Algorithm";}
+        
+        inline virtual uint16_t algorithm() const {return streamCipher::staticAlgorithm();}
+		inline virtual const std::string algorithmName() const {return streamCipher::staticAlgorithmName();}
 	};
 
-	//Stream packet
-	class streamPacket
-	{
-	private:
-		uint8_t* packetArray;
-		uint16_t identifier;
-		unsigned int size;
-	  
-	public:
-		streamPacket(os::smart_ptr<streamCipher> source, unsigned int s);
-		virtual ~streamPacket();
-
-		uint16_t getIdentifier() const;
-		const uint8_t* getPacket() const;
-		uint8_t* encrypt(uint8_t* pt, unsigned int len, bool surpress=true) const;
-	};
-
+	
 	//RC Four
 	class RCFour: public streamCipher
 	{
@@ -53,9 +42,30 @@ namespace crypto {
 		virtual ~RCFour();
 
 		uint8_t getNext();
-		inline uint16_t algorithmKey() const {return algo::streamRSA;}
-		inline const std::string algorithmName() const {return "RC-4";}
+        
+        inline static uint16_t staticAlgorithm() {return algo::streamRSA;}
+        inline static std::string staticAlgorithmName() {return "RC-4";}
+        
+        inline uint16_t algorithm() const {return RCFour::staticAlgorithm();}
+		inline const std::string algorithmName() const {return RCFour::staticAlgorithmName();;}
 	};
+
+    //Stream packet
+    class streamPacket
+    {
+    private:
+        uint8_t* packetArray;
+        uint16_t identifier;
+        unsigned int size;
+        
+    public:
+        streamPacket(os::smart_ptr<streamCipher> source, unsigned int s);
+        virtual ~streamPacket();
+        
+        uint16_t getIdentifier() const;
+        const uint8_t* getPacket() const;
+        uint8_t* encrypt(uint8_t* pt, unsigned int len, bool surpress=true) const;
+    };
 
 	//Encrypts a byte stream
 	class streamEncrypter

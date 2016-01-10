@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/9/2016
+//Confirmed working: 1/10/2016
 
 //The implementation stream ciphers
 
@@ -23,7 +23,7 @@ using namespace crypto;
 	streamPacket::streamPacket(os::smart_ptr<streamCipher> source, unsigned int s)
 	{
 		//Check streamCipher
-		if(source==NULL||source->algorithmKey()==algo::streamNULL)
+		if(source==NULL||source->algorithm()==algo::streamNULL)
 		{
 			cryptoerr<<"Illegal algorithm bind to stream packet: ";
 			if(source!=NULL) cryptoerr<<source->algorithmName();

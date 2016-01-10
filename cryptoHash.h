@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/21/2015
+//Confirmed working: 1/10/2016
 
 #ifndef CRYPTO_HASH_H
 #define CRYPTO_HASH_H
@@ -27,6 +27,9 @@ namespace crypto {
         
         hash(uint16_t algorithm=algo::hashNULL,uint16_t size=size::defaultHash);
     public:
+        inline static std::string staticAlgorithmName() {return "NULL";}
+        inline static uint16_t staticAlgorithm() {return algo::hashNULL;}
+        
         hash(const hash& cpy);
         hash& operator=(const hash& cpy);
         virtual ~hash();
@@ -35,11 +38,12 @@ namespace crypto {
         virtual void preformHash(unsigned char* data, uint32_t dLen){}
         
         //Return functions
-        uint16_t algorithm() const {return _algorithm;}
-        uint16_t size() const {return _size;}
-        uint32_t numBits() const {return _size*8;}
-        unsigned char* data() {return _data;}
-        const unsigned char* data() const {return _data;}
+        inline virtual std::string algorithmName() const {return hash::staticAlgorithmName();}
+        inline uint16_t algorithm() const {return _algorithm;}
+        inline uint16_t size() const {return _size;}
+        inline uint32_t numBits() const {return _size*8;}
+        inline unsigned char* data() {return _data;}
+        inline const unsigned char* data() const {return _data;}
         
         //Operator access
         unsigned char operator[](uint16_t pos) const;
@@ -84,10 +88,14 @@ namespace crypto {
     private:
         xorHash(const unsigned char* data, uint32_t length, uint16_t size);
     public:
-        xorHash():hash(algo::hashXOR){}
+        inline static std::string staticAlgorithmName() {return "XOR";}
+        inline static uint16_t staticAlgorithm() {return algo::hashXOR;}
+        
+        xorHash():hash(xorHash::staticAlgorithm()){}
         xorHash(const unsigned char* data, uint16_t size);
         xorHash(const xorHash& cpy):hash(cpy){}
         void preformHash(const unsigned char* data, uint32_t dLen);
+        inline std::string algorithmName() const {return xorHash::staticAlgorithmName();}
         
         static xorHash hash64Bit(const unsigned char* data, uint32_t length){return xorHash(data,length,size::hash64);}
         static xorHash hash128Bit(const unsigned char* data, uint32_t length){return xorHash(data,length,size::hash128);}
