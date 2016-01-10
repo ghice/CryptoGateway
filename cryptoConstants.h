@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/18/2015
+//Confirmed working: 1/9/2016
 
 #ifndef CRYPTOCONSTANTS_H
 #define CRYPTOCONSTANTS_H
@@ -28,6 +28,9 @@ namespace crypto
         
         extern const uint16_t hashNULL;
         extern const uint16_t hashXOR;
+		
+		extern const uint16_t streamNULL;
+		extern const uint16_t streamRSA;
     }
     namespace size
     {
@@ -36,6 +39,17 @@ namespace crypto
         extern const uint16_t hash256;
         extern const uint16_t hash512;
         extern const uint16_t defaultHash;
+
+		extern const uint16_t STREAM_SEED_MAX;
+		extern const uint16_t RC4_MAX;
+		
+		namespace stream
+		{
+			extern const uint16_t PACKETSIZE;
+			extern const uint16_t DECRYSIZE;
+			extern const uint16_t BACKCHECK;
+			extern const uint16_t LAGCATCH;
+		}
     }
 }
 

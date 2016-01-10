@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 12/18/2015
+//Certified working 1/9/2016
 
 #ifndef HASH_TEST_CPP
 #define HASH_TEST_CPP
@@ -34,6 +34,34 @@ using namespace test;
         hashSuite("XOR")
     {
         pushTest("XOR Algorithm",&basicXORTest);
+    }
+
+/*================================================================
+	RC4 Hash
+ ================================================================*/
+
+    //Basic xor test
+    void basicRC4Test() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "hashTest.cpp, basicRC4Test()";
+        
+        unsigned char val[128];
+        memset(val,0,128);
+        val[0]=6;
+        val[64]=3;
+        
+		crypto::rc4Hash h1=crypto::rc4Hash::hash64Bit(val,128);
+        crypto::rc4Hash h2;
+		h2.fromString("FAFF300339376F54");
+        
+        if(h1!=h2)
+            throw os::smart_ptr<std::exception>(new generalTestException("XOR hash algorithm failed",locString),os::shared_type);
+    }
+    //xor Test suite
+    rc4TestSuite::rc4TestSuite():
+        hashSuite("RC-4")
+    {
+        pushTest("RC-4 Algorithm",&basicRC4Test);
     }
 
 #endif

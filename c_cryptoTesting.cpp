@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/6/2015
+//Confirmed working: 1/9/2016
 
 #ifndef C_CRYPTO_TESTING_CPP
 #define C_CRYPTO_TESTING_CPP
@@ -1026,7 +1026,7 @@ using namespace crypto;
         pushTest("Subtraction",&base10subtractionTest);
         pushTest("Right Shift",&base10rightShiftTest);
         pushTest("Left Shift",&base10leftShiftTest);
-        pushTest("Multiplicaiton",&base10multiplicationTest);
+        pushTest("Multiplication",&base10multiplicationTest);
         pushTest("Division",&base10divisionTest);
 		pushTest("Modulo",&base10moduloTest);
 		pushTest("Exponentiation",&base10exponentiationTest);

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working 10/12/2015
+//Confirmed working: 1/9/2016
 
 #ifndef SECURITY_GATEWAY_H
 #define SECURITY_GATEWAY_H
@@ -11,8 +11,7 @@
 #include "securitySpinLock.h"
 #include "interior_message.h"
 #include "public_key.h"
-#include "streamCode.h"
-#include "RC4.h"
+#include "streamCipher.h"
 #include "RC4_Hash.h"
 #include "file_mechanics.h"
 

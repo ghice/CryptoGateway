@@ -85,7 +85,7 @@ namespace crypto {
         xorHash(const unsigned char* data, uint32_t length, uint16_t size);
     public:
         xorHash():hash(algo::hashXOR){}
-        xorHash(const unsigned char* data, uint32_t length);
+        xorHash(const unsigned char* data, uint16_t size);
         xorHash(const xorHash& cpy):hash(cpy){}
         void preformHash(const unsigned char* data, uint32_t dLen);
         

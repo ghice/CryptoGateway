@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/17/2015
+//Confirmed working: 1/9/2015
 
 #ifndef CRYPTOCONSTANTS_CPP
 #define CRYPTOCONSTANTS_CPP
@@ -25,6 +25,9 @@ namespace crypto
         
         const uint16_t hashNULL=0;
         const uint16_t hashXOR=1;
+		
+		const uint16_t streamNULL=0;
+		const uint16_t streamRSA=1;
     }
     namespace size
     {
@@ -33,6 +36,17 @@ namespace crypto
         const uint16_t hash256=32;
         const uint16_t hash512=64;
         const uint16_t defaultHash=hash256;
+
+		const uint16_t STREAM_SEED_MAX=2506;
+		const uint16_t RC4_MAX=2506;
+
+		namespace stream
+		{
+			const uint16_t PACKETSIZE=508;
+			const uint16_t DECRYSIZE=100;
+			const uint16_t BACKCHECK=10;
+			const uint16_t LAGCATCH=DECRYSIZE/4;
+		}
     }
 }
 

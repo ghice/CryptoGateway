@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 8/29/2015
+//Certified working 1/9/2016
 
 #ifndef PUBLIC_KEY_CPP
 #define PUBLIC_KEY_CPP
@@ -12,7 +12,6 @@
 #include "cryptoLogging.h"
 #include "large_number.h"
 #include "public_key.h"
-#include "streamCode.h"
 #include "security_gateway.h"
 
 using namespace std;

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 10/15/2015
+//Confirmed working: 1/9/2016
 
 /*
 	NOTE: This file may have endian problems
@@ -16,8 +16,7 @@
 #include "file_mechanics.h"
 #include "interior_message.h"
 #include "public_key.h"
-#include "streamCode.h"
-#include "RC4.h"
+#include "streamCipher.h"
 
 #include "security_gateway.h"
 
@@ -247,7 +246,7 @@ void security_gateway::build_encryption_stream()
   
   encryLock.acquire();
   encry=NULL;
-  os::smart_ptr<RCFour> temp_RC4 = os::smart_ptr<RCFour>(new RCFour(&RC4_array[4],LARGE_NUMBER_SIZE*2-1),os::shared_type);
+  os::smart_ptr<streamCipher> temp_RC4 = os::smart_ptr<RCFour>(new RCFour(&RC4_array[4],LARGE_NUMBER_SIZE*2-1),os::shared_type);
   encry = os::smart_ptr<streamEncrypter>(new streamEncrypter(temp_RC4),os::shared_type);
   encryLock.release();
 }
@@ -461,11 +460,11 @@ smartInteriorMessage security_gateway::get_message()
     brotherIDLock.release();
     
     //Run hash function
-    hash_256 hash = build_hash((char*) &temp[8],4+ID_SIZE*2);
+	rc4Hash hash = rc4Hash::hash256Bit((unsigned char*) &temp[8],4+ID_SIZE*2);
     temp_cnt = 0;
-    while(temp_cnt<BYTE_SIZE_HASH)
+    while(temp_cnt<hash.size())
     {
-      temp[8+temp_cnt] = (uint8_t) hash.get_hash()[temp_cnt];
+      temp[8+temp_cnt] = (uint8_t) hash.data()[temp_cnt];
       temp_cnt++;
     }
     while(temp_cnt<4+2*ID_SIZE)
@@ -479,7 +478,7 @@ smartInteriorMessage security_gateway::get_message()
 
     uint16_t stream_flag;
     encryLock.acquire();
-    encry->sendData(&temp[4],8+LARGE_NUMBER_SIZE*2,(uint16_t*) &stream_flag);
+    encry->sendData(&temp[4],8+LARGE_NUMBER_SIZE*2,stream_flag);
     encryLock.release();
     temp[2] = (stream_flag>>8);
     temp[3] = (uint8_t) stream_flag;
@@ -546,11 +545,12 @@ smartInteriorMessage security_gateway::get_message()
     brotherIDLock.release();
     
     //Run hash function
-    hash_256 hash = build_hash((char*) &temp[8],4+ID_SIZE*2);
+
+    rc4Hash hash = rc4Hash::hash256Bit((unsigned char*) &temp[8],4+ID_SIZE*2);
     temp_cnt = 0;
-    while(temp_cnt<BYTE_SIZE_HASH)
+    while(temp_cnt<hash.size())
     {
-      temp[8+temp_cnt] = (uint8_t) hash.get_hash()[temp_cnt];
+      temp[8+temp_cnt] = (uint8_t) hash.data()[temp_cnt];
       temp_cnt++;
     }
     while(temp_cnt<4+2*ID_SIZE)
@@ -564,7 +564,7 @@ smartInteriorMessage security_gateway::get_message()
 
     uint16_t stream_flag;
     encryLock.acquire();
-    encry->sendData(&temp[4],8+LARGE_NUMBER_SIZE*2,(uint16_t*) &stream_flag);
+    encry->sendData(&temp[4],8+LARGE_NUMBER_SIZE*2,stream_flag);
     encryLock.release();
     temp[2] = (stream_flag>>8);
     temp[3] = (uint8_t) stream_flag;
@@ -727,7 +727,7 @@ bool security_gateway::process_message(smartInteriorMessage msg)
         decrypLock.acquire();
         decryp=NULL;
         
-		os::smart_ptr<RCFour> rc_temp = os::smart_ptr<RCFour>(new RCFour(message_array, LARGE_NUMBER_SIZE*2-1),os::shared_type);
+		os::smart_ptr<streamCipher> rc_temp(new RCFour(message_array, LARGE_NUMBER_SIZE*2-1),os::shared_type);
 		decryp = os::smart_ptr<streamDecrypter>(new streamDecrypter(rc_temp),os::shared_type);
         decrypLock.release();
         last_timestamp = get_timestamp();
@@ -781,7 +781,7 @@ bool security_gateway::process_message(smartInteriorMessage msg)
       hash_comp[4+ID_SIZE+cnt] = system_ID[cnt];
       cnt++;
     }
-    hash_256 hash = build_hash((char*) hash_comp,4+2*ID_SIZE);
+	rc4Hash hash = rc4Hash::hash256Bit((unsigned char*) hash_comp,4+2*ID_SIZE);
     
     //Decrypt message
     brotherKeyLock.acquire();
@@ -789,7 +789,7 @@ bool security_gateway::process_message(smartInteriorMessage msg)
     brotherKeyLock.release();
       
     //Compare two hashes
-    hash_256 inbound((char*)&message_array[8]);
+    rc4Hash inbound((unsigned char*)&message_array[8],size::hash256);
     if(hash!=inbound)
     {
       force_crypto_error();
@@ -892,7 +892,7 @@ bool security_gateway::process_message(smartInteriorMessage msg)
       hash_comp[4+ID_SIZE+cnt] = system_ID[cnt];
       cnt++;
     }
-    hash_256 hash = build_hash((char*) hash_comp,4+2*ID_SIZE);
+    rc4Hash hash = rc4Hash::hash256Bit((unsigned char*) hash_comp,4+2*ID_SIZE);
     
     //Decrypt message
     oldBrotherKeyLock.acquire();
@@ -900,7 +900,7 @@ bool security_gateway::process_message(smartInteriorMessage msg)
     oldBrotherKeyLock.release();
     
     //Compare two hashes
-    hash_256 inbound((char*)&message_array[8]);
+	rc4Hash inbound((unsigned char*)&message_array[8],size::hash256);
     
     if(hash!=inbound)
     {
@@ -922,7 +922,7 @@ smartInteriorMessage security_gateway::encrypt_message(smartInteriorMessage msg)
   uint8_t* temp = msg->get_int_data();
   uint16_t stream_flag;
   encryLock.acquire();
-  encry->sendData(&temp[4],msg->get_length()-4,(uint16_t*) &stream_flag);
+  encry->sendData(&temp[4],msg->get_length()-4,stream_flag);
   encryLock.release();
   temp[0] = 4;
   temp[1] = current_status;

@@ -1,11 +1,12 @@
 //Primary author: Jonathan Bedard
-//Certified working 12/18/2015
+//Certified working 1/9/2016
 
 #ifndef HASH_TEST_H
 #define HASH_TEST_H
 
 #include "UnitTest.h"
 #include "cryptoHash.h"
+#include "RC4_Hash.h"
 
 namespace test {
     
@@ -226,6 +227,14 @@ namespace test {
     public:
         xorTestSuite();
         virtual ~xorTestSuite(){}
+    };
+
+	//RC-4 Hash test
+    class rc4TestSuite:public hashSuite<crypto::rc4Hash>
+    {
+    public:
+        rc4TestSuite();
+        virtual ~rc4TestSuite(){}
     };
 }
 

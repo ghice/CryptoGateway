@@ -156,10 +156,11 @@ using namespace crypto;
         preformHash(data,length);
     }
     //XOR hash with data (default size)
-    xorHash::xorHash(const unsigned char* data, uint32_t length):
-        hash(crypto::algo::hashXOR)
+    xorHash::xorHash(const unsigned char* data, uint16_t size):
+        hash(crypto::algo::hashXOR,size)
     {
-        preformHash(data,length);
+		//Acts as a copy constructor
+		memcpy(_data,data,size);
     }
     //Hash function
     void xorHash::preformHash(const unsigned char* data, uint32_t dLen)
