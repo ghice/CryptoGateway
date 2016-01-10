@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/9/2016
+//Certified working 1/10/2016
 
 #ifndef STREAM_TEST_H
 #define STREAM_TEST_H
@@ -68,9 +68,9 @@ namespace test {
 		virtual void test() throw(os::smart_ptr<std::exception>)
         {
             std::string locString = "streamTest.h, streamIDTest::test()";
-			if(streamTest<streamType>::_cipher->algorithmKey() == crypto::algo::streamNULL)
+			if(streamTest<streamType>::_cipher->algorithm() == crypto::algo::streamNULL)
 				throw os::smart_ptr<std::exception>(new generalTestException("Stream ID matches the NULL case!",locString),os::shared_type);
-			if(streamTest<streamType>::_cipher->algorithmKey() != _streamInt)
+			if(streamTest<streamType>::_cipher->algorithm() != _streamInt)
 				throw os::smart_ptr<std::exception>(new generalTestException("Stream ID does not match the expected case!",locString),os::shared_type);
 		}
 	};
