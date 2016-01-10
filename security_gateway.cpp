@@ -246,7 +246,7 @@ void security_gateway::build_encryption_stream()
   
   encryLock.acquire();
   encry=NULL;
-  os::smart_ptr<streamCipher> temp_RC4 = os::smart_ptr<RCFour>(new RCFour(&RC4_array[4],LARGE_NUMBER_SIZE*2-1),os::shared_type);
+  os::smart_ptr<streamCipher> temp_RC4 = os::smart_ptr<streamCipher>(new RCFour(&RC4_array[4],LARGE_NUMBER_SIZE*2-1),os::shared_type);
   encry = os::smart_ptr<streamEncrypter>(new streamEncrypter(temp_RC4),os::shared_type);
   encryLock.release();
 }

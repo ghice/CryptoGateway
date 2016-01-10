@@ -43,15 +43,15 @@ namespace test {
     class streamNameTest:public streamTest<streamType>
     {
 	public:
-		streamNameTest(std::string streamName):streamTest("Name Test",streamName){}
+		streamNameTest(std::string streamName):streamTest<streamType>("Name Test",streamName){}
 		virtual ~streamNameTest(){}
 
 		virtual void test() throw(os::smart_ptr<std::exception>)
         {
             std::string locString = "streamTest.h, streamNameTest::test()";
-			if(_cipher->algorithmName() == "NULL Algorithm")
+			if(streamTest<streamType>::_cipher->algorithmName() == "NULL Algorithm")
 				throw os::smart_ptr<std::exception>(new generalTestException("Algorithm marked NULL",locString),os::shared_type);
-			if(_cipher->algorithmName() != _streamName)
+			if(streamTest<streamType>::_cipher->algorithmName() != streamTest<streamType>::_streamName)
 				throw os::smart_ptr<std::exception>(new generalTestException("Name mis-match!",locString),os::shared_type);
 		}
 	};
@@ -62,15 +62,15 @@ namespace test {
     {
 		int _streamInt;
 	public:
-		streamIDTest(std::string streamName, int streamInt):streamTest("ID Test",streamName){_streamInt=streamInt;}
+		streamIDTest(std::string streamName, int streamInt):streamTest<streamType>("ID Test",streamName){_streamInt=streamInt;}
 		virtual ~streamIDTest(){}
 
 		virtual void test() throw(os::smart_ptr<std::exception>)
         {
             std::string locString = "streamTest.h, streamIDTest::test()";
-			if(_cipher->algorithmKey() == crypto::algo::streamNULL)
+			if(streamTest<streamType>::_cipher->algorithmKey() == crypto::algo::streamNULL)
 				throw os::smart_ptr<std::exception>(new generalTestException("Stream ID matches the NULL case!",locString),os::shared_type);
-			if(_cipher->algorithmKey() != _streamInt)
+			if(streamTest<streamType>::_cipher->algorithmKey() != _streamInt)
 				throw os::smart_ptr<std::exception>(new generalTestException("Stream ID does not match the expected case!",locString),os::shared_type);
 		}
 	};
@@ -82,7 +82,7 @@ namespace test {
 		int _iteration;
 	public:
 		streamBlockTest(std::string streamName, int iteration,uint8_t* seed, int seedLen):
-			streamTest("Stream Block ("+std::to_string(iteration)+")",streamName,seed,seedLen){_iteration=iteration;}
+			streamTest<streamType>("Stream Block ("+std::to_string(iteration)+")",streamName,seed,seedLen){_iteration=iteration;}
 		virtual ~streamBlockTest(){}
 
 		virtual void test() throw(os::smart_ptr<std::exception>)
@@ -90,8 +90,8 @@ namespace test {
             std::string locString = "streamTest.h, streamBlockTest::test(), iteration "+std::to_string(_iteration);
 
 			//Init an encoder and decoder
-			crypto::streamEncrypter strEn(_cipher);
-			crypto::streamDecrypter strDe(_cipher2);
+            crypto::streamEncrypter strEn(streamTest<streamType>::_cipher);
+			crypto::streamDecrypter strDe(streamTest<streamType>::_cipher2);
 
 			uint8_t arr1[256];
 			uint16_t markVal;
