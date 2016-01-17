@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/10/2015
+//Confirmed working: 1/15/2015
 
 #ifndef CRYPTOCONSTANTS_CPP
 #define CRYPTOCONSTANTS_CPP
@@ -28,7 +28,7 @@ namespace crypto
         const uint16_t hashRC4=2;
 		
 		const uint16_t streamNULL=0;
-		const uint16_t streamRSA=1;
+		const uint16_t streamRC4=1;
     }
     namespace size
     {

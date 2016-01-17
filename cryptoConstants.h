@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/10/2016
+//Confirmed working: 1/15/2016
 
 #ifndef CRYPTOCONSTANTS_H
 #define CRYPTOCONSTANTS_H
@@ -31,7 +31,7 @@ namespace crypto
         extern const uint16_t hashRC4;
 		
 		extern const uint16_t streamNULL;
-		extern const uint16_t streamRSA;
+		extern const uint16_t streamRC4;
     }
     namespace size
     {

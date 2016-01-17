@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/10/2016
+//Certified working 1/15/2016
 
 #ifndef STREAM_TEST_H
 #define STREAM_TEST_H
@@ -160,28 +160,28 @@ namespace test {
     class streamTestSuite:public testSuite
     {
     public:
-        streamTestSuite(std::string streamName, int streamInt):testSuite(streamName+" Suite")
+        streamTestSuite(std::string streamName, int streamInt):testSuite(streamName+" Stream")
 		{
-			pushTest(os::smart_ptr<singleTest>(new streamNameTest<streamType>(streamName)));
-			pushTest(os::smart_ptr<singleTest>(new streamIDTest<streamType>(streamName,streamInt)));
+			pushTest(os::smart_ptr<singleTest>(new streamNameTest<streamType>(streamName),os::shared_type));
+			pushTest(os::smart_ptr<singleTest>(new streamIDTest<streamType>(streamName,streamInt),os::shared_type));
 
 			//Cycle block test 5 times
 			uint8_t arr[16];
 			for(int i=1;i<6;i++)
 			{
 				for(int c=0;c<16;c++) arr[c]=rand();
-				pushTest(os::smart_ptr<singleTest>(new streamBlockTest<streamType>(streamName,i,arr,16)));
+				pushTest(os::smart_ptr<singleTest>(new streamBlockTest<streamType>(streamName,i,arr,16),os::shared_type));
 			}
 		}
         virtual ~streamTestSuite(){}
     };
 
 	//RC4 Stream test
-	class RC4TestSuite:public streamTestSuite<crypto::RCFour>
+	class RC4StreamTestSuite:public streamTestSuite<crypto::RCFour>
 	{
 	public:
-		RC4TestSuite();
-		virtual ~RC4TestSuite(){}
+		RC4StreamTestSuite();
+		virtual ~RC4StreamTestSuite(){}
 	};
 }
 

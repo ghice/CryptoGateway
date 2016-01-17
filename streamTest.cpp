@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/9/2016
+//Certified working 1/15/2016
 
 #ifndef STREAM_TEST_CPP
 #define STREAM_TEST_CPP
@@ -36,8 +36,8 @@ using namespace test;
 		}
 	}
 	//RC4 Tests
-	RC4TestSuite::RC4TestSuite():
-		streamTestSuite<crypto::RCFour>("RC-4",crypto::algo::streamRSA)
+	RC4StreamTestSuite::RC4StreamTestSuite():
+		streamTestSuite<crypto::RCFour>("RC-4",crypto::algo::streamRC4)
 	{
 		pushTest("RC-4 Algorithm",&RC4NULLTest);
 	}

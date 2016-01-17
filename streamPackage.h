@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/10/2016
+//Certified working 1/16/2016
 
 #ifndef STREAM_PACKAGE_H
 #define STREAM_PACKAGE_H
@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <vector>
 #include "RC4_Hash.h"
-#include "streamTest.h"
 
 namespace crypto {
     
@@ -21,11 +20,22 @@ namespace crypto {
         streamPackageFrame(uint16_t hashSize=size::hash256){_hashSize=hashSize;}
         virtual ~streamPackageFrame(){}
         
-        virtual os::smart_ptr<streamPackageFrame> getCopy() {return NULL;}
+        virtual os::smart_ptr<streamPackageFrame> getCopy() const {return NULL;}
         
         virtual hash hashData(unsigned char* data, uint32_t len) const {return xorHash();}
         virtual hash hashCopy(unsigned char* data) const {return xorHash(data,_hashSize);}
         virtual os::smart_ptr<streamCipher> buildStream(unsigned char* data, uint32_t len) const {return NULL;}
+
+		//Return stream type name
+		virtual std::string streamAlgorithmName() const {return "NULL Stream";}
+        virtual uint16_t streamAlgorithm() const {return algo::streamNULL;}
+        
+        //Return hash type name
+        virtual std::string hashAlgorithmName() const {return "NULL hash";}
+		virtual uint16_t hashAlgorithm() const {return algo::hashNULL;}
+		
+		void setHashSize(uint16_t hashSize) {_hashSize=hashSize;}
+		uint16_t hashSize() const {return _hashSize;}
     };
     //Stream Encryption type
     template <class streamType, class hashType>
@@ -35,10 +45,7 @@ namespace crypto {
         streamPackage(uint16_t hashSize=size::hash256):streamPackageFrame(hashSize){}
         virtual ~streamPackage(){}
         os::smart_ptr<streamPackageFrame> getCopy() const {return os::smart_ptr<streamPackageFrame>(new streamPackage<streamType,hashType>(_hashSize),os::shared_type);}
-        
-        void setHashSize(uint16_t hashSize) {_hashSize=hashSize;}
-        uint16_t hashSize() const {return _hashSize;}
-        
+
         //Preform the hash
         hash hashData(unsigned char* data, uint32_t len) const
         {
@@ -70,6 +77,7 @@ namespace crypto {
     //Encryption stream type bank
     class streamPackageTypeBank
     {
+		os::smart_ptr<streamPackageFrame> _defaultPackage;
         std::vector<os::smart_ptr<std::vector<os::smart_ptr<streamPackageFrame> > > > packageVector;
         
         streamPackageTypeBank();
@@ -80,6 +88,7 @@ namespace crypto {
         void setDefaultPackage(os::smart_ptr<streamPackageFrame> package);
         void pushPackage(os::smart_ptr<streamPackageFrame> package);
         os::smart_ptr<streamPackageFrame> findStream(uint16_t streamID,uint16_t hashID);
+		os::smart_ptr<streamPackageFrame> findStream(std::string& streamName,std::string& hashName);
     };
 }
 

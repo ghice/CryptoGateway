@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/9/2016
+//Certified working 1/15/2016
 
 #ifndef HASH_TEST_CPP
 #define HASH_TEST_CPP
@@ -58,8 +58,8 @@ using namespace test;
             throw os::smart_ptr<std::exception>(new generalTestException("XOR hash algorithm failed",locString),os::shared_type);
     }
     //xor Test suite
-    rc4TestSuite::rc4TestSuite():
-        hashSuite("RC-4")
+    RC4HashTestSuite::RC4HashTestSuite():
+        hashSuite("RC-4 Hash")
     {
         pushTest("RC-4 Algorithm",&basicRC4Test);
     }

@@ -1,14 +1,15 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/10/2016
+//Certified working 1/16/2016
 
 #ifndef STREAM_PACKAGE_CPP
 #define STREAM_PACKAGE_CPP
 
 #include <string>
 #include <stdint.h>
-#include "streamEXML.h"
+#include "streamPackage.h"
 
 namespace crypto {
+
 /*------------------------------------------------------------
      Stream Package
  ------------------------------------------------------------*/
@@ -18,7 +19,7 @@ namespace crypto {
     streamPackageTypeBank::streamPackageTypeBank()
     {
         //RC-Four stream, RC4 hash
-        pushPackage(os::smart_ptr<streamPackageFrame>(new streamPackage<RCFour,rc4Hash>(),os::shared_type));
+        setDefaultPackage(os::smart_ptr<streamPackageFrame>(new streamPackage<RCFour,rc4Hash>(),os::shared_type));
     }
     //Singleton constructor
     os::smart_ptr<streamPackageTypeBank> streamPackageTypeBank::singleton()
@@ -30,15 +31,29 @@ namespace crypto {
     //Sets the default package value
     void streamPackageTypeBank::setDefaultPackage(os::smart_ptr<streamPackageFrame> package)
     {
+		if(!package) return;
         pushPackage(package);
+		_defaultPackage=findStream(package->streamAlgorithm(),package->hashAlgorithm());
     }
     //Add a package to the package list
     void streamPackageTypeBank::pushPackage(os::smart_ptr<streamPackageFrame> package)
     {
         if(!package) return;
         
-        
-    }
+        //Find by stream first
+		if(package->streamAlgorithm()+1>packageVector.size())
+			packageVector.resize(package->streamAlgorithm()+1);
+		
+		if(!packageVector[package->streamAlgorithm()])
+			packageVector[package->streamAlgorithm()]=os::smart_ptr<std::vector<os::smart_ptr<streamPackageFrame> > >(new std::vector<os::smart_ptr<streamPackageFrame> >(),os::shared_type);
+		os::smart_ptr<std::vector<os::smart_ptr<streamPackageFrame> > > temp=packageVector[package->streamAlgorithm()];
+
+		//Find by hash
+		if(package->hashAlgorithm()+1>temp->size())
+			temp->resize(package->hashAlgorithm()+1);
+		if(!(*temp)[package->hashAlgorithm()])
+			(*temp)[package->hashAlgorithm()]=package;
+	}
     //Given stream descriptions, find package
     os::smart_ptr<streamPackageFrame> streamPackageTypeBank::findStream(uint16_t streamID,uint16_t hashID)
     {
@@ -48,6 +63,25 @@ namespace crypto {
         if(hashID>packageVector[streamID]->size()) return NULL;
         return (*packageVector[streamID])[hashID];
     }
+	//Given a stream name and a hash name, find the package
+	os::smart_ptr<streamPackageFrame> streamPackageTypeBank::findStream(std::string& streamName,std::string& hashName)
+	{
+		unsigned int streamID=0;
+		unsigned int hashID=0;
+		while(streamID<packageVector.size())
+		{
+			hashID=0;
+			while(packageVector[streamID] && hashID<packageVector[streamID]->size())
+			{
+				os::smart_ptr<streamPackageFrame> pck =(*packageVector[streamID])[hashID];
+				if(pck && pck->streamAlgorithmName()==streamName && pck->hashAlgorithmName()==hashName)
+					return pck;
+				hashID++;
+			}
+			streamID++;
+		}
+		return NULL;
+	}
 }
 
 #endif

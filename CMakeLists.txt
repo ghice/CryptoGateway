@@ -3,6 +3,7 @@ SET(CRYPTOGATEWAY_CMAKE 1)
 
 INCLUDE(${GLOBAL_DIR}/Datastructures/CMakeLists.txt)
 INCLUDE(${GLOBAL_DIR}/UnitTest/CMakeLists.txt)
+INCLUDE(${GLOBAL_DIR}/osMechanics/CMakeLists.txt)
 
 MESSAGE(STATUS )
 MESSAGE(STATUS ========= CryptoGateway ==========)
@@ -28,8 +29,10 @@ SET( SRC_H
 	${CUR_SRC}/cryptoNumber.h
 	${CUR_SRC}/cryptoHash.h
 
-	${CUR_SRC}/streamEXML.h
+	${CUR_SRC}/binaryEncryption.h
+	${CUR_SRC}/XMLEncryption.h
 
+	${CUR_SRC}/cryptoError.h
 	${CUR_SRC}/streamPackage.h
 
 	${CUR_SRC}/cryptoConstants.h
@@ -40,6 +43,7 @@ SET( SRC_H
 	${CUR_SRC}/c_cryptoTesting.h
 	${CUR_SRC}/hashTest.h
 	${CUR_SRC}/streamTest.h
+	${CUR_SRC}/cryptoFileTest.h
 )
 
 SET( SRC_CPP
@@ -56,8 +60,10 @@ SET( SRC_CPP
 	${CUR_SRC}/cryptoNumber.cpp
 	${CUR_SRC}/cryptoHash.cpp
 
-	${CUR_SRC}/streamEXML.cpp
+	${CUR_SRC}/binaryEncryption.cpp
+	${CUR_SRC}/XMLEncryption.cpp
 
+	${CUR_SRC}/cryptoError.cpp
 	${CUR_SRC}/streamPackage.cpp
 
 	${CUR_SRC}/cryptoConstants.cpp
@@ -69,6 +75,7 @@ SET( SRC_CPP
 	${CUR_SRC}/cryptoNumberTest.cpp
 	${CUR_SRC}/hashTest.cpp
 	${CUR_SRC}/streamTest.cpp
+	${CUR_SRC}/cryptoFileTest.cpp
 )
 
 ADD_LIBRARY( CryptoGateway STATIC

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/10/2016
+//Confirmed working: 1/16/2016
 
 //The implementation stream ciphers
 
@@ -9,6 +9,7 @@
 #include "cryptoConstants.h"
 #include "cryptoLogging.h"
 #include "streamCipher.h"
+#include "cryptoError.h"
 
 #include <string>
 #include <iostream>
@@ -25,20 +26,12 @@ using namespace crypto;
 		//Check streamCipher
 		if(source==NULL||source->algorithm()==algo::streamNULL)
 		{
-			cryptoerr<<"Illegal algorithm bind to stream packet: ";
-			if(source!=NULL) cryptoerr<<source->algorithmName();
-			else cryptoerr<<"NULL pointer";
-			cryptoerr<<endl;
-			exit(EXIT_FAILURE);
+			if(source!=NULL) throw errorPointer(new illegalAlgorithmBind(source->algorithmName()),os::shared_type);
+			else throw errorPointer(new illegalAlgorithmBind("NULL Pointer"),os::shared_type);
 		}
 		
-		if(s>0) size = s;
-		else
-		{
-			cryptoerr<<"Negative size bound in the codePacket constructor"<<endl;
-			exit(EXIT_FAILURE);
-		}
-		if(s<20){cryptoerr<<"Warning: This buffer length may give away too much information about the secret key: codePacket"<<endl;}
+		if(s>20) size = s;
+		else throw errorPointer(new bufferSmallError(),os::shared_type);
 
 		//Initialize the packet Array
 		int cnt = 0;
@@ -64,10 +57,7 @@ using namespace crypto;
 	uint8_t* streamPacket::encrypt(uint8_t* pt, unsigned int len, bool surpress) const
 	{
 		if(!surpress && len>size)
-		{
-			cryptoerr<<"The length of your input to codePacket.encrypt(...) is unsecure!  Abort!"<<endl;
-			exit(EXIT_FAILURE);
-		}
+			throw errorPointer(new customError("Unsecure length","The length of your input to codePacket.encrypt(...) is unsecure!"),os::shared_type);
 		unsigned int cnt = 0;
 		while(cnt<len)
 		{
@@ -82,11 +72,8 @@ using namespace crypto;
 	RCFour::RCFour(uint8_t* arr, int len)
 	{
 		//Check the array length
-		if(size::RC4_MAX<len || size::STREAM_SEED_MAX<len)
-		{
-			cryptoerr<<"Invalid initialization array in the default RCFour"<<endl;
-			exit(EXIT_FAILURE);
-		}
+		if(len<1) throw errorPointer(new passwordSmallError(),os::shared_type);
+		if(size::RC4_MAX<len || size::STREAM_SEED_MAX<len) throw errorPointer(new passwordLargeError(),os::shared_type);
 
 		//Initialize the S array
 		SArray  = new uint8_t [size::RC4_MAX];
@@ -157,11 +144,7 @@ using namespace crypto;
 	//Encrypts an array
 	uint8_t* streamEncrypter::sendData(uint8_t* array, unsigned int len, uint16_t& flag)
 	{
-		if(len>size::stream::PACKETSIZE)
-		{
-		  cryptoerr<<"Invalid packet size for stream encrypter!"<<endl;
-		  exit(EXIT_FAILURE);
-		}
+		if(len>size::stream::PACKETSIZE) throw errorPointer(new bufferLargeError(),os::shared_type);
     
 		//Check to ensure we have a good identifier
 		streamPacket* en;
@@ -257,11 +240,7 @@ using namespace crypto;
 	//Encrypts an array
 	uint8_t* streamDecrypter::recieveData(uint8_t* array, unsigned int len, uint16_t flag)
 	{
-		if(len>size::stream::PACKETSIZE)
-		{
-			cryptoerr<<"Invalid packet size for stream decrypter!"<<endl;
-			exit(EXIT_FAILURE);
-		}
+		if(len>size::stream::PACKETSIZE) throw errorPointer(new bufferLargeError(),os::shared_type);
 		
 		//Find the flag
 		int cnt = 2;
@@ -273,11 +252,7 @@ using namespace crypto;
 		}
 		
 		//Check if we have found the packet
-		if(!found)
-		{
-			cryptoerr<<"Stream broken.  Return NULL"<<endl;
-			return NULL;
-		}
+		if(!found) return NULL;
 
 		//Preform the decryption
 		packetArray[(cnt+last_value+size::stream::DECRYSIZE-size::stream::BACKCHECK)%size::stream::DECRYSIZE]->encrypt(array,len);

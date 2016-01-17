@@ -1,11 +1,12 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/10/2016
+//Confirmed working: 1/16/2016
 
 #ifndef CRYPTO_HASH_CPP
 #define CRYPTO_HASH_CPP
 
 #include "cryptoLogging.h"
 #include "cryptoHash.h"
+#include "cryptoError.h"
 #include <string>
 #include <string.h>
 
@@ -104,8 +105,8 @@ using namespace crypto;
         else if(strLen==size::hash512*2) _size=size::hash512;
         else
         {
-            cryptoerr<<"Illegal string for hash construction"<<std::endl;
             memset(_data,0,_size);
+			throw errorPointer(new customError("Hash Construction","Illegal string for hash construction"),os::shared_type);
             return;
         }
         delete [] _data;

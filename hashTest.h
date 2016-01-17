@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/9/2016
+//Certified working 1/16/2016
 
 #ifndef HASH_TEST_H
 #define HASH_TEST_H
@@ -212,10 +212,10 @@ namespace test {
                 else if(i==2) hSize=crypto::size::hash256;
                 else if(i==3) hSize=crypto::size::hash512;
                 
-                pushTest(os::smart_ptr<singleTest>(new hashConstructorTest<hashClass>("Constructor",hashName,hSize)));
-                pushTest(os::smart_ptr<singleTest>(new hashCompareTest<hashClass>("Compare",hashName,hSize)));
-                pushTest(os::smart_ptr<singleTest>(new hashEqualityOperatorTest<hashClass>("Equality Operators",hashName,hSize)));
-                pushTest(os::smart_ptr<singleTest>(new hashStringTest<hashClass>("String Conversion",hashName,hSize)));
+				pushTest(os::smart_ptr<singleTest>(new hashConstructorTest<hashClass>("Constructor",hashName,hSize),os::shared_type));
+                pushTest(os::smart_ptr<singleTest>(new hashCompareTest<hashClass>("Compare",hashName,hSize),os::shared_type));
+                pushTest(os::smart_ptr<singleTest>(new hashEqualityOperatorTest<hashClass>("Equality Operators",hashName,hSize),os::shared_type));
+                pushTest(os::smart_ptr<singleTest>(new hashStringTest<hashClass>("String Conversion",hashName,hSize),os::shared_type));
             }
         }
         virtual ~hashSuite(){}
@@ -230,11 +230,11 @@ namespace test {
     };
 
 	//RC-4 Hash test
-    class rc4TestSuite:public hashSuite<crypto::rc4Hash>
+    class RC4HashTestSuite:public hashSuite<crypto::rc4Hash>
     {
     public:
-        rc4TestSuite();
-        virtual ~rc4TestSuite(){}
+        RC4HashTestSuite();
+        virtual ~RC4HashTestSuite(){}
     };
 }
 

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/9/2016
+//Confirmed working: 1/16/2016
 
 #ifndef CRYPTOGATEWAY_H
 #define CRYPTOGATEWAY_H
@@ -16,6 +16,12 @@ namespace crypto
 #include "public_key.h"
 #include "streamCipher.h"
 #include "RC4_Hash.h"
+
 #include "security_gateway.h"
+
+#include "binaryEncryption.h"
+#include "XMLEncryption.h"
+
+#include "streamPackage.h"
 
 #endif

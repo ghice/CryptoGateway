@@ -1,11 +1,12 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/10/2016
+//Confirmed working: 1/16/2016
 
 #ifndef STREAM_CIPHER_H
 #define STREAM_CIPHER_H
 
 #include "Datastructures.h"
 #include "cryptoConstants.h"
+
 #include <stdint.h>
 
 extern bool global_logging;
@@ -25,7 +26,6 @@ namespace crypto {
         inline virtual uint16_t algorithm() const {return streamCipher::staticAlgorithm();}
 		inline virtual const std::string algorithmName() const {return streamCipher::staticAlgorithmName();}
 	};
-
 	
 	//RC Four
 	class RCFour: public streamCipher
@@ -43,7 +43,7 @@ namespace crypto {
 
 		uint8_t getNext();
         
-        inline static uint16_t staticAlgorithm() {return algo::streamRSA;}
+        inline static uint16_t staticAlgorithm() {return algo::streamRC4;}
         inline static std::string staticAlgorithmName() {return "RC-4";}
         
         inline uint16_t algorithm() const {return RCFour::staticAlgorithm();}
@@ -97,6 +97,6 @@ namespace crypto {
 
 		uint8_t* recieveData(uint8_t* array, unsigned int len, uint16_t flag);
 	};
-}
+};
 
 #endif
