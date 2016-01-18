@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/18/2015
+//Confirmed working: 1/17/2016
 
 #ifndef CRYPTO_NUMBER_CPP
 #define CRYPTO_NUMBER_CPP
@@ -32,7 +32,7 @@ using namespace crypto;
         memset(_data,0,sizeof(uint32_t)*_size);
     }
     //Construct with data
-    number::number(uint32_t* d, uint16_t size, struct numberType* numDef)
+    number::number(const uint32_t* d, uint16_t size, struct numberType* numDef)
     {
         _numDef=numDef;
         _size=size;
@@ -942,7 +942,7 @@ using namespace crypto;
     //Size constructor
     integer::integer(uint16_t size):number(size,buildBaseTenType()){}
     //Data constructor
-    integer::integer(uint32_t* d, uint16_t size):number(d,size,buildBaseTenType()){}
+    integer::integer(const uint32_t* d, uint16_t size):number(d,size,buildBaseTenType()){}
     //Copy constructor
     integer::integer(const integer& num):number(num){}
 

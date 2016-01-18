@@ -28,6 +28,7 @@ SET( SRC_H
 
 	${CUR_SRC}/cryptoNumber.h
 	${CUR_SRC}/cryptoHash.h
+	${CUR_SRC}/cryptoPublicKey.h
 
 	${CUR_SRC}/binaryEncryption.h
 	${CUR_SRC}/XMLEncryption.h
@@ -43,6 +44,7 @@ SET( SRC_H
 	${CUR_SRC}/c_cryptoTesting.h
 	${CUR_SRC}/hashTest.h
 	${CUR_SRC}/streamTest.h
+	${CUR_SRC}/publicKeyTest.h
 	${CUR_SRC}/cryptoFileTest.h
 )
 
@@ -59,6 +61,7 @@ SET( SRC_CPP
 
 	${CUR_SRC}/cryptoNumber.cpp
 	${CUR_SRC}/cryptoHash.cpp
+	${CUR_SRC}/cryptoPublicKey.cpp
 
 	${CUR_SRC}/binaryEncryption.cpp
 	${CUR_SRC}/XMLEncryption.cpp
@@ -75,6 +78,7 @@ SET( SRC_CPP
 	${CUR_SRC}/cryptoNumberTest.cpp
 	${CUR_SRC}/hashTest.cpp
 	${CUR_SRC}/streamTest.cpp
+	${CUR_SRC}/publicKeyTest.cpp
 	${CUR_SRC}/cryptoFileTest.cpp
 )
 

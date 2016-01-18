@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 12/21/2015
+//Confirmed working: 1/17/2016
 
 #ifndef CRYPTO_NUMBER_H
 #define CRYPTO_NUMBER_H
@@ -27,7 +27,7 @@ namespace crypto
     public:
         number(struct numberType* numDef=buildNullNumberType());
         number(uint16_t size, struct numberType* numDef=buildNullNumberType());
-        number(uint32_t* d, uint16_t size, struct numberType* numDef=buildNullNumberType());
+        number(const uint32_t* d, uint16_t size, struct numberType* numDef=buildNullNumberType());
         number(const number& num);
 		number& operator=(const number& num);
         virtual ~number();
@@ -96,7 +96,7 @@ namespace crypto
         uint16_t size() {return _size;}
         uint16_t size() const{return _size;}
         uint32_t* data() {return _data;}
-        uint32_t* data() const{return _data;}
+        const uint32_t* data() const{return _data;}
         
         //Number Type Access
         inline const struct numberType* numberDefinition() const {return _numDef;}
@@ -114,7 +114,7 @@ namespace crypto
         
         integer();
         integer(uint16_t size);
-        integer(uint32_t* d, uint16_t size);
+        integer(const uint32_t* d, uint16_t size);
         integer(const integer& num);
         
         virtual ~integer(){}
