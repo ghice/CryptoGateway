@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/16/2016
+//Certified working 1/17/2016
 
 #ifndef CRYPTO_ERROR_CPP
 #define CRYPTO_ERROR_CPP
@@ -89,7 +89,7 @@ namespace crypto {
 	errorPointer errorSender::popError()
 	{
 		listenerLock.acquire();
-		errorPointer ptr=errorLog.getFirst();
+		errorPointer ptr=errorLog.getFirst()->getData();
 		errorLog.findDelete(ptr);
 		listenerLock.release();
 		return ptr;

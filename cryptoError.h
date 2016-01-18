@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/16/2016
+//Certified working 1/17/2016
 
 #ifndef CRYPTO_ERROR_H
 #define CRYPTO_ERROR_H
@@ -18,7 +18,7 @@ namespace crypto {
 		std::string whatString;
 	public:
 		error(){_timestamp=get_timestamp();}
-		virtual ~error(){}
+		virtual ~error() throw(){}
 
 		inline virtual std::string errorTitle() const {return "Error";}
 		inline virtual std::string errorDescription() const {return "No description";}
@@ -26,7 +26,7 @@ namespace crypto {
 		void log() const {cryptoerr<<errorTitle()<<" on "<<timestampString()<<" : "<<errorDescription()<<std::endl;}
 
 		uint64_t timestamp() const {return _timestamp;}
-		const char* what() const
+		const char* what() const throw()
 		{
 			error* e=(error*) this;	//Bad practice, but the nature of this class makes this needed
 			e->whatString=errorTitle()+" on "+timestampString()+" : "+errorDescription();

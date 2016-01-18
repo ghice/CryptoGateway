@@ -87,8 +87,8 @@ namespace crypto {
         
         void setDefaultPackage(os::smart_ptr<streamPackageFrame> package);
         void pushPackage(os::smart_ptr<streamPackageFrame> package);
-        os::smart_ptr<streamPackageFrame> findStream(uint16_t streamID,uint16_t hashID);
-		os::smart_ptr<streamPackageFrame> findStream(std::string& streamName,std::string& hashName);
+        const os::smart_ptr<streamPackageFrame> findStream(uint16_t streamID,uint16_t hashID) const;
+		const os::smart_ptr<streamPackageFrame> findStream(const std::string& streamName,const std::string& hashName) const;
     };
 }
 

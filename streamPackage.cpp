@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/16/2016
+//Certified working 1/17/2016
 
 #ifndef STREAM_PACKAGE_CPP
 #define STREAM_PACKAGE_CPP
@@ -55,16 +55,16 @@ namespace crypto {
 			(*temp)[package->hashAlgorithm()]=package;
 	}
     //Given stream descriptions, find package
-    os::smart_ptr<streamPackageFrame> streamPackageTypeBank::findStream(uint16_t streamID,uint16_t hashID)
+    const os::smart_ptr<streamPackageFrame> streamPackageTypeBank::findStream(uint16_t streamID,uint16_t hashID) const
     {
         if(streamID>packageVector.size()) return NULL;
         if(!packageVector[streamID]) return NULL;
         
         if(hashID>packageVector[streamID]->size()) return NULL;
-        return (*packageVector[streamID])[hashID];
+        return (*packageVector[streamID])[hashID].get();
     }
 	//Given a stream name and a hash name, find the package
-	os::smart_ptr<streamPackageFrame> streamPackageTypeBank::findStream(std::string& streamName,std::string& hashName)
+	const os::smart_ptr<streamPackageFrame> streamPackageTypeBank::findStream(const std::string& streamName,const std::string& hashName) const
 	{
 		unsigned int streamID=0;
 		unsigned int hashID=0;
@@ -75,7 +75,7 @@ namespace crypto {
 			{
 				os::smart_ptr<streamPackageFrame> pck =(*packageVector[streamID])[hashID];
 				if(pck && pck->streamAlgorithmName()==streamName && pck->hashAlgorithmName()==hashName)
-					return pck;
+					return pck.get();
 				hashID++;
 			}
 			streamID++;
