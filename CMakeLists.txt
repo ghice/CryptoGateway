@@ -78,7 +78,6 @@ SET( SRC_CPP
 	${CUR_SRC}/cryptoNumberTest.cpp
 	${CUR_SRC}/hashTest.cpp
 	${CUR_SRC}/streamTest.cpp
-	${CUR_SRC}/publicKeyTest.cpp
 	${CUR_SRC}/cryptoFileTest.cpp
 )
 

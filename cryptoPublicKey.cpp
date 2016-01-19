@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/17/2016
+//Confirmed working: 1/19/2016
 
 #ifndef CRYPTO_PUBLIC_KEY_CPP
 #define CRYPTO_PUBLIC_KEY_CPP
@@ -23,15 +23,32 @@ using namespace crypto;
 		_keyLen=0;
 		_fileName="";
 	}
-	//Public key constructor
+    //Copy public key
+    publicKey::publicKey(const publicKey& ky)
+    {
+        _size=ky._size;
+        _fileName="";
+        
+        //Copy encryption key
+        if(ky._key==NULL)
+        {
+            _key=NULL;
+            _keyLen=NULL;
+        }
+        else
+        {
+            _key=new unsigned char[ky._keyLen];
+            _keyLen=ky._keyLen;
+            memcpy(_key,ky._key,_keyLen);
+        }
+    }
+    //Public key constructor
 	publicKey::publicKey(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint16_t sz)
 	{
 		if(!_n || !_d) throw errorPointer(new customError("NULL Keys","Attempted to bind NULL keys to a public key frame"),os::shared_type);
 		if(_n->size()!=sz || _d->size()!=sz) throw errorPointer(new customError("Key Size Error","Attempted to bind keys of wrong size"),os::shared_type);
 		_size=sz;
 		
-		_n=copyConvert(_n);
-		_d=copyConvert(_d);
 		_key=NULL;
 		_keyLen=0;
 		_fileName="";
@@ -127,7 +144,7 @@ using namespace crypto;
 	{
 		if(_fileName=="") throw errorPointer(new fileOpenError(),os::shared_type);
 
-		//No encryption
+		//Fine encryption type
 		os::smart_ptr<binaryEncryptor> ben;
 		if(_key==NULL || _keyLen==0) ben=os::smart_ptr<binaryEncryptor>(new binaryEncryptor(_fileName,"default"),os::shared_type);
 		else ben=os::smart_ptr<binaryEncryptor>(new binaryEncryptor(_fileName,_key,_keyLen,fePackage),os::shared_type);
@@ -160,7 +177,34 @@ using namespace crypto;
 		if(!ben->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
 
 	}
-	//Set the file name
+    //Opens a key file
+    void publicKey::loadFile()
+    {
+        if(_fileName=="") throw errorPointer(new fileOpenError(),os::shared_type);
+        
+        os::smart_ptr<binaryDecryptor> bde;
+        if(_key==NULL || _keyLen==0) bde=os::smart_ptr<binaryDecryptor>(new binaryDecryptor(_fileName,"default"),os::shared_type);
+        else bde=os::smart_ptr<binaryDecryptor>(new binaryDecryptor(_fileName,_key,_keyLen),os::shared_type);
+        
+        //Check if this is even a good file
+        if(!bde->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+        
+        //Read in header
+        unsigned char initArray[4];
+        uint16_t dumpVal;
+        bde->read(initArray,4);
+        if(!bde->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+        memcpy(&dumpVal,initArray,2);
+        _size=os::from_comp_mode(dumpVal);
+        memcpy(&dumpVal,initArray+2,2);
+        if(algorithm()!=os::from_comp_mode(dumpVal)) throw errorPointer(new illegalAlgorithmBind("RSA File Read"),os::shared_type);
+        
+        //Read keys
+        os::smart_ptr<unsigned char>dumpArray(new unsigned char[2*4*_size],os::shared_type_array);
+        bde->read(initArray,4);
+        if(!bde->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+    }
+    //Set the file name
 	void publicKey::setFileName(std::string fileName){_fileName=fileName;}
 	//Set password (by array)
 	void publicKey::setPassword(unsigned char* key,unsigned int keyLen)
@@ -181,5 +225,77 @@ using namespace crypto;
 	}
 	//Set algorithm to be used in encryption
 	void publicKey::setEncryptionAlgorithm(os::smart_ptr<streamPackageFrame> stream_algo) {fePackage=stream_algo;}
+
+/*------------------------------------------------------------
+    RSA Public Key
+ ------------------------------------------------------------*/
+
+    //Default constructor
+    publicRSA::publicRSA(uint16_t sz):
+        publicKey(sz)
+    {
+        initE();
+        generateNewKeys();
+    }
+    //Copy constructor
+    publicRSA::publicRSA(publicRSA& ky):
+        publicKey(ky)
+    {
+        initE();
+        n=copyConvert(ky.n);
+        d=copyConvert(ky.d);
+        
+        //Copy old n
+        ky.oldN.resetTraverse();
+        for(auto trc=ky.oldN.getLast();trc;trc=trc->getPrev())
+            oldN.insert(trc->getData());
+        
+        //Copy old d
+        ky.oldD.resetTraverse();
+        for(auto trc=ky.oldD.getLast();trc;trc=trc->getPrev())
+            oldD.insert(trc->getData());
+    }
+    //N, D constructor
+    publicRSA::publicRSA(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d,uint16_t sz):
+        publicKey(os::cast<number,integer>(_n),os::cast<number,integer>(_d),sz)
+    {
+        initE();
+        n=copyConvert(os::cast<number,integer>(_n));
+        d=copyConvert(os::cast<number,integer>(_d));
+    }
+    //Load a public key from a file
+    publicRSA::publicRSA(std::string fileName,std::string password,os::smart_ptr<streamPackageFrame> stream_algo):
+        publicKey(fileName,password,stream_algo)
+    {
+        initE();
+        loadFile();
+    }
+    //Load a public key from a file
+    publicRSA::publicRSA(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo):
+        publicKey(fileName,key,keyLen,stream_algo)
+    {
+        initE();
+        loadFile();
+    }
+    //Init the "e" variable
+    void publicRSA::initE()
+    {
+        integer one(1);
+        e=(one<<16)+one;
+    }
+    //Copy a number and return it
+    os::smart_ptr<number> publicRSA::copyConvert(const os::smart_ptr<number> num) const
+    {
+        os::smart_ptr<number> ret(new integer(num->data(),num->size()),os::shared_type);
+        ret->expand(size()*2);
+        return ret;
+    }
+    //Copy a raw data array and return it
+    os::smart_ptr<number> publicRSA::copyConvert(const uint32_t* arr,uint16_t len) const
+    {
+        os::smart_ptr<number> ret(new integer(arr,len),os::shared_type);
+        ret->expand(size()*2);
+        return ret;
+    }
 
 #endif
