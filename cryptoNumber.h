@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/17/2016
+//Confirmed working: 1/20/2016
 
 #ifndef CRYPTO_NUMBER_H
 #define CRYPTO_NUMBER_H
@@ -111,6 +111,7 @@ namespace crypto
         //Singleton
         static integer zero(){return integer();}
         static integer one();
+		static integer two();
         
         integer();
         integer(uint16_t size);

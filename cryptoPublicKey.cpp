@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/19/2016
+//Confirmed working: 1/21/2016
 
 #ifndef CRYPTO_PUBLIC_KEY_CPP
 #define CRYPTO_PUBLIC_KEY_CPP
@@ -99,6 +99,44 @@ using namespace crypto;
 		ret->expand(_size*2);
 		return ret;
 	}
+	//Copy convert for raw byte array
+	os::smart_ptr<number> publicKey::copyConvert(const unsigned char* arr,unsigned int len) const
+	{
+		uint32_t* dumpArray=new uint32_t[len/4+1];
+		memset(dumpArray,0,4*(len/4+1));
+		memcpy(dumpArray,arr,len);
+		os::smart_ptr<number> ret=copyConvert(dumpArray,len/4+1);
+		delete [] dumpArray;
+		return ret;
+	}
+	//Compare two public keys
+	int publicKey::compare(const publicKey& cmp) const
+	{
+		//Weird NULL cases
+		if(!n&&cmp.n) return -1;
+		if(n&&!cmp.n) return 1;
+
+		//N Cases
+		if(n!=cmp.n)
+		{
+			int v=n->compare(cmp.n.get());
+			if(v>0) return 1;
+			else if(v<0) return -1;
+		}
+
+		//Weird NULL cases
+		if(!d&&cmp.d) return -1;
+		if(d&&!cmp.d) return 1;
+
+		//D Cases
+		if(d!=cmp.d)
+		{
+			int v=d->compare(cmp.d.get());
+			if(v>0) return 1;
+			else if(v<0) return -1;
+		}
+		return 0;
+	}
 
 //Access and Generation----------------------------------------
 
@@ -113,28 +151,34 @@ using namespace crypto;
 	{
 		if(history>=oldN.size()) return NULL;
 
+		readLock();
 		oldN.resetTraverse();
 		auto trc=oldN.getFirst();
 		for(unsigned int i=0;i<history&&trc;i++)
 		{
 			trc=trc->getNext();
 		}
+		readUnlock();
+
 		if(!trc) return NULL;
 		return trc->getData();
 	}
 	//Generate a new key
 	void publicKey::generateNewKeys()
 	{
+		writeLock();
 		if(n && d)
 		{
 			oldN.insert(n);
 			oldD.insert(d);
 		}
+
 		n=os::smart_ptr<number>(new number(),os::shared_type);
 		d=os::smart_ptr<number>(new number(),os::shared_type);
 
 		n->expand(2*_size);
 		d->expand(2*_size);
+		writeUnlock();
 	}
 
 //File loading and saving-------------------------------------
@@ -146,8 +190,12 @@ using namespace crypto;
 
 		//Fine encryption type
 		os::smart_ptr<binaryEncryptor> ben;
+
 		if(_key==NULL || _keyLen==0) ben=os::smart_ptr<binaryEncryptor>(new binaryEncryptor(_fileName,"default"),os::shared_type);
 		else ben=os::smart_ptr<binaryEncryptor>(new binaryEncryptor(_fileName,_key,_keyLen,fePackage),os::shared_type);
+
+		//If the write failed, throw flag
+		if(!ben->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
 
 		os::smart_ptr<unsigned char>dumpArray(new unsigned char[2*4*_size],os::shared_type_array);
 		uint16_t dumpVal;
@@ -160,6 +208,7 @@ using namespace crypto;
 		ben->write(dumpArray.get(),4);
 
 		//Write keys
+		uint32_t ldval;
 		for(unsigned int i1=0;i1<2;i1++)
 		{
 			os::smart_ptr<number> t;
@@ -167,8 +216,8 @@ using namespace crypto;
 			else t=d;
 			for(unsigned int i2=0;i2<_size;i2++)
 			{
-				dumpVal=os::to_comp_mode(t->data()[i2]);
-				memcpy(dumpArray.get()+i1*4*_size+i2*4,&dumpVal,4);
+				ldval=os::to_comp_mode(t->data()[i2]);
+				memcpy(dumpArray.get()+i1*4*_size+i2*4,&ldval,4);
 			}
 		}
 		ben->write(dumpArray.get(),2*4*_size);
@@ -180,29 +229,65 @@ using namespace crypto;
     //Opens a key file
     void publicKey::loadFile()
     {
-        if(_fileName=="") throw errorPointer(new fileOpenError(),os::shared_type);
+		writeLock();
+        if(_fileName=="")
+		{
+			writeUnlock();
+			throw errorPointer(new fileOpenError(),os::shared_type);
+		}
         
         os::smart_ptr<binaryDecryptor> bde;
         if(_key==NULL || _keyLen==0) bde=os::smart_ptr<binaryDecryptor>(new binaryDecryptor(_fileName,"default"),os::shared_type);
         else bde=os::smart_ptr<binaryDecryptor>(new binaryDecryptor(_fileName,_key,_keyLen),os::shared_type);
         
         //Check if this is even a good file
-        if(!bde->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+        if(!bde->good())
+		{
+			writeUnlock();
+			throw errorPointer(new actionOnFileError(),os::shared_type);
+		}
         
         //Read in header
         unsigned char initArray[4];
         uint16_t dumpVal;
         bde->read(initArray,4);
-        if(!bde->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+        if(!bde->good())
+		{
+			writeUnlock();
+			throw errorPointer(new actionOnFileError(),os::shared_type);
+		}
         memcpy(&dumpVal,initArray,2);
         _size=os::from_comp_mode(dumpVal);
         memcpy(&dumpVal,initArray+2,2);
-        if(algorithm()!=os::from_comp_mode(dumpVal)) throw errorPointer(new illegalAlgorithmBind("RSA File Read"),os::shared_type);
+        if(algorithm()!=os::from_comp_mode(dumpVal))
+		{
+			writeUnlock();
+			throw errorPointer(new illegalAlgorithmBind("RSA File Read"),os::shared_type);
+		}
         
         //Read keys
         os::smart_ptr<unsigned char>dumpArray(new unsigned char[2*4*_size],os::shared_type_array);
-        bde->read(initArray,4);
-        if(!bde->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+		os::smart_ptr<uint32_t>keyArray(new uint32_t[_size],os::shared_type_array);
+        bde->read(dumpArray.get(),2*4*_size);
+        if(!bde->good())
+		{
+			writeUnlock();
+			throw errorPointer(new actionOnFileError(),os::shared_type);
+		}
+
+		//Parse keys
+		uint32_t ldval;
+		for(unsigned int i1=0;i1<2;i1++)
+		{
+			memcpy(keyArray.get(),dumpArray.get()+i1*4*_size,4*_size);
+			for(unsigned int i2=0;i2<_size;i2++)
+			{
+				keyArray.get()[i2]=os::from_comp_mode(keyArray.get()[i2]);
+			}
+			if(i1==0) n=copyConvert(keyArray.get(),_size);
+			else d=copyConvert(keyArray.get(),_size);
+		}
+		writeUnlock();
     }
     //Set the file name
 	void publicKey::setFileName(std::string fileName){_fileName=fileName;}
@@ -225,6 +310,36 @@ using namespace crypto;
 	}
 	//Set algorithm to be used in encryption
 	void publicKey::setEncryptionAlgorithm(os::smart_ptr<streamPackageFrame> stream_algo) {fePackage=stream_algo;}
+
+//Encoding and decoding---------------------------------------
+
+	//Default encode
+	os::smart_ptr<number> publicKey::encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
+	{
+		if(!publicN) publicN=n;
+		if(code>publicN) throw errorPointer(new publicKeySizeWrong(), os::shared_type);
+		return code;
+	}
+	//Encode with raw data, public key
+	void publicKey::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
+	{
+		os::smart_ptr<number> enc=encode(copyConvert(code,codeLength),publicN);
+		memcpy(code,enc->data(),codeLength);
+	}
+	//Encode with raw data
+	void publicKey::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const{encode(code,codeLength,copyConvert(publicN,nLength));}
+	//Default decode
+	os::smart_ptr<number> publicKey::decode(os::smart_ptr<number> code) const
+	{
+		if(code>n) throw errorPointer(new publicKeySizeWrong(), os::shared_type);
+		return code;
+	}
+	//Decode with raw data
+	void publicKey::decode(unsigned char* code, unsigned int codeLength) const
+	{
+		os::smart_ptr<number> enc=decode(copyConvert(code,codeLength));
+		memcpy(code,enc->data(),codeLength);
+	}
 
 /*------------------------------------------------------------
     RSA Public Key
@@ -280,8 +395,7 @@ using namespace crypto;
     //Init the "e" variable
     void publicRSA::initE()
     {
-        integer one(1);
-        e=(one<<16)+one;
+        e=(integer::one()<<16)+integer::one();
     }
     //Copy a number and return it
     os::smart_ptr<number> publicRSA::copyConvert(const os::smart_ptr<number> num) const
@@ -297,5 +411,86 @@ using namespace crypto;
         ret->expand(size()*2);
         return ret;
     }
+
+/*------------------------------------------------------------
+    RSA Public Key Generation
+ ------------------------------------------------------------*/
+
+	//Requires generating primes twice
+	namespace crypto
+	{
+		//Key generation helper class
+		class RSAKeyGenerator
+		{
+			publicRSA* master;
+		public:
+			integer p;
+			integer q;
+
+			//Basic constructor
+			RSAKeyGenerator(publicRSA& m)
+			{
+				master=&m;
+			}
+			//Generate prime
+			integer generatePrime()
+			{
+				integer ret(2*master->size());
+				for(unsigned int i=0;i<master->size()/2;i++)
+					ret[i]=((uint32_t) rand())^(((uint32_t)rand())<<16);
+				ret[0]=ret[0]|1;
+				ret[master->size()/2-1]^=1<<31;
+				while(!ret.prime())
+					ret+=integer::two();
+				return ret;
+			}
+			//Push calculated values
+			void pushValues()
+			{
+				master->writeLock();
+				if(master->n && master->d)
+				{
+					master->oldN.insert(master->n);
+					master->oldD.insert(master->d);
+				}
+
+				integer tn=p*q;
+				integer phi = (p-integer::one())*(q-integer::one());
+				phi.expand(2*master->size());
+				integer td = master->e.modInverse(phi);
+
+				master->n=os::smart_ptr<number>(new integer(tn),os::shared_type);
+				master->d=os::smart_ptr<number>(new integer(td),os::shared_type);
+				master->n->expand(2*master->size());
+				master->d->expand(2*master->size());
+				master->writeUnlock();
+			}
+		};
+		//Basic key generation thread
+		void generateKeys(void* ptr,os::smart_ptr<os::threadHolder> th)
+		{
+			RSAKeyGenerator* rkg=(RSAKeyGenerator*) ptr;
+			rkg->p=rkg->generatePrime();
+			rkg->q=rkg->generatePrime();
+			rkg->pushValues();
+		}
+	}
+
+	//Generating keys
+	void publicRSA::generateNewKeys()
+	{
+		writeLock();
+
+		srand(time(NULL));
+		if(keyGen)
+		{
+			writeUnlock();
+			return;
+		}
+
+		keyGen=os::smart_ptr<RSAKeyGenerator>(new RSAKeyGenerator(*this),os::shared_type);
+		os::spawnThread(&generateKeys,keyGen.get(),"RSA Key Generation");
+		writeUnlock();
+	}
 
 #endif

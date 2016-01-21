@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/17/2016
+//Certified working 1/20/2016
 
 #ifndef CRYPTO_ERROR_H
 #define CRYPTO_ERROR_H
@@ -107,6 +107,13 @@ namespace crypto {
 	public:
 		std::string errorTitle() const {return "Action on File Closed";}
 		std::string errorDescription() const {return "Cannot preform action on a file in the closed state.";}
+	};
+
+	class publicKeySizeWrong: public error
+	{
+	public:
+		std::string errorTitle() const {return "Public Key Size Wrong";}
+		std::string errorDescription() const {return "Attempted to use a code or n of impropper size";}
 	};
 	
 	//Error Listener

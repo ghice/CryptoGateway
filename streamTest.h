@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/15/2016
+//Certified working 1/19/2016
 
 #ifndef STREAM_TEST_H
 #define STREAM_TEST_H
@@ -46,7 +46,7 @@ namespace test {
 		streamNameTest(std::string streamName):streamTest<streamType>("Name Test",streamName){}
 		virtual ~streamNameTest(){}
 
-		virtual void test() throw(os::smart_ptr<std::exception>)
+		void test() throw(os::smart_ptr<std::exception>)
         {
             std::string locString = "streamTest.h, streamNameTest::test()";
 			if(streamTest<streamType>::_cipher->algorithmName() == "NULL Algorithm")
@@ -65,7 +65,7 @@ namespace test {
 		streamIDTest(std::string streamName, int streamInt):streamTest<streamType>("ID Test",streamName){_streamInt=streamInt;}
 		virtual ~streamIDTest(){}
 
-		virtual void test() throw(os::smart_ptr<std::exception>)
+		void test() throw(os::smart_ptr<std::exception>)
         {
             std::string locString = "streamTest.h, streamIDTest::test()";
 			if(streamTest<streamType>::_cipher->algorithm() == crypto::algo::streamNULL)
@@ -85,7 +85,7 @@ namespace test {
 			streamTest<streamType>("Stream Block ("+std::to_string(iteration)+")",streamName,seed,seedLen){_iteration=iteration;}
 		virtual ~streamBlockTest(){}
 
-		virtual void test() throw(os::smart_ptr<std::exception>)
+		void test() throw(os::smart_ptr<std::exception>)
         {
             std::string locString = "streamTest.h, streamBlockTest::test(), iteration "+std::to_string(_iteration);
 

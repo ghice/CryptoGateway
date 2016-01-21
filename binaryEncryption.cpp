@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/16/2016
+//Certified working 1/19/2016
 
 #ifndef BINARY_ENCRYPTION_CPP
 #define BINARY_ENCRYPTION_CPP
@@ -22,6 +22,7 @@ namespace crypto {
 		_state=true;
 		_finished=false;
 		_streamAlgorithm=stream_algo;
+		if(!stream_algo) _streamAlgorithm=streamPackageTypeBank::singleton()->defaultPackage();
 		if(!output.good())
 		{
 			logError(errorPointer(new fileOpenError,os::shared_type));
@@ -38,6 +39,7 @@ namespace crypto {
 		_state=true;
 		_finished=false;
 		_streamAlgorithm=stream_algo;
+		if(!stream_algo) _streamAlgorithm=streamPackageTypeBank::singleton()->defaultPackage();
 		if(!output.good())
 		{
 			logError(errorPointer(new fileOpenError(),os::shared_type));

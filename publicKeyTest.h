@@ -16,6 +16,27 @@ namespace test
     public:
         generationTest():singleTest("Generation"){}
         virtual ~generationTest(){}
+		void test() throw(os::smart_ptr<std::exception>)
+        {
+			std::string locString = "publicKeyTest.h, generationTest::test()";
+
+			pkType writeKey(crypto::size::public256);
+			while(!writeKey.getN()) os::sleep(50);
+			writeKey.setFileName("keytest.dmp");
+			writeKey.saveFile();
+
+			pkType readKey("keytest.dmp");
+
+			if(readKey.size()!=writeKey.size())
+				throw os::smart_ptr<std::exception>(new generalTestException("Read sizes do no match",locString),os::shared_type);
+			if(readKey.algorithm()!=writeKey.algorithm())
+				throw os::smart_ptr<std::exception>(new generalTestException("Algorithms do no match",locString),os::shared_type);
+
+			if(!readKey.getN())
+				throw os::smart_ptr<std::exception>(new generalTestException("NULL n value",locString),os::shared_type);
+			if(readKey!=writeKey)
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to read key",locString),os::shared_type);
+		}
     };
     
     //General public key Test suite

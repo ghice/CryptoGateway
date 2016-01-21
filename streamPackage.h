@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/16/2016
+//Certified working 1/19/2016
 
 #ifndef STREAM_PACKAGE_H
 #define STREAM_PACKAGE_H
@@ -86,6 +86,7 @@ namespace crypto {
         static os::smart_ptr<streamPackageTypeBank> singleton();
         
         void setDefaultPackage(os::smart_ptr<streamPackageFrame> package);
+		const os::smart_ptr<streamPackageFrame> defaultPackage() const {return _defaultPackage;}
         void pushPackage(os::smart_ptr<streamPackageFrame> package);
         const os::smart_ptr<streamPackageFrame> findStream(uint16_t streamID,uint16_t hashID) const;
 		const os::smart_ptr<streamPackageFrame> findStream(const std::string& streamName,const std::string& hashName) const;

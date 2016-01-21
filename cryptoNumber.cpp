@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/17/2016
+//Confirmed working: 1/20/2016
 
 #ifndef CRYPTO_NUMBER_CPP
 #define CRYPTO_NUMBER_CPP
@@ -935,6 +935,12 @@ using namespace crypto;
     {
         integer ret;
         ret[0]=1;
+        return ret;
+    }
+	integer integer::two()
+	{
+        integer ret;
+        ret[0]=2;
         return ret;
     }
     //Basic integer constructor
