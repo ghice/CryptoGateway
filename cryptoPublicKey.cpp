@@ -18,6 +18,7 @@ using namespace crypto;
 	publicKey::publicKey(uint16_t sz)
 	{
 		_size=sz;
+        _history=10;
 
 		_key=NULL;
 		_keyLen=0;
@@ -27,6 +28,7 @@ using namespace crypto;
     publicKey::publicKey(const publicKey& ky)
     {
         _size=ky._size;
+        _history=10;
         _fileName="";
         
         //Copy encryption key
@@ -48,7 +50,8 @@ using namespace crypto;
 		if(!_n || !_d) throw errorPointer(new customError("NULL Keys","Attempted to bind NULL keys to a public key frame"),os::shared_type);
 		if(_n->size()!=sz || _d->size()!=sz) throw errorPointer(new customError("Key Size Error","Attempted to bind keys of wrong size"),os::shared_type);
 		_size=sz;
-		
+		_history=10;
+        
 		_key=NULL;
 		_keyLen=0;
 		_fileName="";
@@ -58,6 +61,7 @@ using namespace crypto;
 	{
 		if(fileName=="") throw errorPointer(new fileOpenError(),os::shared_type);
 		_size=0;
+        _history=10;
 		_fileName=fileName;
 
 		_key=NULL;
@@ -71,6 +75,7 @@ using namespace crypto;
 	{
 		if(fileName=="") throw errorPointer(new fileOpenError(),os::shared_type);
 		_size=0;
+        _history=10;
 		_fileName=fileName;
 
 		_key=NULL;
@@ -138,6 +143,38 @@ using namespace crypto;
 		return 0;
 	}
 
+//History Management-------------------------------------------
+
+    //Push the old keys
+    void publicKey::pushOldKeys(os::smart_ptr<number> n, os::smart_ptr<number> d)
+    {
+        if(!n || !d) return;
+        if(_history==0) return;
+        oldN.insert(n);
+        oldD.insert(d);
+        
+        //Remove extra n and d
+        while(oldN.size()>_history)
+            oldN.findDelete(oldN.getLast()->getData());
+        while(oldD.size()>_history)
+            oldD.findDelete(oldN.getLast()->getData());
+    }
+    //Set the history length
+    void publicKey::setHistory(uint16_t hist)
+    {
+        if(hist>20) return; //Can't keep track of more than 20 at a time
+        if(hist<_history)
+        {
+            //Remove extra n and d
+            while(oldN.size()>hist)
+                oldN.findDelete(oldN.getLast()->getData());
+            while(oldD.size()>hist)
+                oldD.findDelete(oldN.getLast()->getData());
+            
+        }
+        _history=hist;
+    }
+
 //Access and Generation----------------------------------------
 
 	//Return 'N'
@@ -167,11 +204,7 @@ using namespace crypto;
 	void publicKey::generateNewKeys()
 	{
 		writeLock();
-		if(n && d)
-		{
-			oldN.insert(n);
-			oldD.insert(d);
-		}
+		if(n && d) pushOldKeys(n,d);
 
 		n=os::smart_ptr<number>(new number(),os::shared_type);
 		d=os::smart_ptr<number>(new number(),os::shared_type);
@@ -184,9 +217,14 @@ using namespace crypto;
 //File loading and saving-------------------------------------
 
 	//Save file
-	void publicKey::saveFile() const
+	void publicKey::saveFile()
 	{
-		if(_fileName=="") throw errorPointer(new fileOpenError(),os::shared_type);
+        readLock();
+		if(_fileName=="")
+        {
+            readUnlock();
+            throw errorPointer(new fileOpenError(),os::shared_type);
+        }
 
 		//Fine encryption type
 		os::smart_ptr<binaryEncryptor> ben;
@@ -195,7 +233,11 @@ using namespace crypto;
 		else ben=os::smart_ptr<binaryEncryptor>(new binaryEncryptor(_fileName,_key,_keyLen,fePackage),os::shared_type);
 
 		//If the write failed, throw flag
-		if(!ben->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+        if(!ben->good())
+        {
+            readUnlock();
+            throw errorPointer(new actionOnFileError(),os::shared_type);
+        }
 
 		os::smart_ptr<unsigned char>dumpArray(new unsigned char[2*4*_size],os::shared_type_array);
 		uint16_t dumpVal;
@@ -223,8 +265,52 @@ using namespace crypto;
 		ben->write(dumpArray.get(),2*4*_size);
 
 		//If the write failed, throw flag
-		if(!ben->good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+		if(!ben->good())
+        {
+            readUnlock();
+            throw errorPointer(new actionOnFileError(),os::shared_type);
+        }
 
+        //Old n and d's
+        dumpVal=os::to_comp_mode(_history);
+        memcpy(dumpArray.get(),&dumpVal,2);
+        ben->write(dumpArray.get(),2);
+        if(!ben->good())
+        {
+            readUnlock();
+            throw errorPointer(new actionOnFileError(),os::shared_type);
+        }
+        
+        oldN.resetTraverse();
+        oldD.resetTraverse();
+        
+        auto ntrc=oldN.getLast();
+        auto dtrc=oldD.getLast();
+        while(ntrc && dtrc)
+        {
+            for(unsigned int i1=0;i1<2;i1++)
+            {
+                os::smart_ptr<number> t;
+                if(i1==0) t=ntrc->getData();
+                else t=dtrc->getData();
+                for(unsigned int i2=0;i2<_size;i2++)
+                {
+                    ldval=os::to_comp_mode(t->data()[i2]);
+                    memcpy(dumpArray.get()+i1*4*_size+i2*4,&ldval,4);
+                }
+            }
+            ben->write(dumpArray.get(),2*4*_size);
+            
+            //Go to the next n and d
+            if(!ben->good())
+            {
+                readUnlock();
+                throw errorPointer(new actionOnFileError(),os::shared_type);
+            }
+            ntrc=ntrc->getPrev();
+            dtrc=dtrc->getPrev();
+        }
+        readUnlock();
 	}
     //Opens a key file
     void publicKey::loadFile()
@@ -287,6 +373,22 @@ using namespace crypto;
 			if(i1==0) n=copyConvert(keyArray.get(),_size);
 			else d=copyConvert(keyArray.get(),_size);
 		}
+        
+        //Old n and d's
+        bde->read(initArray,2);
+        if(!bde->good())
+        {
+            writeUnlock();
+            throw errorPointer(new actionOnFileError(),os::shared_type);
+        }
+        memcpy(&dumpVal,initArray,2);
+        _history=os::from_comp_mode(dumpVal);
+        if(_history>20)
+        {
+            writeUnlock();
+            throw errorPointer(new customError("History Size","History size invalid, must be less than or equal to 20"),os::shared_type);
+        }
+        
 		writeUnlock();
     }
     //Set the file name
@@ -448,11 +550,7 @@ using namespace crypto;
 			void pushValues()
 			{
 				master->writeLock();
-				if(master->n && master->d)
-				{
-					master->oldN.insert(master->n);
-					master->oldD.insert(master->d);
-				}
+				if(master->n && master->d) master->pushOldKeys(master->n,master->d);
 
 				integer tn=p*q;
 				integer phi = (p-integer::one())*(q-integer::one());
@@ -463,7 +561,10 @@ using namespace crypto;
 				master->d=os::smart_ptr<number>(new integer(td),os::shared_type);
 				master->n->expand(2*master->size());
 				master->d->expand(2*master->size());
-				master->writeUnlock();
+                
+                publicRSA* temp=master;
+                temp->keyGen=NULL;
+				temp->writeUnlock();
 			}
 		};
 		//Basic key generation thread
@@ -481,16 +582,28 @@ using namespace crypto;
 	{
 		writeLock();
 
-		srand(time(NULL));
 		if(keyGen)
 		{
 			writeUnlock();
 			return;
 		}
 
+        srand(time(NULL));
 		keyGen=os::smart_ptr<RSAKeyGenerator>(new RSAKeyGenerator(*this),os::shared_type);
 		os::spawnThread(&generateKeys,keyGen.get(),"RSA Key Generation");
 		writeUnlock();
 	}
+    //Checks to see if we are even generating
+    bool publicRSA::generating()
+    {
+        writeLock();
+        if(keyGen)
+        {
+            writeUnlock();
+            return true;
+        }
+        writeUnlock();
+        return false;
+    }
 
 #endif

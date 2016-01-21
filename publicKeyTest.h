@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/19/2015
+//Confirmed working: 1/21/2015
 
 #ifndef PUBLIC_KEY_TEST_H
 #define PUBLIC_KEY_TEST_H
@@ -22,6 +22,11 @@ namespace test
 
 			pkType writeKey(crypto::size::public256);
 			while(!writeKey.getN()) os::sleep(50);
+            if(writeKey.generating())
+                throw os::smart_ptr<std::exception>(new generalTestException("Write key says its generating",locString),os::shared_type);
+            writeKey.generateNewKeys();
+            while(writeKey.generating()) os::sleep(50);
+            
 			writeKey.setFileName("keytest.dmp");
 			writeKey.saveFile();
 
@@ -36,6 +41,17 @@ namespace test
 				throw os::smart_ptr<std::exception>(new generalTestException("NULL n value",locString),os::shared_type);
 			if(readKey!=writeKey)
 				throw os::smart_ptr<std::exception>(new generalTestException("Failed to read key",locString),os::shared_type);
+                
+            if(readKey.history()!=writeKey.history())
+                throw os::smart_ptr<std::exception>(new generalTestException("History size failed to match!",locString),os::shared_type);
+            
+            os::smart_ptr<crypto::number> wnum=writeKey.getOldN();
+            os::smart_ptr<crypto::number> rnum=readKey.getOldN();
+            
+            if(!wnum)
+                throw os::smart_ptr<std::exception>(new generalTestException("No old n in write key",locString),os::shared_type);
+            if(!rnum)
+                throw os::smart_ptr<std::exception>(new generalTestException("No old n in read key",locString),os::shared_type);
 		}
     };
     

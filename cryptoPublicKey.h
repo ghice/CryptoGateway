@@ -15,6 +15,7 @@ namespace crypto
 	class publicKey
 	{
 		uint16_t _size;
+        uint16_t _history;
 
 		//File Encryption
 		unsigned char* _key;
@@ -43,20 +44,27 @@ namespace crypto
 		inline void writeUnlock() {keyLock.unlock();}
 
 		int compare(const publicKey& cmp) const;
+        
+        void pushOldKeys(os::smart_ptr<number> n, os::smart_ptr<number> d);
     public:
 		virtual ~publicKey();
 
 		os::smart_ptr<number> getN() const;
 		os::smart_ptr<number> getOldN(unsigned int history=0);
 		virtual void generateNewKeys();
+        virtual bool generating() {return false;}
 		virtual uint16_t algorithm() const {return algo::publicNULL;}
         uint16_t size() const {return _size;}
 
 		inline void readLock() {keyLock.increment();}
 		inline void readUnlock() {keyLock.decrement();}
+        
+        //History
+        void setHistory(uint16_t hist);
+        inline uint16_t history() const {return _history;}
 
 		//File loading and saving
-		void saveFile() const;
+		void saveFile();
         void loadFile();
 		void setFileName(std::string fileName);
 		void setPassword(unsigned char* key,unsigned int keyLen);
@@ -80,6 +88,7 @@ namespace crypto
 	};
     
     //RSA
+    class RSAKeyGenerator;
     class publicRSA: public publicKey
     {
 		friend class RSAKeyGenerator;
@@ -99,6 +108,7 @@ namespace crypto
         virtual ~publicRSA(){}
         
         uint16_t algorithm() const {return algo::publicRSA;}
+        bool generating();
 		void generateNewKeys();
     };
 };
