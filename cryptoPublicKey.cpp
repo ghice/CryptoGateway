@@ -362,7 +362,6 @@ using namespace crypto;
 		}
 
 		//Parse keys
-		uint32_t ldval;
 		for(unsigned int i1=0;i1<2;i1++)
 		{
 			memcpy(keyArray.get(),dumpArray.get()+i1*4*_size,4*_size);
@@ -389,6 +388,30 @@ using namespace crypto;
             throw errorPointer(new customError("History Size","History size invalid, must be less than or equal to 20"),os::shared_type);
         }
         
+		//Read in old n and d, oldest first
+		unsigned int numOlds=0;
+		while(bde->bytesLeft()>0 && numOlds<_history)
+		{
+			bde->read(dumpArray.get(),2*4*_size);
+			if(!bde->good())
+			{
+				writeUnlock();
+				throw errorPointer(new actionOnFileError(),os::shared_type);
+			}
+
+			//Parse numbers
+			for(unsigned int i1=0;i1<2;i1++)
+			{
+				memcpy(keyArray.get(),dumpArray.get()+i1*4*_size,4*_size);
+				for(unsigned int i2=0;i2<_size;i2++)
+				{
+					keyArray.get()[i2]=os::from_comp_mode(keyArray.get()[i2]);
+				}
+				if(i1==0) oldN.insert(copyConvert(keyArray.get(),_size));
+				else oldD.insert(copyConvert(keyArray.get(),_size));
+			}
+			numOlds++;
+		}
 		writeUnlock();
     }
     //Set the file name

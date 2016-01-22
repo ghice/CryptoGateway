@@ -9,6 +9,7 @@ MESSAGE(STATUS )
 MESSAGE(STATUS ========= CryptoGateway ==========)
 MESSAGE(STATUS )
 
+SET(EXE_LIBS ${EXE_LIBS} CryptoGateway)
 SET(CUR_SRC ${GLOBAL_DIR}/CryptoGateway)
 INCLUDE_DIRECTORIES(${CUR_SRC})
 
@@ -39,13 +40,6 @@ SET( SRC_H
 	${CUR_SRC}/cryptoConstants.h
 	${CUR_SRC}/cryptoCHeaders.h
 	${CUR_SRC}/hexConversion.h
-
-	${CUR_SRC}/cryptoTest.h
-	${CUR_SRC}/c_cryptoTesting.h
-	${CUR_SRC}/hashTest.h
-	${CUR_SRC}/streamTest.h
-	${CUR_SRC}/publicKeyTest.h
-	${CUR_SRC}/cryptoFileTest.h
 )
 
 SET( SRC_CPP
@@ -72,20 +66,12 @@ SET( SRC_CPP
 	${CUR_SRC}/cryptoConstants.cpp
 	${CUR_SRC}/cryptoCSource.cpp
 	${CUR_SRC}/hexConversion.cpp
-
-	${CUR_SRC}/cryptoTest.cpp
-	${CUR_SRC}/c_cryptoTesting.cpp
-	${CUR_SRC}/cryptoNumberTest.cpp
-	${CUR_SRC}/hashTest.cpp
-	${CUR_SRC}/streamTest.cpp
-	${CUR_SRC}/cryptoFileTest.cpp
 )
 
 ADD_LIBRARY( CryptoGateway STATIC
 	${SRC_CPP}
 	${SRC_H}
 )
-
-TARGET_LINK_LIBRARIES( CryptoGateway Datastructures )
+INCLUDE(${GLOBAL_DIR}/CryptoGateway/test/CMakeLists.txt)
 
 ENDIF(NOT CRYPTOGATEWAY_CMAKE)
