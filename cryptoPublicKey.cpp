@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/22/2016
+//Confirmed working: 1/23/2016
 
 #ifndef CRYPTO_PUBLIC_KEY_CPP
 #define CRYPTO_PUBLIC_KEY_CPP
@@ -425,13 +425,19 @@ using namespace crypto;
 	//Set password (by array)
 	void publicKey::setPassword(unsigned char* key,unsigned int keyLen)
 	{
+        writeLock();
 		if(_key) delete [] _key;
 		_key=NULL;
-		if(!key || keyLen==0) return;
+		if(!key || keyLen==0)
+        {
+            writeUnlock();
+            return;
+        }
 
 		_keyLen=keyLen;
 		_key=new unsigned char[_keyLen];
 		memcpy(_key,key,_keyLen);
+        writeUnlock();
 	}
 	//Set password (by string)
 	void publicKey::setPassword(std::string password)
@@ -448,7 +454,8 @@ using namespace crypto;
 	os::smart_ptr<number> publicKey::encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
 	{
 		if(!publicN) publicN=n;
-		if(code>publicN) throw errorPointer(new publicKeySizeWrong(), os::shared_type);
+		if(*code > *publicN)
+            throw errorPointer(new publicKeySizeWrong(), os::shared_type);
 		return code;
 	}
 	//Encode with raw data, public key
@@ -462,7 +469,7 @@ using namespace crypto;
 	//Default decode
 	os::smart_ptr<number> publicKey::decode(os::smart_ptr<number> code) const
 	{
-		if(code>n) throw errorPointer(new publicKeySizeWrong(), os::shared_type);
+		if(*code > *n) throw errorPointer(new publicKeySizeWrong(), os::shared_type);
 		return code;
 	}
 	//Decode with raw data

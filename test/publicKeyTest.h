@@ -89,25 +89,31 @@ namespace test
         {
 			std::string locString = "publicKeyTest.h, basicPublicKeyTest::test()";
 
-			os::smart_ptr<pkType> pk1=getStaticKeys<pkType>(publicLen,0);
-			os::smart_ptr<pkType> pk2=getStaticKeys<pkType>(publicLen,1);
+            try
+            {
+                os::smart_ptr<pkType> pk1=getStaticKeys<pkType>(publicLen,0);
+                os::smart_ptr<pkType> pk2=getStaticKeys<pkType>(publicLen,1);
 			
-			numberType n1(publicLen);
-			for(unsigned i=0;i<publicLen-1;i++)
-				n1[i]=rand();
-			numberType en1=n1;
-			numberType en2=n1;
+                numberType n1(publicLen);
+                for(unsigned i=0;i<publicLen-1;i++)
+                    n1[i]=rand();
+                numberType en1=n1;  
+                numberType en2=n1;
 
-			en1=*os::cast<numberType,crypto::number>(pk1->encode(&en1));
-			en2=*os::cast<numberType,crypto::number>(pk2->encode(&en2));
-			if(en1==en2)
-				throw os::smart_ptr<std::exception>(new generalTestException("Public keys encrypted the same number",locString),os::shared_type);
-			en1=*os::cast<numberType,crypto::number>(pk1->decode(&en1));
-			en2=*os::cast<numberType,crypto::number>(pk2->decode(&en2));
-			if(en1!=n1)
-				throw os::smart_ptr<std::exception>(new generalTestException("Key 1 failed",locString),os::shared_type);
-			if(en2!=n1)
-				throw os::smart_ptr<std::exception>(new generalTestException("Key 2 failed",locString),os::shared_type);
+                en1=*os::cast<numberType,crypto::number>(pk1->encode(&en1));
+                en2=*os::cast<numberType,crypto::number>(pk2->encode(&en2));
+                if(en1==en2)
+                    throw os::smart_ptr<std::exception>(new generalTestException("Public keys encrypted the same number",locString),os::shared_type);
+                en1=*os::cast<numberType,crypto::number>(pk1->decode(&en1));
+                en2=*os::cast<numberType,crypto::number>(pk2->decode(&en2));
+                if(en1!=n1)
+                    throw os::smart_ptr<std::exception>(new generalTestException("Key 1 failed",locString),os::shared_type);
+                if(en2!=n1)
+                    throw os::smart_ptr<std::exception>(new generalTestException("Key 2 failed",locString),os::shared_type);
+            }
+            catch(crypto::errorPointer ep){throw os::smart_ptr<std::exception>(new generalTestException(ep->what(),locString),os::shared_type);}
+            catch(os::smart_ptr<std::exception> e){throw e;}
+            catch(...){throw os::smart_ptr<std::exception>(new unknownException(locString),os::shared_type);}
         }
     };
     
