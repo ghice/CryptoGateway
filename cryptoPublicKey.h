@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/22/2016
+//Confirmed working: 1/23/2016
 
 #ifndef CRYPTO_PUBLIC_KEY_H
 #define CRYPTO_PUBLIC_KEY_H
@@ -111,6 +111,10 @@ namespace crypto
         uint16_t algorithm() const {return algo::publicRSA;}
         bool generating();
 		void generateNewKeys();
+        
+        //Encoding/Decoding
+        os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN=NULL) const;
+        os::smart_ptr<number> decode(os::smart_ptr<number> code) const;
     };
 };
 

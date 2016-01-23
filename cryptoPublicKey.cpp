@@ -543,6 +543,25 @@ using namespace crypto;
         return ret;
     }
 
+    //Encode key
+    os::smart_ptr<number> publicRSA::encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
+    {
+        if(!publicN) publicN=n;
+        if(code->typeID()!=numberType::Base10 || publicN->typeID()!=numberType::Base10)
+            throw errorPointer(new illegalAlgorithmBind("Base10"),os::shared_type);
+        
+        publicKey::encode(code,publicN);
+        return os::smart_ptr<number>(new integer(os::cast<integer,number>(code)->moduloExponentiation(e, *os::cast<integer,number>(publicN))),os::shared_type);
+    }
+    //Decode key
+    os::smart_ptr<number> publicRSA::decode(os::smart_ptr<number> code) const
+    {
+        if(code->typeID()!=numberType::Base10)
+            throw errorPointer(new illegalAlgorithmBind("Base10"),os::shared_type);
+        publicKey::decode(code);
+        return os::smart_ptr<number>(new integer(os::cast<integer,number>(code)->moduloExponentiation(*os::cast<integer,number>(d), *os::cast<integer,number>(n))),os::shared_type);
+    }
+
 /*------------------------------------------------------------
     RSA Public Key Generation
  ------------------------------------------------------------*/

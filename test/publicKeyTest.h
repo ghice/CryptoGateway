@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/21/2015
+//Confirmed working: 1/23/2015
 
 #ifndef PUBLIC_KEY_TEST_H
 #define PUBLIC_KEY_TEST_H
@@ -75,22 +75,42 @@ namespace test
 		}
     };
     
+    //Simple key test
+    template <class pkType>
+    class basicPublicKeyTest:public singleTest
+    {
+        uint16_t publicLen;
+    public:
+        basicPublicKeyTest(uint16_t pl):singleTest("Basic Test: "+std::to_string(pl*32)){publicLen=pl;}
+        virtual ~basicPublicKeyTest(){}
+        
+        void test() throw(os::smart_ptr<std::exception>)
+        {
+        }
+    };
+    
+    
     //General public key Test suite
-    template <class pkType, class pkNumber>
+    template <class pkType>
     class publicKeySuite:public testSuite
     {
     public:
         publicKeySuite(std::string pkName):testSuite(pkName+": Public Key")
         {
             pushTest(os::smart_ptr<singleTest>(new generationTest<pkType>(),os::shared_type));
+            
+            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType>(crypto::size::public256),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType>(crypto::size::public512),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType>(crypto::size::public1024),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType>(crypto::size::public2048),os::shared_type));
         }
         virtual ~publicKeySuite(){}
     };
     //Public key test suite
-    class RSASuite:public publicKeySuite<crypto::publicRSA,crypto::integer>
+    class RSASuite:public publicKeySuite<crypto::publicRSA>
     {
     public:
-        RSASuite():publicKeySuite<crypto::publicRSA,crypto::integer>("RSA")
+        RSASuite():publicKeySuite<crypto::publicRSA>("RSA")
         {}
         virtual ~RSASuite(){}
     };
