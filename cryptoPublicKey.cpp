@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/21/2016
+//Confirmed working: 1/22/2016
 
 #ifndef CRYPTO_PUBLIC_KEY_CPP
 #define CRYPTO_PUBLIC_KEY_CPP
@@ -182,6 +182,12 @@ using namespace crypto;
 	{
 		if(!n) return NULL;
 		return copyConvert(n);
+	}
+	//Return 'D'
+	os::smart_ptr<number> publicKey::getD() const
+	{
+		if(!d) return NULL;
+		return copyConvert(d);
 	}
 	//Return the old N
 	os::smart_ptr<number> publicKey::getOldN(unsigned int history)

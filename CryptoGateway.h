@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/16/2016
+//Confirmed working: 1/22/2016
 
 #ifndef CRYPTOGATEWAY_H
 #define CRYPTOGATEWAY_H
@@ -23,5 +23,7 @@ namespace crypto
 #include "XMLEncryption.h"
 
 #include "streamPackage.h"
+
+#include "cryptoPublicKey.h"
 
 #endif

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/21/2016
+//Confirmed working: 1/22/2016
 
 #ifndef CRYPTO_PUBLIC_KEY_H
 #define CRYPTO_PUBLIC_KEY_H
@@ -50,6 +50,7 @@ namespace crypto
 		virtual ~publicKey();
 
 		os::smart_ptr<number> getN() const;
+		os::smart_ptr<number> getD() const;
 		os::smart_ptr<number> getOldN(unsigned int history=0);
 		virtual void generateNewKeys();
         virtual bool generating() {return false;}
