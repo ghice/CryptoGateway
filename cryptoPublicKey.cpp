@@ -509,6 +509,14 @@ using namespace crypto;
         n=copyConvert(os::cast<number,integer>(_n));
         d=copyConvert(os::cast<number,integer>(_d));
     }
+	//N and D from arrays
+	publicRSA::publicRSA(uint32_t* _n,uint32_t* _d,uint16_t sz):
+        publicKey(sz)
+	{
+		initE();
+		n=copyConvert(_n,sz);
+        d=copyConvert(_d,sz);
+	}
     //Load a public key from a file
     publicRSA::publicRSA(std::string fileName,std::string password,os::smart_ptr<streamPackageFrame> stream_algo):
         publicKey(fileName,password,stream_algo)

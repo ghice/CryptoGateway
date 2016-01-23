@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/21/2016
+//Confirmed working: 1/23/2016
 
 #ifndef CRYPTO_TEST_CPP
 #define CRYPTO_TEST_CPP
@@ -10,6 +10,7 @@
 #include "streamTest.h"
 #include "cryptoFileTest.h"
 #include "publicKeyTest.h"
+#include "testKeyGeneration.h"
 
 using namespace test;
 

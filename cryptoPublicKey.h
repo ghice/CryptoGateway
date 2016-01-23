@@ -54,7 +54,8 @@ namespace crypto
 		os::smart_ptr<number> getOldN(unsigned int history=0);
 		virtual void generateNewKeys();
         virtual bool generating() {return false;}
-		virtual uint16_t algorithm() const {return algo::publicNULL;}
+		inline static uint16_t staticAlgorithm() {return algo::publicNULL;}
+		inline virtual uint16_t algorithm() const {return publicKey::staticAlgorithm();}
         uint16_t size() const {return _size;}
 
 		inline void readLock() {keyLock.increment();}
@@ -103,12 +104,14 @@ namespace crypto
         publicRSA(uint16_t sz=size::public512);
         publicRSA(publicRSA& ky);
         publicRSA(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d,uint16_t sz=size::public512);
+		publicRSA(uint32_t* _n,uint32_t* _d,uint16_t sz=size::public512);
         publicRSA(std::string fileName,std::string password="",os::smart_ptr<streamPackageFrame> stream_algo=NULL);
         publicRSA(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
         
         virtual ~publicRSA(){}
         
-        uint16_t algorithm() const {return algo::publicRSA;}
+		inline static uint16_t staticAlgorithm() {return algo::publicRSA;}
+        inline uint16_t algorithm() const {return publicRSA::staticAlgorithm();}
         bool generating();
 		void generateNewKeys();
         

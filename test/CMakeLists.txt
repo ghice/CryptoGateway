@@ -16,6 +16,9 @@ SET( SRC_H
 	${CUR_SRC}/streamTest.h
 	${CUR_SRC}/publicKeyTest.h
 	${CUR_SRC}/cryptoFileTest.h
+
+	${CUR_SRC}/staticTestKeys.h
+	${CUR_SRC}/testKeyGeneration.h
 )
 
 SET( SRC_CPP
@@ -25,6 +28,8 @@ SET( SRC_CPP
 	${CUR_SRC}/hashTest.cpp
 	${CUR_SRC}/streamTest.cpp
 	${CUR_SRC}/cryptoFileTest.cpp
+
+	${CUR_SRC}/staticTestKeys.cpp
 )
 
 ADD_LIBRARY( CryptoGatewayTest STATIC
