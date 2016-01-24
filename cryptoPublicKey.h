@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/23/2016
+//Confirmed working: 1/24/2016
 
 #ifndef CRYPTO_PUBLIC_KEY_H
 #define CRYPTO_PUBLIC_KEY_H
@@ -55,8 +55,9 @@ namespace crypto
 		virtual void generateNewKeys();
         virtual bool generating() {return false;}
 		inline static uint16_t staticAlgorithm() {return algo::publicNULL;}
-        inline static std::string algorithmName() {return "NULL Public Key";}
+        inline static std::string staticAlgorithmName() {return "NULL Public Key";}
 		inline virtual uint16_t algorithm() const {return publicKey::staticAlgorithm();}
+		inline virtual std::string algorithmName() const {return publicKey::staticAlgorithmName();}
         uint16_t size() const {return _size;}
 
 		inline void readLock() {keyLock.increment();}
@@ -112,8 +113,9 @@ namespace crypto
         virtual ~publicRSA(){}
         
 		inline static uint16_t staticAlgorithm() {return algo::publicRSA;}
-        inline static std::string algorithmName() {return "RSA";}
+        inline static std::string staticAlgorithmName() {return "RSA";}
         inline uint16_t algorithm() const {return publicRSA::staticAlgorithm();}
+		inline std::string algorithmName() const {return publicRSA::staticAlgorithmName();}
         bool generating();
 		void generateNewKeys();
         

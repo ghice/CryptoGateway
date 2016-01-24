@@ -30,6 +30,7 @@ SET( SRC_CPP
 	${CUR_SRC}/cryptoFileTest.cpp
 
 	${CUR_SRC}/staticTestKeys.cpp
+	${CUR_SRC}/testKeyGeneration.cpp
 )
 
 ADD_LIBRARY( CryptoGatewayTest STATIC

@@ -40,8 +40,14 @@ namespace crypto {
         virtual ~publicKeyPackage(){}
         os::smart_ptr<publicKeyPackageFrame> getCopy() const {return os::smart_ptr<publicKeyPackageFrame>(new publicKeyPackage<pkType>(_publicSize),os::shared_type);}
 	
+		os::smart_ptr<publicKey> generate() const {return os::smart_ptr<publicKey>(new pkType(_publicSize),os::shared_type);}
+        os::smart_ptr<publicKey> bindKeys(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d) const {return os::smart_ptr<publicKey>(new pkType(_n,_d,_publicSize),os::shared_type);}
+        os::smart_ptr<publicKey> bindKeys(uint32_t* _n,uint32_t* _d) const {return os::smart_ptr<publicKey>(new pkType(_n,_d,_publicSize),os::shared_type);}
+        os::smart_ptr<publicKey> openFile(std::string fileName,std::string password) const {return os::smart_ptr<publicKey>(new pkType(fileName,password),os::shared_type);}
+        os::smart_ptr<publicKey> openFile(std::string fileName,unsigned char* key,unsigned int keyLen) const {return os::smart_ptr<publicKey>(new pkType(fileName,key,keyLen),os::shared_type);}
+
 		//Return data info
-        std::string algorithmName() const {return pkType::algorithmName();}
+        std::string algorithmName() const {return pkType::staticAlgorithmName();}
         uint16_t algorithm() const {return pkType::staticAlgorithm();}
 	};
     //Public key type bank

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/16/2016
+//Certified working 1/24/2016
 
 #ifndef CRYPTO_FILE_TEST_H
 #define CRYPTO_FILE_TEST_H
@@ -19,7 +19,17 @@ namespace test {
 		binaryFileSaveTest(os::smart_ptr<crypto::streamPackageFrame> spf);
 		virtual ~binaryFileSaveTest(){}
 
-		virtual void test() throw(os::smart_ptr<std::exception>);
+		void test() throw(os::smart_ptr<std::exception>);
+	};
+	//Public key binary file saving
+	class publicKeyFileSaveTest:public singleTest
+	{
+		os::smart_ptr<crypto::publicKey> pubkey;
+	public:
+		publicKeyFileSaveTest(os::smart_ptr<crypto::publicKey> pk);
+		virtual ~publicKeyFileSaveTest(){}
+
+		void test() throw(os::smart_ptr<std::exception>);
 	};
 
 	//Crypto File Test
@@ -30,6 +40,7 @@ namespace test {
 		virtual ~cryptoFileTestSuite(){}
 
 		void pushTestPackage(os::smart_ptr<crypto::streamPackageFrame> spf);
+		void pushTestPackage(os::smart_ptr<crypto::publicKeyPackageFrame> pkg);
 	};
 }
 

@@ -135,10 +135,10 @@ namespace test
 			os::smart_ptr<crypto::publicKeyPackageFrame> pck=crypto::publicKeyTypeBank::singleton()->findPublicKey(pkType::staticAlgorithm());
 			if(!pck)
 				throw os::smart_ptr<std::exception>(new generalTestException("Cannot find algorithm by ID!",locString),os::shared_type);
-			if(pck->algorithmName()!=pkType::algorithmName())
+			if(pck->algorithmName()!=pkType::staticAlgorithmName())
 				throw os::smart_ptr<std::exception>(new generalTestException("Algorithm name mis-match!",locString),os::shared_type);
 
-			pck=crypto::publicKeyTypeBank::singleton()->findPublicKey(pkType::algorithmName());
+			pck=crypto::publicKeyTypeBank::singleton()->findPublicKey(pkType::staticAlgorithmName());
 			if(!pck)
 				throw os::smart_ptr<std::exception>(new generalTestException("Cannot find algorithm by name!",locString),os::shared_type);
 			if(pck->algorithm()!=pkType::staticAlgorithm())

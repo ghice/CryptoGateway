@@ -1,10 +1,11 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/16/2016
+//Certified working 1/24/2016
 
 #ifndef BINARY_ENCRYPTION_H
 #define BINARY_ENCRYPTION_H
  
 #include "streamPackage.h"
+#include "publicKeyPackage.h"
 #include "cryptoError.h"
 
 namespace crypto {
@@ -12,6 +13,7 @@ namespace crypto {
 	//Binary file encryptor
 	class binaryEncryptor: public errorSender
 	{
+		os::smart_ptr<publicKey> _publicKeyLock;
 		os::smart_ptr<streamPackageFrame> _streamAlgorithm;
 		os::smart_ptr<streamCipher> currentCipher;
 		bool _state;
@@ -21,8 +23,9 @@ namespace crypto {
 
 		//Builds the file for encryption (with error logging)
 		void build(unsigned char* key,unsigned int keyLen);
-
+		void build(os::smart_ptr<publicKey> publicKeyLock);
 	public:
+		binaryEncryptor(std::string file_name,os::smart_ptr<publicKey> publicKeyLock,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
 		binaryEncryptor(std::string file_name,std::string password,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
 		binaryEncryptor(std::string file_name,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
 
@@ -42,6 +45,7 @@ namespace crypto {
 	//Binary file decryptor
 	class binaryDecryptor: public errorSender
 	{
+		os::smart_ptr<publicKey> _publicKeyLock;
 		os::smart_ptr<streamPackageFrame> _streamAlgorithm;
 		os::smart_ptr<streamCipher> currentCipher;
 		bool _state;
@@ -51,8 +55,9 @@ namespace crypto {
 		unsigned long _bytesLeft;
 
 		//Builds the file for decryption (with error logging)
-		void build(unsigned char* key,unsigned int keyLen);
+		void build(unsigned char* key=NULL,unsigned int keyLen=0);
 	public:
+		binaryDecryptor(std::string file_name,os::smart_ptr<publicKey> publicKeyLock);
 		binaryDecryptor(std::string file_name,std::string password);
 		binaryDecryptor(std::string file_name,unsigned char* key,unsigned int keyLen);
 

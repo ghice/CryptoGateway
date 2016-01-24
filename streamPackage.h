@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/19/2016
+//Certified working 1/24/2016
 
 #ifndef STREAM_PACKAGE_H
 #define STREAM_PACKAGE_H
@@ -22,6 +22,7 @@ namespace crypto {
         
         virtual os::smart_ptr<streamPackageFrame> getCopy() const {return NULL;}
         
+		virtual hash hashEmpty() const {return xorHash();}
         virtual hash hashData(unsigned char* data, uint32_t len) const {return xorHash();}
         virtual hash hashCopy(unsigned char* data) const {return xorHash(data,_hashSize);}
         virtual os::smart_ptr<streamCipher> buildStream(unsigned char* data, uint32_t len) const {return NULL;}
@@ -47,6 +48,7 @@ namespace crypto {
         os::smart_ptr<streamPackageFrame> getCopy() const {return os::smart_ptr<streamPackageFrame>(new streamPackage<streamType,hashType>(_hashSize),os::shared_type);}
 
         //Preform the hash
+		hash hashEmpty() const {return hashType();}
         hash hashData(unsigned char* data, uint32_t len) const
         {
             if(_hashSize==size::hash64)
