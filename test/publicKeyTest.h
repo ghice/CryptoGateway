@@ -125,12 +125,12 @@ namespace test
     public:
         publicKeySuite(std::string pkName):testSuite(pkName+": Public Key")
         {
-            pushTest(os::smart_ptr<singleTest>(new generationTest<pkType>(),os::shared_type));
+            //pushTest(os::smart_ptr<singleTest>(new generationTest<pkType>(),os::shared_type));
             
 			pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public256),os::shared_type));
-            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public512),os::shared_type));
+            /*pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public512),os::shared_type));
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public1024),os::shared_type));
-            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public2048),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public2048),os::shared_type));*/
         }
         virtual ~publicKeySuite(){}
     };

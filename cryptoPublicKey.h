@@ -55,6 +55,7 @@ namespace crypto
 		virtual void generateNewKeys();
         virtual bool generating() {return false;}
 		inline static uint16_t staticAlgorithm() {return algo::publicNULL;}
+        inline static std::string algorithmName() {return "NULL Public Key";}
 		inline virtual uint16_t algorithm() const {return publicKey::staticAlgorithm();}
         uint16_t size() const {return _size;}
 
@@ -111,6 +112,7 @@ namespace crypto
         virtual ~publicRSA(){}
         
 		inline static uint16_t staticAlgorithm() {return algo::publicRSA;}
+        inline static std::string algorithmName() {return "RSA";}
         inline uint16_t algorithm() const {return publicRSA::staticAlgorithm();}
         bool generating();
 		void generateNewKeys();

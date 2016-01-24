@@ -36,6 +36,7 @@ SET( SRC_H
 
 	${CUR_SRC}/cryptoError.h
 	${CUR_SRC}/streamPackage.h
+	${CUR_SRC}/publicKeyPackage.h
 
 	${CUR_SRC}/cryptoConstants.h
 	${CUR_SRC}/cryptoCHeaders.h
@@ -62,6 +63,7 @@ SET( SRC_CPP
 
 	${CUR_SRC}/cryptoError.cpp
 	${CUR_SRC}/streamPackage.cpp
+	${CUR_SRC}/publicKeyPackage.cpp
 
 	${CUR_SRC}/cryptoConstants.cpp
 	${CUR_SRC}/cryptoCSource.cpp
