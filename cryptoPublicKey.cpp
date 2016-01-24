@@ -110,6 +110,8 @@ using namespace crypto;
 		uint32_t* dumpArray=new uint32_t[len/4+1];
 		memset(dumpArray,0,4*(len/4+1));
 		memcpy(dumpArray,arr,len);
+		for(unsigned int i=0;i<len/4+1;i++)
+			dumpArray[i]=os::from_comp_mode(dumpArray[i]);
 		os::smart_ptr<number> ret=copyConvert(dumpArray,len/4+1);
 		delete [] dumpArray;
 		return ret;
@@ -462,6 +464,8 @@ using namespace crypto;
 	void publicKey::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
 	{
 		os::smart_ptr<number> enc=encode(copyConvert(code,codeLength),publicN);
+		for(unsigned int i=0;i<codeLength/4+1;i++)
+			(*enc)[i]=os::to_comp_mode((*enc)[i]);
 		memcpy(code,enc->data(),codeLength);
 	}
 	//Encode with raw data

@@ -4,6 +4,7 @@
 #ifndef PUBLIC_KEY_TEST_H
 #define PUBLIC_KEY_TEST_H
 
+#include "publicKeyPackage.h"
 #include "cryptoPublicKey.h"
 #include "UnitTest.h"
 #include "testKeyGeneration.h"
@@ -117,7 +118,34 @@ namespace test
         }
     };
     
-    
+    //Simple key test
+    template <class pkType>
+    class packageSearchTest:public singleTest
+    {
+    public:
+        packageSearchTest():singleTest("Package Search"){}
+        virtual ~packageSearchTest(){}
+        
+        void test() throw(os::smart_ptr<std::exception>)
+        {
+			std::string locString = "publicKeyTest.h, packageSearchTest::test()";
+			if(pkType::staticAlgorithm()==crypto::algo::publicNULL)
+				throw os::smart_ptr<std::exception>(new generalTestException("Algorithm registered as NULL",locString),os::shared_type);
+
+			os::smart_ptr<crypto::publicKeyPackageFrame> pck=crypto::publicKeyTypeBank::singleton()->findPublicKey(pkType::staticAlgorithm());
+			if(!pck)
+				throw os::smart_ptr<std::exception>(new generalTestException("Cannot find algorithm by ID!",locString),os::shared_type);
+			if(pck->algorithmName()!=pkType::algorithmName())
+				throw os::smart_ptr<std::exception>(new generalTestException("Algorithm name mis-match!",locString),os::shared_type);
+
+			pck=crypto::publicKeyTypeBank::singleton()->findPublicKey(pkType::algorithmName());
+			if(!pck)
+				throw os::smart_ptr<std::exception>(new generalTestException("Cannot find algorithm by name!",locString),os::shared_type);
+			if(pck->algorithm()!=pkType::staticAlgorithm())
+				throw os::smart_ptr<std::exception>(new generalTestException("Algorithm ID mis-match!",locString),os::shared_type);
+		}
+	};
+
     //General public key Test suite
     template <class pkType, class numberType>
     class publicKeySuite:public testSuite
@@ -125,12 +153,14 @@ namespace test
     public:
         publicKeySuite(std::string pkName):testSuite(pkName+": Public Key")
         {
-            //pushTest(os::smart_ptr<singleTest>(new generationTest<pkType>(),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new generationTest<pkType>(),os::shared_type));
             
 			pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public256),os::shared_type));
-            /*pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public512),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public512),os::shared_type));
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public1024),os::shared_type));
-            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public2048),os::shared_type));*/
+            pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public2048),os::shared_type));
+
+			pushTest(os::smart_ptr<singleTest>(new packageSearchTest<pkType>(),os::shared_type));
         }
         virtual ~publicKeySuite(){}
     };

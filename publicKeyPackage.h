@@ -31,7 +31,19 @@ namespace crypto {
         void setKeySize(uint16_t publicSize) {_publicSize=publicSize;}
         uint16_t keySize() const {return _publicSize;}
     };
-    
+    //Stream Encryption type
+    template <class pkType>
+    class publicKeyPackage: public publicKeyPackageFrame
+	{
+	public:
+		publicKeyPackage(uint16_t publicSize=size::public512):publicKeyPackageFrame(publicSize){}
+        virtual ~publicKeyPackage(){}
+        os::smart_ptr<publicKeyPackageFrame> getCopy() const {return os::smart_ptr<publicKeyPackageFrame>(new publicKeyPackage<pkType>(_publicSize),os::shared_type);}
+	
+		//Return data info
+        std::string algorithmName() const {return pkType::algorithmName();}
+        uint16_t algorithm() const {return pkType::staticAlgorithm();}
+	};
     //Public key type bank
     class publicKeyTypeBank
     {

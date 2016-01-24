@@ -18,7 +18,7 @@ namespace crypto {
     //Public key package constructor
     publicKeyTypeBank::publicKeyTypeBank()
     {
-        
+        setDefaultPackage(os::smart_ptr<publicKeyPackageFrame>(new publicKeyPackage<publicRSA>(),os::shared_type));
     }
     //Singleton constructor
     os::smart_ptr<publicKeyTypeBank> publicKeyTypeBank::singleton()
