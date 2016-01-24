@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/23/2016
+//Certified working 1/24/2016
 
 #ifndef PUBLIC_KEY_PACKAGE_CPP
 #define PUBLIC_KEY_PACKAGE_CPP
@@ -14,7 +14,7 @@ namespace crypto {
      Public Key Package
  ------------------------------------------------------------*/
     
-    os::smart_ptr<publicKeyTypeBank> _singleton;
+    static os::smart_ptr<publicKeyTypeBank> _singleton;
     //Public key package constructor
     publicKeyTypeBank::publicKeyTypeBank()
     {

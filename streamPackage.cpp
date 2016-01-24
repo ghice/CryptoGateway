@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/17/2016
+//Certified working 1/24/2016
 
 #ifndef STREAM_PACKAGE_CPP
 #define STREAM_PACKAGE_CPP
@@ -14,7 +14,7 @@ namespace crypto {
      Stream Package
  ------------------------------------------------------------*/
     
-    os::smart_ptr<streamPackageTypeBank> _singleton;
+    static os::smart_ptr<streamPackageTypeBank> _singleton;
     //Stream package constructor
     streamPackageTypeBank::streamPackageTypeBank()
     {
