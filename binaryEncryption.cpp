@@ -322,7 +322,7 @@ namespace crypto {
 			//Read data
 			unsigned char buffer[256];
 			input.read((char*)buffer,10);
-			_bytesLeft-=8;
+			_bytesLeft-=10;
 			memcpy(&publicAlgoVal,buffer,2);
 			memcpy(&publicSizeVal,buffer+2,2);
 			memcpy(&streamAlgoVal,buffer+4,2);
