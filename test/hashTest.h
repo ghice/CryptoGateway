@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/16/2016
+//Certified working 1/26/2016
 
 #ifndef HASH_TEST_H
 #define HASH_TEST_H
@@ -202,7 +202,7 @@ namespace test {
     {
     public:
         hashSuite(std::string hashName):
-            testSuite(hashName+" Suite")
+            testSuite(hashName)
         {
             uint16_t hSize;
             for(int i=0;i<4;i++)

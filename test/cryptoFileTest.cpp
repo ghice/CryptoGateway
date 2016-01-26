@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/24/2016
+//Certified working 1/26/2016
 
 #ifndef CRYPTO_FILE_TEST_CPP
 #define CRYPTO_FILE_TEST_CPP
@@ -9,9 +9,14 @@
 #include "cryptoFileTest.h"
 #include "publicKeyPackage.h"
 #include "testKeyGeneration.h"
+#include "XMLEncryption.h"
 
 using namespace crypto;
 using namespace test;
+
+/*------------------------------------------------------------
+    Binary File Tests
+ ------------------------------------------------------------*/
 
 	//Package test
 	void packageTest() throw(os::smart_ptr<std::exception>)
@@ -187,5 +192,98 @@ using namespace test;
 		findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
 		pushTest(os::smart_ptr<singleTest>(new publicKeyFileSaveTest(pkg->bindKeys(n,d)),os::shared_type));
 	}
+
+/*------------------------------------------------------------
+    EXML File Tests
+ ------------------------------------------------------------*/
+
+    //Build an XML tree
+    static os::smartXMLNode generateReferenceTree()
+    {
+        os::smartXMLNode head(new os::XML_Node("testFile"),os::shared_type);
+        return head;
+    }
+
+    //EXML file save, raw password
+    exmlFileSaveTest::exmlFileSaveTest(os::smart_ptr<crypto::streamPackageFrame> spf):
+        singleTest(spf->streamAlgorithmName()+", "+spf->hashAlgorithmName()+"("+std::to_string(spf->hashSize()*8)+"): EXML File")
+    {
+        streamPackage=spf;
+    }
+    //Run test
+    void exmlFileSaveTest::test() throw(os::smart_ptr<std::exception>)
+    {
+        std::string locString = "cryptoFileTest.cpp, exmlFileSaveTest::test()";
+        
+        os::smartXMLNode xmn=generateReferenceTree();
+        if(!crypto::EXML_Output("test.xml",xmn,"password",streamPackage))
+            throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+    }
+
+    //EXML file save, public key
+    exmlPublicKeySaveTest::exmlPublicKeySaveTest(os::smart_ptr<crypto::publicKey> pbk):
+        singleTest(pbk->algorithmName()+" "+std::to_string(32*pbk->size())+" bit: EXML File")
+    {
+        pubkey=pbk;
+    }
+    //Run test
+    void exmlPublicKeySaveTest::test() throw(os::smart_ptr<std::exception>)
+    {
+        
+    }
+
+/*------------------------------------------------------------
+    EXML File Test Driver
+ ------------------------------------------------------------*/
+
+    cryptoEXMLTestSuite::cryptoEXMLTestSuite():
+        testSuite("EXML Saving")
+    {
+        pushTestPackage(streamPackageTypeBank::singleton()->findStream(algo::streamRC4,algo::hashRC4));
+        pushTestPackage(publicKeyTypeBank::singleton()->findPublicKey(crypto::algo::publicRSA));
+    }
+    //Attempt to push packages to test
+    void cryptoEXMLTestSuite::pushTestPackage(os::smart_ptr<streamPackageFrame> spf)
+    {
+        if(!spf) return;
+        os::smart_ptr<streamPackageFrame> sp=spf->getCopy();
+        sp->setHashSize(size::hash64);
+        pushTest(os::smart_ptr<singleTest>(new exmlFileSaveTest(sp),os::shared_type));
+    
+        sp=spf->getCopy();
+        sp->setHashSize(size::hash128);
+        pushTest(os::smart_ptr<singleTest>(new exmlFileSaveTest(sp),os::shared_type));
+    
+        sp=spf->getCopy();
+        sp->setHashSize(size::hash256);
+        pushTest(os::smart_ptr<singleTest>(new exmlFileSaveTest(sp),os::shared_type));
+    
+        sp=spf->getCopy();
+        sp->setHashSize(size::hash512);
+        pushTest(os::smart_ptr<singleTest>(new exmlFileSaveTest(sp),os::shared_type));
+    }
+    //Attempt to push a package to test by public ID
+    void cryptoEXMLTestSuite::pushTestPackage(os::smart_ptr<publicKeyPackageFrame> pkg)
+    {
+        uint32_t *n,*d;
+        if(!pkg) return;
+        pkg=pkg->getCopy();
+    
+        pkg->setKeySize(size::public256);
+        findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+        pushTest(os::smart_ptr<singleTest>(new exmlPublicKeySaveTest(pkg->bindKeys(n,d)),os::shared_type));
+    
+        pkg->setKeySize(size::public512);
+        findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+        pushTest(os::smart_ptr<singleTest>(new exmlPublicKeySaveTest(pkg->bindKeys(n,d)),os::shared_type));
+    
+        pkg->setKeySize(size::public1024);
+        findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+        pushTest(os::smart_ptr<singleTest>(new exmlPublicKeySaveTest(pkg->bindKeys(n,d)),os::shared_type));
+    
+        pkg->setKeySize(size::public2048);
+        findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+        pushTest(os::smart_ptr<singleTest>(new exmlPublicKeySaveTest(pkg->bindKeys(n,d)),os::shared_type));
+    }
 
 #endif

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/24/2016
+//Certified working 1/26/2016
 
 #ifndef CRYPTO_FILE_TEST_H
 #define CRYPTO_FILE_TEST_H
@@ -42,6 +42,38 @@ namespace test {
 		void pushTestPackage(os::smart_ptr<crypto::streamPackageFrame> spf);
 		void pushTestPackage(os::smart_ptr<crypto::publicKeyPackageFrame> pkg);
 	};
+
+    //Tests EXML file saving
+    class exmlFileSaveTest:public singleTest
+    {
+        os::smart_ptr<crypto::streamPackageFrame> streamPackage;
+    public:
+        exmlFileSaveTest(os::smart_ptr<crypto::streamPackageFrame> spf);
+        virtual ~exmlFileSaveTest(){}
+        
+        void test() throw(os::smart_ptr<std::exception>);
+    };
+    //Tests EXML file saving, public key
+    class exmlPublicKeySaveTest:public singleTest
+    {
+        os::smart_ptr<crypto::publicKey> pubkey;
+    public:
+        exmlPublicKeySaveTest(os::smart_ptr<crypto::publicKey> pbk);
+        virtual ~exmlPublicKeySaveTest(){}
+        
+        void test() throw(os::smart_ptr<std::exception>);
+    };
+    
+    //EXML File Test
+    class cryptoEXMLTestSuite:public testSuite
+    {
+    public:
+        cryptoEXMLTestSuite();
+        virtual ~cryptoEXMLTestSuite(){}
+        
+        void pushTestPackage(os::smart_ptr<crypto::streamPackageFrame> spf);
+        void pushTestPackage(os::smart_ptr<crypto::publicKeyPackageFrame> pkg);
+    };
 }
 
 #endif
