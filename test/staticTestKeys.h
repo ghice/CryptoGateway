@@ -1,3 +1,11 @@
+/**
+ * @file   staticTestKeys.h
+ * @author None
+ * @brief  Auto-generated
+ * @bug None
+ **/
+
+///@cond INTERNAL
 #ifndef STATICTESTKEYS_H
 #define STATICTESTKEYS_H
 
@@ -55,3 +63,4 @@ namespace crypto
 };
 
 #endif
+///@endcond

@@ -1,3 +1,11 @@
+/**
+ * @file   staticTestKeys.cpp
+ * @author None
+ * @brief  Auto-generated
+ * @bug None
+ **/
+
+///@cond INTERNAL
 #ifndef STATICTESTKEYS_CPP
 #define STATICTESTKEYS_CPP
 
@@ -111,3 +119,4 @@ namespace crypto
 };
 
 #endif
+///@endcond

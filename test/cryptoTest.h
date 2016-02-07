@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/7/2016
+/**
+ * @file   cryptoTest.h
+ * @author Jonathan Bedard
+ * @date   2/6/2016
+ * @brief  CryptoGateway library test header
+ * @bug No known bugs.
+ *
+ * Contains declarations need to bind
+ * the CryptoGateway test library to
+ * the unit test driver.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef CRYPTO_TEST_H
 #define CRYPTO_TEST_H
@@ -33,3 +45,5 @@ namespace test
 }
 
 #endif
+
+///@endcond
