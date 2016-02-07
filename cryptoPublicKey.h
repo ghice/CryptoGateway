@@ -1,5 +1,16 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/24/2016
+/**
+ * @file   cryptoPublicKey.h
+ * @author Jonathan Bedard
+ * @date   2/6/2016
+ * @brief  Generalized and RSA public keys
+ * @bug No known bugs.
+ *
+ * Contains declarations of the generalized
+ * public key and the RSA public key.  These
+ * classes can both encrypt and decrypt
+ * public keys.
+ *
+ */
 
 #ifndef CRYPTO_PUBLIC_KEY_H
 #define CRYPTO_PUBLIC_KEY_H
@@ -30,9 +41,13 @@ namespace crypto
         os::unsortedList<number> oldN;
         os::unsortedList<number> oldD;
         
-		virtual os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
-		virtual os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
-		os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
+        virtual os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
+        virtual os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+        virtual os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
+        
+		static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
+		static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
+		static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
 
 		publicKey(uint16_t sz=size::public512);
         publicKey(const publicKey& ky);
@@ -77,11 +92,14 @@ namespace crypto
 		const std::string& fileName() const {return _fileName;}
 
 		//Encoding and decoding
+        static os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size);
+        static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
+        
 		virtual os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN=NULL) const;
 		void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN=NULL) const;
-		void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
+		virtual void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
 		virtual os::smart_ptr<number> decode(os::smart_ptr<number> code) const;
-		void decode(unsigned char* code, unsigned int codeLength) const;
+        void decode(unsigned char* code, unsigned int codeLength) const;
 
 		bool operator==(const publicKey& cmp) const {return 0==compare(cmp);}
 		bool operator!=(const publicKey& cmp) const {return 0!=compare(cmp);}
@@ -100,8 +118,13 @@ namespace crypto
 		os::smart_ptr<RSAKeyGenerator> keyGen;
         void initE();
     protected:
-        os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
-        os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+        virtual os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
+        virtual os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+        os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
+        
+        static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
+        static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
+        static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
     public:
         publicRSA(uint16_t sz=size::public512);
         publicRSA(publicRSA& ky);
@@ -120,7 +143,12 @@ namespace crypto
 		void generateNewKeys();
         
         //Encoding/Decoding
+        static os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size);
+        static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
+        
         os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN=NULL) const;
+        void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
+        
         os::smart_ptr<number> decode(os::smart_ptr<number> code) const;
     };
 };

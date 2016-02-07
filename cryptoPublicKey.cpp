@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/23/2016
+/**
+ * @file   cryptoPublicKey.cpp
+ * @author Jonathan Bedard
+ * @date   2/6/2016
+ * @brief  Generalized and RSA public key implementation
+ * @bug No known bugs.
+ *
+ * Contains implementation of the generalized
+ * public key and the RSA public key.  Consult
+ * cryptoPublicKey.h for details.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef CRYPTO_PUBLIC_KEY_CPP
 #define CRYPTO_PUBLIC_KEY_CPP
@@ -90,32 +102,43 @@ using namespace crypto;
 		if(_key) delete [] _key;
 	}
 
+    //Static copy/convert
+    os::smart_ptr<number> publicKey::copyConvert(const os::smart_ptr<number> num,uint16_t size)
+    {
+        os::smart_ptr<number> ret(new number(*num),os::shared_type);
+        ret->expand(size*2);
+        return ret;
+    }
+    //Static copy/convert
+    os::smart_ptr<number> publicKey::copyConvert(const uint32_t* arr,uint16_t len,uint16_t size)
+    {
+        os::smart_ptr<number> ret(new number(arr,len),os::shared_type);
+        ret->expand(size*2);
+        return ret;
+    }
+    //Static copy/convert
+    os::smart_ptr<number> publicKey::copyConvert(const unsigned char* arr,unsigned int len,uint16_t size)
+    {
+        uint32_t* dumpArray=new uint32_t[len/4+1];
+        memset(dumpArray,0,4*(len/4+1));
+        memcpy(dumpArray,arr,len);
+        for(unsigned int i=0;i<len/4+1;i++)
+            dumpArray[i]=os::from_comp_mode(dumpArray[i]);
+        os::smart_ptr<number> ret=publicKey::copyConvert(dumpArray,len/4+1,size);
+        delete [] dumpArray;
+        return ret;
+    }
+
+    //Copy convert
+    os::smart_ptr<number> publicKey::copyConvert(const os::smart_ptr<number> num) const
+    {return publicKey::copyConvert(num,_size);}
 	//Copy convert
-	os::smart_ptr<number> publicKey::copyConvert(const os::smart_ptr<number> num) const
-	{
-		os::smart_ptr<number> ret(new number(*num),os::shared_type);
-		ret->expand(_size*2);
-		return ret;
-	}
-	//Copy convert
-	os::smart_ptr<number> publicKey::copyConvert(const uint32_t* arr,uint16_t len) const
-	{
-		os::smart_ptr<number> ret(new number(arr,len),os::shared_type);
-		ret->expand(_size*2);
-		return ret;
-	}
+    os::smart_ptr<number> publicKey::copyConvert(const uint32_t* arr,uint16_t len) const
+    {return publicKey::copyConvert(arr,len,_size);}
 	//Copy convert for raw byte array
 	os::smart_ptr<number> publicKey::copyConvert(const unsigned char* arr,unsigned int len) const
-	{
-		uint32_t* dumpArray=new uint32_t[len/4+1];
-		memset(dumpArray,0,4*(len/4+1));
-		memcpy(dumpArray,arr,len);
-		for(unsigned int i=0;i<len/4+1;i++)
-			dumpArray[i]=os::from_comp_mode(dumpArray[i]);
-		os::smart_ptr<number> ret=copyConvert(dumpArray,len/4+1);
-		delete [] dumpArray;
-		return ret;
-	}
+    {return publicKey::copyConvert(arr,len,_size);}
+
 	//Compare two public keys
 	int publicKey::compare(const publicKey& cmp) const
 	{
@@ -452,13 +475,26 @@ using namespace crypto;
 
 //Encoding and decoding---------------------------------------
 
+    //Static encode (based on number)
+    os::smart_ptr<number> publicKey::encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size)
+    {
+        if(*code > *publicN)
+            throw errorPointer(new publicKeySizeWrong(), os::shared_type);
+        return code;
+    }
+    //Static raw encode
+    void publicKey::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size)
+    {
+        os::smart_ptr<number> enc=publicKey::encode(publicKey::copyConvert(code,codeLength,size),publicKey::copyConvert(code,codeLength,size),size);
+        for(unsigned int i=0;i<codeLength/4+1;i++)
+            (*enc)[i]=os::to_comp_mode((*enc)[i]);
+        memcpy(code,enc->data(),codeLength);
+    }
 	//Default encode
 	os::smart_ptr<number> publicKey::encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
 	{
 		if(!publicN) publicN=n;
-		if(*code > *publicN)
-            throw errorPointer(new publicKeySizeWrong(), os::shared_type);
-		return code;
+        return publicKey::encode(code,publicN,size());
 	}
 	//Encode with raw data, public key
 	void publicKey::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
@@ -469,8 +505,10 @@ using namespace crypto;
 		memcpy(code,enc->data(),codeLength);
 	}
 	//Encode with raw data
-	void publicKey::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const{encode(code,codeLength,copyConvert(publicN,nLength));}
-	//Default decode
+	void publicKey::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
+    {publicKey::encode(code,codeLength,publicN,nLength,size());}
+
+    //Default decode
 	os::smart_ptr<number> publicKey::decode(os::smart_ptr<number> code) const
 	{
 		if(*code > *n) throw errorPointer(new publicKeySizeWrong(), os::shared_type);
@@ -547,31 +585,74 @@ using namespace crypto;
     {
         e=(integer::one()<<16)+integer::one();
     }
-    //Copy a number and return it
-    os::smart_ptr<number> publicRSA::copyConvert(const os::smart_ptr<number> num) const
+
+    //Static copy/convert
+    os::smart_ptr<number> publicRSA::copyConvert(const os::smart_ptr<number> num,uint16_t size)
     {
         os::smart_ptr<number> ret(new integer(num->data(),num->size()),os::shared_type);
-        ret->expand(size()*2);
+        ret->expand(size*2);
         return ret;
     }
-    //Copy a raw data array and return it
-    os::smart_ptr<number> publicRSA::copyConvert(const uint32_t* arr,uint16_t len) const
+    //Static copy/convert
+    os::smart_ptr<number> publicRSA::copyConvert(const uint32_t* arr,uint16_t len,uint16_t size)
     {
         os::smart_ptr<number> ret(new integer(arr,len),os::shared_type);
-        ret->expand(size()*2);
+        ret->expand(size*2);
         return ret;
+    }
+    //Static copy/convert
+    os::smart_ptr<number> publicRSA::copyConvert(const unsigned char* arr,unsigned int len,uint16_t size)
+    {
+        uint32_t* dumpArray=new uint32_t[len/4+1];
+        memset(dumpArray,0,4*(len/4+1));
+        memcpy(dumpArray,arr,len);
+        for(unsigned int i=0;i<len/4+1;i++)
+            dumpArray[i]=os::from_comp_mode(dumpArray[i]);
+        os::smart_ptr<number> ret=publicRSA::copyConvert(dumpArray,len/4+1,size);
+        delete [] dumpArray;
+        return ret;
+    }
+
+
+    //Copy convert
+    os::smart_ptr<number> publicRSA::copyConvert(const os::smart_ptr<number> num) const
+    {return publicRSA::copyConvert(num,size());}
+    //Copy convert
+    os::smart_ptr<number> publicRSA::copyConvert(const uint32_t* arr,uint16_t len) const
+    {return publicRSA::copyConvert(arr,len,size());}
+    //Copy convert for raw byte array
+    os::smart_ptr<number> publicRSA::copyConvert(const unsigned char* arr,unsigned int len) const
+    {return publicRSA::copyConvert(arr,len,size());}
+
+    //Static encode
+    os::smart_ptr<number> publicRSA::encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size)
+    {
+        if(*code > *publicN)
+            throw errorPointer(new publicKeySizeWrong(), os::shared_type);
+        if(code->typeID()!=numberType::Base10 || publicN->typeID()!=numberType::Base10)
+            throw errorPointer(new illegalAlgorithmBind("Base10"),os::shared_type);
+        integer e((integer::one()<<16)+integer::one());
+        return os::smart_ptr<number>(new integer(os::cast<integer,number>(code)->moduloExponentiation(e, *os::cast<integer,number>(publicN))),os::shared_type);
+    }
+    //Static raw encode
+    void publicRSA::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size)
+    {
+        os::smart_ptr<number> enc=publicRSA::encode(publicRSA::copyConvert(code,codeLength,size),publicRSA::copyConvert(code,codeLength,size),size);
+        for(unsigned int i=0;i<codeLength/4+1;i++)
+            (*enc)[i]=os::to_comp_mode((*enc)[i]);
+        memcpy(code,enc->data(),codeLength);
     }
 
     //Encode key
     os::smart_ptr<number> publicRSA::encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
     {
         if(!publicN) publicN=n;
-        if(code->typeID()!=numberType::Base10 || publicN->typeID()!=numberType::Base10)
-            throw errorPointer(new illegalAlgorithmBind("Base10"),os::shared_type);
-        
-        publicKey::encode(code,publicN);
-        return os::smart_ptr<number>(new integer(os::cast<integer,number>(code)->moduloExponentiation(e, *os::cast<integer,number>(publicN))),os::shared_type);
+        return publicRSA::encode(code,publicN,size());
     }
+    //Raw encode
+    void publicRSA::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
+    {publicRSA::encode(code,codeLength,publicN,nLength,size());}
+
     //Decode key
     os::smart_ptr<number> publicRSA::decode(os::smart_ptr<number> code) const
     {

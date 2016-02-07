@@ -1,5 +1,16 @@
-//Primary author: Jonathan Bedard
-//Certified working 10/6/2015
+/**
+ * @file   public_key.h
+ * @author Jonathan Bedard
+ * @date   2/6/2016
+ * @brief  Old RSA declaration
+ * @bug No known bugs.
+ *
+ * Old RSA declaration, phased
+ * out by cryptoPublicKey.h.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef PUBLIC_KEY_H
 #define PUBLIC_KEY_H
@@ -62,3 +73,5 @@ public:
 }
 
 #endif
+
+///@endcond

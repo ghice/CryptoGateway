@@ -1,5 +1,16 @@
-//Primary author: Jonathan Bedard
-//Certified working 1/9/2016
+/**
+ * @file   public_key.cpp
+ * @author Jonathan Bedard
+ * @date   2/6/2016
+ * @brief  Old RSA implementation
+ * @bug No known bugs.
+ *
+ * Old RSA implementation, phased
+ * out by cryptoPublicKey.h.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef PUBLIC_KEY_CPP
 #define PUBLIC_KEY_CPP
@@ -998,3 +1009,5 @@ char* public_key_base::old_decode(char* code, const int code_len) const
 }
 
 #endif
+
+///@endcond

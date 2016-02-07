@@ -24,6 +24,32 @@ namespace crypto {
         
         //Output header
         fileout<<"<?exml version=\"1.0\" encoding=\"UTF-8\"?>"<<std::endl;
+        os::smartXMLNode encryHead(new os::XML_Node("header"),os::shared_type);
+        
+        //Public key type
+        os::smartXMLNode trc1(new os::XML_Node("public_key"),os::shared_type);
+        os::smartXMLNode trc2;
+        trc1->setData("none");
+        encryHead->addElement(trc1);
+        
+        //Stream
+        trc1=os::smartXMLNode(new os::XML_Node("stream"),os::shared_type);
+        trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+        trc2->setData(spf->streamAlgorithmName());
+        trc1->addElement(trc2);
+        encryHead->addElement(trc1);
+        
+        //Hash
+        trc1=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
+        trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+        trc2->setData(spf->hashAlgorithmName());
+        trc1->addElement(trc2);
+        trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+        trc2->setData(std::to_string(spf->hashSize()*8));
+        trc1->addElement(trc2);
+        encryHead->addElement(trc1);
+        
+        os::xml::writeNode(fileout,encryHead,0);
         
         return true;
     }
@@ -42,6 +68,36 @@ namespace crypto {
         
         //Output header
         fileout<<"<?exml version=\"1.0\" encoding=\"UTF-8\"?>"<<std::endl;
+        os::smartXMLNode encryHead(new os::XML_Node("header"),os::shared_type);
+        
+        //Public key type
+        os::smartXMLNode trc1(new os::XML_Node("public_key"),os::shared_type);
+        os::smartXMLNode trc2(new os::XML_Node("algo"),os::shared_type);
+        trc2->setData(pbk->algorithmName());
+        trc1->addElement(trc2);
+        trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+        trc2->setData(std::to_string(pbk->size()*32));
+        trc1->addElement(trc2);
+        encryHead->addElement(trc1);
+        
+        //Stream
+        trc1=os::smartXMLNode(new os::XML_Node("stream"),os::shared_type);
+        trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+        trc2->setData(spf->streamAlgorithmName());
+        trc1->addElement(trc2);
+        encryHead->addElement(trc1);
+        
+        //Hash
+        trc1=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
+        trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+        trc2->setData(spf->hashAlgorithmName());
+        trc1->addElement(trc2);
+        trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+        trc2->setData(std::to_string(spf->hashSize()*8));
+        trc1->addElement(trc2);
+        encryHead->addElement(trc1);
+        
+        os::xml::writeNode(fileout,encryHead,0);
         
         return true;
     }

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/26/2016
+//Certified working 2/6/2016
 
 #ifndef CRYPTO_FILE_TEST_CPP
 #define CRYPTO_FILE_TEST_CPP
@@ -229,7 +229,11 @@ using namespace test;
     //Run test
     void exmlPublicKeySaveTest::test() throw(os::smart_ptr<std::exception>)
     {
+        std::string locString = "cryptoFileTest.cpp, exmlFileSaveTest::test()";
         
+        os::smartXMLNode xmn=generateReferenceTree();
+        if(!crypto::EXML_Output("pubtest.xml",xmn,pubkey))
+            throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
     }
 
 /*------------------------------------------------------------

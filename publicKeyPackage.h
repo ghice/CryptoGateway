@@ -18,9 +18,15 @@ namespace crypto {
         
         virtual os::smart_ptr<publicKeyPackageFrame> getCopy() const {return NULL;}
         
+        virtual os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
+        {return publicKey::encode(code,publicN,_publicSize);}
+        virtual void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
+        {publicKey::encode(code,codeLength,publicN,nLength,_publicSize);}
+        
         virtual os::smart_ptr<publicKey> generate() const {return NULL;}
         virtual os::smart_ptr<publicKey> bindKeys(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d) const {return NULL;}
         virtual os::smart_ptr<publicKey> bindKeys(uint32_t* _n,uint32_t* _d) const {return NULL;}
+        
         virtual os::smart_ptr<publicKey> openFile(std::string fileName,std::string password) const {return NULL;}
         virtual os::smart_ptr<publicKey> openFile(std::string fileName,unsigned char* key,unsigned int keyLen) const {return NULL;}
         
@@ -39,7 +45,12 @@ namespace crypto {
 		publicKeyPackage(uint16_t publicSize=size::public512):publicKeyPackageFrame(publicSize){}
         virtual ~publicKeyPackage(){}
         os::smart_ptr<publicKeyPackageFrame> getCopy() const {return os::smart_ptr<publicKeyPackageFrame>(new publicKeyPackage<pkType>(_publicSize),os::shared_type);}
-	
+        
+        os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
+        {return pkType::encode(code,publicN,_publicSize);}
+        void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
+        {pkType::encode(code,codeLength,publicN,nLength,_publicSize);}
+
 		os::smart_ptr<publicKey> generate() const {return os::smart_ptr<publicKey>(new pkType(_publicSize),os::shared_type);}
         os::smart_ptr<publicKey> bindKeys(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d) const {return os::smart_ptr<publicKey>(new pkType(_n,_d,_publicSize),os::shared_type);}
         os::smart_ptr<publicKey> bindKeys(uint32_t* _n,uint32_t* _d) const {return os::smart_ptr<publicKey>(new pkType(_n,_d,_publicSize),os::shared_type);}
