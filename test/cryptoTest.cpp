@@ -1,7 +1,7 @@
 /**
  * @file   cryptoTest.cpp
  * @author Jonathan Bedard
- * @date   2/6/2016
+ * @date   2/10/2016
  * @brief  CryptoGateway library test constructor
  * @bug No known bugs.
  *

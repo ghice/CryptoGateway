@@ -1,11 +1,12 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/20/2016
+//Confirmed working: 2/9/2016
 
 #ifndef CRYPTO_NUMBER_CPP
 #define CRYPTO_NUMBER_CPP
 
 #include "cryptoLogging.h"
 #include "cryptoNumber.h"
+#include "osMechanics.h"
 
 using namespace crypto;
 
@@ -104,6 +105,41 @@ using namespace crypto;
         _data =temp;
         _size = size;
     }
+
+//Get Data-------------------------------------------------------
+
+	//Return the raw byte data for the number
+	os::smart_ptr<unsigned char> number::getCharData(unsigned int& arr_len) const
+	{
+		uint32_t targ_size = _size;
+        for(targ_size=_size-1;targ_size>0 && _data[targ_size]==0;targ_size--){}
+        
+        targ_size++;
+        
+		arr_len=targ_size*4;
+		os::smart_ptr<unsigned char> ret(new unsigned char[arr_len],os::shared_type_array);
+        memcpy(ret.get(), _data, arr_len);
+		return ret;
+	}
+	//Return a compatibility version of the raw byte data
+	os::smart_ptr<unsigned char> number::getCompCharData(unsigned int& arr_len) const
+	{
+		uint32_t targ_size = _size;
+        for(targ_size=_size-1;targ_size>0 && _data[targ_size]==0;targ_size--){}
+        
+        targ_size++;
+        
+		arr_len=targ_size*4;
+		os::smart_ptr<unsigned char> ret(new unsigned char[arr_len],os::shared_type_array);
+		memset(ret.get(), 0, arr_len);
+		for(unsigned int i=0;i<_size;i++)
+		{
+			uint32_t swtc=os::to_comp_mode(_data[i]);
+			memcpy(ret.get()+i*4,&swtc,4);
+		}
+
+		return ret;
+	}
 
 //To and from string---------------------------------------------
 

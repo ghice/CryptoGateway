@@ -3,8 +3,8 @@
 
 //The implementation stream ciphers
 
-#ifndef RC4_CPP
-#define RC4_CPP
+#ifndef STREAM_CIPHER_CPP
+#define STREAM_CIPHER_CPP
 
 #include "cryptoConstants.h"
 #include "cryptoLogging.h"

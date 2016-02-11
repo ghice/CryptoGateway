@@ -6,6 +6,7 @@
 
 #include "Datastructures.h"
 #include "cryptoConstants.h"
+#include "cryptoNumber.h"
 
 #include <stdint.h>
 

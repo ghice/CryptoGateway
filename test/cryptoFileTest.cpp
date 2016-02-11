@@ -200,8 +200,42 @@ using namespace test;
     //Build an XML tree
     static os::smartXMLNode generateReferenceTree()
     {
-        os::smartXMLNode head(new os::XML_Node("testFile"),os::shared_type);
-        return head;
+        os::smartXMLNode ret(new os::XML_Node("testTree"),os::shared_type);
+		os::smartXMLNode temp1(new os::XML_Node("cake"),os::shared_type);
+		os::smartXMLNode temp2;
+
+		//List of cake
+		temp2=os::smartXMLNode(new os::XML_Node("flavor"),os::shared_type);
+		temp2->setData("chocolate");
+		temp1->addElement(temp2);
+
+		temp2=os::smartXMLNode(new os::XML_Node("gluten"),os::shared_type);
+		temp2->setData("yes");
+		temp1->addElement(temp2);
+
+		temp2=os::smartXMLNode(new os::XML_Node("dairy"),os::shared_type);
+		temp2->setData("yes");
+		temp1->addElement(temp2);
+		ret->addElement(temp1);
+
+		//List of pancake
+		temp1=os::smartXMLNode(new os::XML_Node("pancake"),os::shared_type);
+		
+
+		temp2=os::smartXMLNode(new os::XML_Node("buttermilk"),os::shared_type);
+		temp2->setData("yes");
+		temp1->addElement(temp2);
+
+		temp2=os::smartXMLNode(new os::XML_Node("gluten"),os::shared_type);
+		temp2->setData("no");
+		temp1->addElement(temp2);
+
+		temp2=os::smartXMLNode(new os::XML_Node("dairy"),os::shared_type);
+		temp2->setData("yes");
+		temp1->addElement(temp2);
+		ret->addElement(temp1);
+
+		return ret;
     }
 
     //EXML file save, raw password
@@ -215,9 +249,35 @@ using namespace test;
     {
         std::string locString = "cryptoFileTest.cpp, exmlFileSaveTest::test()";
         
-        os::smartXMLNode xmn=generateReferenceTree();
-        if(!crypto::EXML_Output("test.xml",xmn,"password",streamPackage))
-            throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+		try
+		{
+			os::smartXMLNode xmn=generateReferenceTree();
+			if(!crypto::EXML_Output("testFile.xml",xmn,"password",streamPackage))
+				throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+
+			os::smartXMLNode xmlParse=crypto::EXML_Input("testFile.xml","password");
+			if(!xmlParse)
+				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure",locString),os::shared_type);
+
+			if(!os::xml::compareTrees(xmn,xmlParse))
+				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("testFile.xml");
+			throw e;
+		}
+		catch(errorPointer e)
+		{
+			os::delete_file("pubTest.xml");
+			throw os::cast<std::exception,crypto::error>(e);
+		}
+		catch(...)
+		{
+			os::delete_file("testFile.xml");
+			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type); 
+		}
+		os::delete_file("testFile.xml");
     }
 
     //EXML file save, public key
@@ -231,9 +291,35 @@ using namespace test;
     {
         std::string locString = "cryptoFileTest.cpp, exmlFileSaveTest::test()";
         
-        os::smartXMLNode xmn=generateReferenceTree();
-        if(!crypto::EXML_Output("pubtest.xml",xmn,pubkey))
-            throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+		try
+		{
+			os::smartXMLNode xmn=generateReferenceTree();
+			if(!crypto::EXML_Output("pubTest.xml",xmn,pubkey))
+				throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+
+			os::smartXMLNode xmlParse=crypto::EXML_Input("pubTest.xml",pubkey);
+			if(!xmlParse)
+				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure",locString),os::shared_type);
+
+			if(!os::xml::compareTrees(xmn,xmlParse))
+				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("pubTest.xml");
+			throw e;
+		}
+		catch(errorPointer e)
+		{
+			os::delete_file("pubTest.xml");
+			throw os::cast<std::exception,crypto::error>(e);
+		}
+		catch(...)
+		{
+			os::delete_file("pubTest.xml");
+			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type); 
+		}
+		os::delete_file("pubTest.xml");
     }
 
 /*------------------------------------------------------------

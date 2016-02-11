@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/20/2016
+//Confirmed working: 2/9/2016
 
 #ifndef CRYPTO_NUMBER_H
 #define CRYPTO_NUMBER_H
@@ -36,6 +36,10 @@ namespace crypto
         void reduce();
         void expand(uint16_t size);
         
+		//Get Data
+		os::smart_ptr<unsigned char> getCharData(unsigned int& arr_len) const;
+		os::smart_ptr<unsigned char> getCompCharData(unsigned int& arr_len) const;
+
         //To and from string
         std::string toString() const;
         void fromString(const std::string& str);

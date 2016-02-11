@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/20/2016
+//Certified working 2/10/2016
 
 #ifndef CRYPTO_ERROR_H
 #define CRYPTO_ERROR_H
@@ -81,6 +81,12 @@ namespace crypto {
 		std::string errorTitle() const {return "File Open Error";}
 		std::string errorDescription() const {return "Cannot open the specified file";}
 	};
+	class fileFormatError: public error
+	{
+	public:
+		std::string errorTitle() const {return "File Format Error";}
+		std::string errorDescription() const {return "The file is not of the specified format, and an error resulted";}
+	};
 	class illegalAlgorithmBind: public error
 	{
 		std::string algorithmName;
@@ -94,6 +100,12 @@ namespace crypto {
 	public:
 		std::string errorTitle() const {return "Hash Compare";}
 		std::string errorDescription() const {return "Provided and calculated hashes do not match";}
+	};
+	class hashGenerationError: public error
+	{
+	public:
+		std::string errorTitle() const {return "Hash Generation";}
+		std::string errorDescription() const {return "Could not generate a hash with the given arguments";}
 	};
 
 	class actionOnFileError: public error
@@ -115,7 +127,19 @@ namespace crypto {
 		std::string errorTitle() const {return "Public Key Size Wrong";}
 		std::string errorDescription() const {return "Attempted to use a code or n of impropper size";}
 	};
-	
+	class NULLDataError: public error
+	{
+	public:
+		std::string errorTitle() const {return "NULL Data";}
+		std::string errorDescription() const {return "A function was passed NULL data where this is illegal";}
+	};
+	class unknownErrorType: public error
+	{
+	public:
+		std::string errorTitle() const {return "Unknown Error Type";}
+		std::string errorDescription() const {return "Caught some exception, but the type is unknown";}
+	};
+
 	//Error Listener
 	class errorSender;
 	class errorListener: public virtual os::ptrComp

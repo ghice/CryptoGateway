@@ -14,8 +14,8 @@ namespace crypto {
     bool EXML_Output(std::string path, os::smartXMLNode head, os::smart_ptr<publicKey> pbk, os::smart_ptr<streamPackageFrame> spf=NULL);
     
     //XML decryption input
-    os::smartXMLNode EXML_Input(std::string path, std::string password, os::smart_ptr<streamPackageFrame> spf=NULL);
-    os::smartXMLNode EXML_Input(std::string path, os::smart_ptr<publicKey> pbk, os::smart_ptr<streamPackageFrame> spf=NULL);
+    os::smartXMLNode EXML_Input(std::string path, std::string password);
+    os::smartXMLNode EXML_Input(std::string path, os::smart_ptr<publicKey> pbk);
 }
 
 #endif

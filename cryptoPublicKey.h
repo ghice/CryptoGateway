@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   2/6/2016
+ * @date   2/7/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -40,14 +40,6 @@ namespace crypto
         
         os::unsortedList<number> oldN;
         os::unsortedList<number> oldD;
-        
-        virtual os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
-        virtual os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
-        virtual os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
-        
-		static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
-		static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
-		static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
 
 		publicKey(uint16_t sz=size::public512);
         publicKey(const publicKey& ky);
@@ -63,6 +55,14 @@ namespace crypto
         void pushOldKeys(os::smart_ptr<number> n, os::smart_ptr<number> d);
     public:
 		virtual ~publicKey();
+
+		virtual os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
+        virtual os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+        virtual os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
+        
+		static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
+		static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
+		static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
 
 		os::smart_ptr<number> getN() const;
 		os::smart_ptr<number> getD() const;
@@ -117,14 +117,6 @@ namespace crypto
         integer e;
 		os::smart_ptr<RSAKeyGenerator> keyGen;
         void initE();
-    protected:
-        virtual os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
-        virtual os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
-        os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
-        
-        static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
-        static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
-        static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
     public:
         publicRSA(uint16_t sz=size::public512);
         publicRSA(publicRSA& ky);
@@ -134,6 +126,14 @@ namespace crypto
         publicRSA(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
         
         virtual ~publicRSA(){}
+
+		os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
+        os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+        os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
+        
+        static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
+        static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
+        static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
         
 		inline static uint16_t staticAlgorithm() {return algo::publicRSA;}
         inline static std::string staticAlgorithmName() {return "RSA";}
