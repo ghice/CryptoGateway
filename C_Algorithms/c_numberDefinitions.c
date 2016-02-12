@@ -1,5 +1,19 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 12/8/2015
+/**
+ * @file   C_Algorithms/c_numberDefinitions.c
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Implementation of basic number
+ * @bug No known bugs.
+ *
+ * Most numerical operations must be
+ * defined by the specific number type,
+ * but a select few are generally applicable
+ * across all number types, these are
+ * implemented here.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef C_NUMBER_DEFINITIONS_C
 #define C_NUMBER_DEFINITIONS_C
@@ -139,3 +153,5 @@ extern "C" {
 #endif
 
 #endif
+
+///@endcond

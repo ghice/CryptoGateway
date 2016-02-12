@@ -1,5 +1,18 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 12/15/2015
+/**
+ * @file   C_Algorithms/c_BaseTen.c
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Implementation of base-10 algorithms
+ * @bug No known bugs.
+ *
+ * This file implements all of the basic
+ * functionality of a base-10 integer.  All
+ * integer operations, both basic and otherwise,
+ * are implemented in this file.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef C_BASE_TEN_C
 #define C_BASE_TEN_C
@@ -616,3 +629,5 @@ extern "C" {
 #endif
 
 #endif
+
+///@endcond
