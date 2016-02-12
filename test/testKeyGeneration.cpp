@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/24/2016
+/**
+ * @file   test/testKeyGeneration.h
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Implementation of test key binding
+ * @bug No known bugs.
+ *
+ * Implements the binding of the static
+ * test keys to arrays in memory.  Consult
+ * testKeyGeneration.h for details.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef TEST_KEY_GENERATION_CPP
 #define TEST_KEY_GENERATION_CPP
@@ -74,3 +86,5 @@ namespace test
 };
 
 #endif
+
+///@endcond

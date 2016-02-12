@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Certified working 1/26/2016
+/**
+ * @file   test/hashTest.h
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Header for hash testing
+ * @bug No known bugs.
+ *
+ * This file contains a number of template
+ * classes used to confirm the functionality
+ * of cryptographic hash algorithms.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef HASH_TEST_H
 #define HASH_TEST_H
@@ -239,3 +251,5 @@ namespace test {
 }
 
 #endif
+
+///@endcond

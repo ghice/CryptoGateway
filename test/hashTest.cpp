@@ -1,5 +1,18 @@
-//Primary author: Jonathan Bedard
-//Certified working 1/15/2016
+/**
+ * @file   test/hashTest.cpp
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Implementation for hash tests
+ * @bug No known bugs.
+ *
+ * This file contains algorithm-specific
+ * cryptographic hash testing.  These tests
+ * confirm that the respective hash algorithms
+ * are outputting their expected value.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef HASH_TEST_CPP
 #define HASH_TEST_CPP
@@ -65,3 +78,5 @@ using namespace test;
     }
 
 #endif
+
+///@endcond

@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Certified working 1/19/2016
+/**
+ * @file   test/streamTest.h
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Header for stream testing
+ * @bug No known bugs.
+ *
+ * This file contains a number of template
+ * classes used to confirm the functionality
+ * of cryptographic stream objects.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef STREAM_TEST_H
 #define STREAM_TEST_H
@@ -186,3 +198,5 @@ namespace test {
 }
 
 #endif
+
+///@endcond

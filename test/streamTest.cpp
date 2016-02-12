@@ -1,5 +1,18 @@
-//Primary author: Jonathan Bedard
-//Certified working 1/15/2016
+/**
+ * @file   test/streamTest.cpp
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Implementation for stream tests
+ * @bug No known bugs.
+ *
+ * This file contains algorithm-specific
+ * cryptographic stream testing.  These tests
+ * confirm that the respective stream algorithms
+ * are outputting their expected value.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef STREAM_TEST_CPP
 #define STREAM_TEST_CPP
@@ -43,3 +56,5 @@ using namespace test;
 	}
 
 #endif
+
+///@endcond

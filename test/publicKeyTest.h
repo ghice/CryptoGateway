@@ -1,5 +1,19 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/23/2015
+/**
+ * @file   test/publicKeyTest.h
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Public Key tests
+ * @bug No known bugs.
+ *
+ * Since the public key tests are defined by
+ * very simple tests, the template testing classes
+ * contained in this file are also defined in this
+ * file.  There is no .cpp file paired with this
+ * particular header.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef PUBLIC_KEY_TEST_H
 #define PUBLIC_KEY_TEST_H
@@ -175,3 +189,5 @@ namespace test
 }
 
 #endif
+
+///@endcond

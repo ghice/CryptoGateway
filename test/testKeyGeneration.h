@@ -1,5 +1,19 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/24/2016
+/**
+ * @file   test/testKeyGeneration.h
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Binds generated testing keys
+ * @bug No known bugs.
+ *
+ * Provides access to the keys generated
+ * and stored in staticTestKeys.h and
+ * staticTestKeys.cpp.  These keys are
+ * always copied into a raw array of
+ * uint32_t.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef TEST_KEY_GENERATION_H
 #define TEST_KEY_GENERATION_H
@@ -31,3 +45,5 @@ namespace test
 }
 
 #endif
+
+///@endcond
