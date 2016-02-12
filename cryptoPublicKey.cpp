@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   2/6/2016
+ * @date   2/12/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -220,7 +220,6 @@ using namespace crypto;
 		if(history>=oldN.size()) return NULL;
 
 		readLock();
-		oldN.resetTraverse();
 		auto trc=oldN.getFirst();
 		for(unsigned int i=0;i<history&&trc;i++)
 		{
@@ -311,9 +310,6 @@ using namespace crypto;
             readUnlock();
             throw errorPointer(new actionOnFileError(),os::shared_type);
         }
-        
-        oldN.resetTraverse();
-        oldD.resetTraverse();
         
         auto ntrc=oldN.getLast();
         auto dtrc=oldD.getLast();
@@ -541,12 +537,10 @@ using namespace crypto;
         d=copyConvert(ky.d);
         
         //Copy old n
-        ky.oldN.resetTraverse();
         for(auto trc=ky.oldN.getLast();trc;trc=trc->getPrev())
             oldN.insert(trc->getData());
         
         //Copy old d
-        ky.oldD.resetTraverse();
         for(auto trc=ky.oldD.getLast();trc;trc=trc->getPrev())
             oldD.insert(trc->getData());
     }

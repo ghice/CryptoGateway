@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/17/2016
+//Certified working 2/12/2016
 
 #ifndef CRYPTO_ERROR_CPP
 #define CRYPTO_ERROR_CPP
@@ -15,7 +15,6 @@ namespace crypto {
 	//Deletes an error listener
 	errorListener::~errorListener()
 	{
-		senders.resetTraverse();
 		for(auto trc=senders.getFirst();trc;trc=trc->getNext())
 		{
 			trc->getData()->listenerLock.acquire();
@@ -34,7 +33,6 @@ namespace crypto {
 	errorSender::~errorSender()
 	{
 		listenerLock.acquire();
-		errorListen.resetTraverse();
 		for(auto trc=errorListen.getFirst();trc;trc=trc->getNext())
 		{
 			trc->getData()->mtx.acquire();
@@ -76,7 +74,6 @@ namespace crypto {
 		errorLog.insert(elm);
 		if(errorLog.size()>_logLength) errorLog.findDelete(errorLog.getFirst()->getData());
 		
-		errorListen.resetTraverse();
 		for(auto trc=errorListen.getFirst();trc;trc=trc->getNext())
 		{
 			trc->getData()->mtx.acquire();
