@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 11/1/2015
+//Confirmed working: 2/12/2016
 
 #ifndef CRYPTO_FRAMEWORKS_H
 #define CRYPTO_FRAMEWORKS_H
@@ -10,6 +10,7 @@
 #include <string>
 #include <exception>
 #include "smartPointer.h"
+#include "cryptoError.h"
 
 namespace crypto
 {
@@ -42,8 +43,8 @@ namespace crypto
         bool getBit(unsigned int bitLoc) const;
         uint32_t getArrayNumber(unsigned int index) const;
         const int compare(const publicField& comp) const;
-        const uint32_t& operator[](unsigned int index) const throw (os::smart_ptr<std::exception>);
-        uint32_t& operator[](unsigned int index) throw (os::smart_ptr<std::exception>);
+        const uint32_t& operator[](unsigned int index) const throw (errorPointer);
+        uint32_t& operator[](unsigned int index) throw (errorPointer);
         
         //Output
         std::string getHex() const;

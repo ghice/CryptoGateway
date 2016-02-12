@@ -6,7 +6,7 @@
 
 #include "cryptoLogging.h"
 #include "cryptoFrameworks.h"
-#include "cryptoException.h"
+#include "cryptoError.h"
 
 using namespace crypto;
 
@@ -105,17 +105,17 @@ using namespace crypto;
         return 0;
     }
     //Const []
-    const uint32_t& publicField::operator[](unsigned int index) const throw (os::smart_ptr<std::exception>)
+    const uint32_t& publicField::operator[](unsigned int index) const throw (errorPointer)
     {
         if(index>=_fieldSize)
-            throw os::smart_ptr<std::exception>(new cryptoException("Element "+std::to_string(index)+" out of bounds of publicField []"),os::shared_type);
+            throw errorPointer(new customError("Out of bounds","Element "+std::to_string(index)+" out of bounds of publicField []"),os::shared_type);
         return raw_data[index];
     }
     //Modifiable []
-    uint32_t& publicField::operator[](unsigned int index) throw (os::smart_ptr<std::exception>)
+    uint32_t& publicField::operator[](unsigned int index) throw (errorPointer)
     {
         if(index>=_fieldSize)
-            throw os::smart_ptr<std::exception>(new cryptoException("Element "+std::to_string(index)+" out of bounds of publicField []"),os::shared_type);
+            throw errorPointer(new customError("Out of bounds","Element "+std::to_string(index)+" out of bounds of publicField []"),os::shared_type);
         return raw_data[index];
     }
 

@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/9/2016
+/**
+ * @file   test/c_cryptoTesting.cpp
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Implementation for C file testing
+ * @bug No known bugs.
+ *
+ * This file implements test suites which
+ * are testing raw C code.  This file
+ * currently tests the Base-Ten suite.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef C_CRYPTO_TESTING_CPP
 #define C_CRYPTO_TESTING_CPP
@@ -1037,3 +1049,5 @@ using namespace crypto;
     }
 
 #endif
+
+///@endcond

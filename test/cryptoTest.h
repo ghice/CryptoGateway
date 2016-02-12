@@ -1,7 +1,7 @@
 /**
- * @file   cryptoTest.h
+ * @file   test/cryptoTest.h
  * @author Jonathan Bedard
- * @date   2/6/2016
+ * @date   2/12/2016
  * @brief  CryptoGateway library test header
  * @bug No known bugs.
  *
