@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Certified working 2/12/2016
+/**
+ * @file   test/cryptoFileTest.cpp
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Implementation for cryptographic file testing
+ * @bug No known bugs.
+ *
+ * This file implements a series of tests designed
+ * to confirm the stability of cryptographic save file
+ * and load file functions.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef CRYPTO_FILE_TEST_CPP
 #define CRYPTO_FILE_TEST_CPP
@@ -380,3 +392,5 @@ using namespace test;
     }
 
 #endif
+
+///@endcond

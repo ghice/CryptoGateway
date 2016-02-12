@@ -1,5 +1,5 @@
 /**
- * @file   cryptoTest.cpp
+ * @file   test/cryptoTest.cpp
  * @author Jonathan Bedard
  * @date   2/12/2016
  * @brief  CryptoGateway library test constructor

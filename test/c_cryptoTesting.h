@@ -1,13 +1,14 @@
 /**
- * @file   test/cryptoTest.h
+ * @file   test/c_cryptoTesting.h
  * @author Jonathan Bedard
- * @date   2/6/2016
- * @brief  CryptoGateway library test header
+ * @date   2/12/2016
+ * @brief  Header for C file testing
  * @bug No known bugs.
  *
- * Contains declarations need to bind
- * the CryptoGateway test library to
- * the unit test driver.
+ * This header is meant for the test
+ * suites which are testing raw C code.
+ * This header currently contains the
+ * Base-Ten suite.
  *
  */
 

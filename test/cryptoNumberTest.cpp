@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 12/18/2015
+/**
+ * @file   test/cryptoNumberTest.cpp
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Testing crypto::number and crypto::integer
+ * @bug No known bugs.
+ *
+ * This file has a series of tests which confirm
+ * the functionality of crypto::integer and it's
+ * base class, crypto::number.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef CRYPTO_NUMBER_TEST_CPP
 #define CRYPTO_NUMBER_TEST_CPP
@@ -1305,3 +1317,5 @@ using namespace crypto;
     }
 
 #endif
+
+///@endcond

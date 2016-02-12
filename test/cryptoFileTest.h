@@ -1,5 +1,18 @@
-//Primary author: Jonathan Bedard
-//Certified working 1/26/2016
+/**
+ * @file   test/cryptoFileTest.h
+ * @author Jonathan Bedard
+ * @date   2/12/2016
+ * @brief  Header for cryptographic file testing
+ * @bug No known bugs.
+ *
+ * This contains a number of test suites and
+ * supporting classes which are designed to
+ * test the functionality of saving and loading
+ * cryptographic files, both binary and EXML.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef CRYPTO_FILE_TEST_H
 #define CRYPTO_FILE_TEST_H
@@ -77,3 +90,5 @@ namespace test {
 }
 
 #endif
+
+///@endcond
