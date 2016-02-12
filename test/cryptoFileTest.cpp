@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 2/6/2016
+//Certified working 2/12/2016
 
 #ifndef CRYPTO_FILE_TEST_CPP
 #define CRYPTO_FILE_TEST_CPP
@@ -220,7 +220,10 @@ using namespace test;
 
 		//List of pancake
 		temp1=os::smartXMLNode(new os::XML_Node("pancake"),os::shared_type);
-		
+        temp2=os::smartXMLNode(new os::XML_Node("authors"),os::shared_type);
+        temp2->getDataList().push_back("Jonathan Bedard");
+        temp2->getDataList().push_back("Tom Ostrander");
+        temp1->addElement(temp2);
 
 		temp2=os::smartXMLNode(new os::XML_Node("buttermilk"),os::shared_type);
 		temp2->setData("yes");

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 2/10/2016
+//Certified working 2/12/2016
 
 #ifndef XML_ENCRYPTION_CPP
 #define XML_ENCRYPTION_CPP
@@ -111,7 +111,7 @@ namespace crypto {
 					data=os::to_comp_mode(data);
 					memcpy(dataptr.get(),&data,2);
 					memcpy(dataptr.get()+2,head->getDataList()[i].c_str(),head->getDataList()[i].size());
-					for(unsigned int en=0;en<head->getDataList()[i].size();en++)
+					for(unsigned int en=0;en<head->getDataList()[i].size()+2;en++)
 						dataptr[en]=dataptr[en]^strm->getNext();
 					ofs.write((char*)dataptr.get(),head->getDataList()[i].size()+2);
 				}

@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 2/9/2016
+//Confirmed working: 2/12/2016
 
 #ifndef CRYPTO_NUMBER_CPP
 #define CRYPTO_NUMBER_CPP
@@ -118,6 +118,7 @@ using namespace crypto;
         
 		arr_len=targ_size*4;
 		os::smart_ptr<unsigned char> ret(new unsigned char[arr_len],os::shared_type_array);
+        memset(ret.get(), 0, arr_len);
         memcpy(ret.get(), _data, arr_len);
 		return ret;
 	}
@@ -132,7 +133,7 @@ using namespace crypto;
 		arr_len=targ_size*4;
 		os::smart_ptr<unsigned char> ret(new unsigned char[arr_len],os::shared_type_array);
 		memset(ret.get(), 0, arr_len);
-		for(unsigned int i=0;i<_size;i++)
+		for(unsigned int i=0;i<targ_size;i++)
 		{
 			uint32_t swtc=os::to_comp_mode(_data[i]);
 			memcpy(ret.get()+i*4,&swtc,4);
