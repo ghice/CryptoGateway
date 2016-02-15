@@ -40,11 +40,25 @@ namespace crypto {
      */
     class nodeGroup
     {
+        /** @brief Pointer to key bank
+         */
         keyBank* _master;
+        /** @brief List of all names associated with this node
+         */
         os::asyncAVLTree<nodeNameReference> nameList;
+        /** @brief List of all keys associated with this node
+         */
         os::asyncAVLTree<nodeKeyReference> keyList;
     public:
-        
+        /** @brief Node group constructor
+         *
+         * @param [in/out] master Reference to the 'master' group holder
+         * @param [in] groupName Group name of the node being registered
+         * @param [in] name Name of the node being registered
+         * @param [in] key The public key of a given node
+         * @param [in] algoID The algorithm identifier
+         * @param [in] keySize Size of the key provided
+         */
         nodeGroup(keyBank* master,std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize);
         /** @brief Virtual destructor
          *
@@ -55,6 +69,26 @@ namespace crypto {
          */
         virtual ~nodeGroup(){}
         
+        /** @brief Returns first name in the list
+         *
+         * This function returns an alphabetical
+         * order.  Note that it is often the case
+         * that a user needs to sort by timestamp.
+         * This functionality is also provided.
+         *
+         * @return crypto::nodeGroup::nameList.getFirst()
+         */
+        os::smart_ptr<os::adnode<nodeNameReference> > getFirstName() {return nameList.getFirst();}
+        /** @brief Returns first key in the list
+        *
+        * This function returns an alphabetical
+        * order.  Note that it is often the case
+        * that a user needs to sort by timestamp.
+        * This functionality is also provided.
+        *
+        * @return crypto::nodeGroup::keyList.getFirst()
+        */
+        os::smart_ptr<os::adnode<nodeKeyReference> > getFirstKey() {return keyList.getFirst();}
     };
     
     /** @brief Name storage node
@@ -106,6 +140,14 @@ namespace crypto {
          */
         virtual ~nodeNameReference(){}
         
+        /** @brief Returns the group name
+         * @return crypto::nodeNameReference::_groupName
+         */
+        std::string groupName() const {return _groupName;}
+        /** @brief Returns the name
+         * @return crypto::nodeNameReference::_name
+         */
+        std::string name() const {return _name;}
         /** @brief Returns the timestamp
          * @return crypto::nodeNameReference::_timestamp
          */
@@ -197,6 +239,8 @@ namespace crypto {
         *
         * @param [in/out] master Reference to the 'master' group
         * @param [in] key The public key of a given node
+        * @param [in] algoID The algorithm identifier
+        * @param [in] keySize Size of the key provided
         * @param timestamp The time this node was created, 'now' by defult
         */
         nodeKeyReference(nodeGroup* master,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize,uint64_t timestamp=os::getTimestamp());
@@ -210,6 +254,18 @@ namespace crypto {
          */
         virtual ~nodeKeyReference(){}
         
+        /** @brief Returns the key
+         * @return crypto::nodeKeyReference::_key
+         */
+        os::smart_ptr<number> key() const {return _key;}
+        /** @brief Returns the algorithm key
+         * @return crypto::nodeKeyReference::_algoID
+         */
+        uint16_t algoID() const {return _algoID;}
+        /** @brief Returns the key size
+         * @return crypto::nodeKeyReference::_keySize
+         */
+        uint16_t keySize() const {return _keySize;}
         /** @brief Returns the timestamp
          * @return crypto::nodeKeyReference::_timestamp
          */
@@ -275,6 +331,19 @@ namespace crypto {
      */
     class keyBank
     {
+        std::string savePath;
+    protected:
+        
+    public:
+        /** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
+        virtual ~keyBank(){}
+        virtual os::smart_ptr<nodeGroup> pushPair(std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)=0;
     };
     /** @brief AVL key back
      *
