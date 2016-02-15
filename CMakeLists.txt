@@ -42,6 +42,7 @@ SET( SRC_H
 	${CUR_SRC}/hexConversion.h
 
 	${CUR_SRC}/gateway.h
+	${CUR_SRC}/keyBank.h
 )
 
 SET( SRC_CPP
@@ -71,6 +72,7 @@ SET( SRC_CPP
 	${CUR_SRC}/hexConversion.cpp
 
 	${CUR_SRC}/gateway.cpp
+	${CUR_SRC}/keyBank.cpp
 )
 
 ADD_LIBRARY( CryptoGateway STATIC

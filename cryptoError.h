@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 2/10/2016
+//Certified working 2/14/2016
 
 #ifndef CRYPTO_ERROR_H
 #define CRYPTO_ERROR_H
@@ -127,12 +127,24 @@ namespace crypto {
 		std::string errorTitle() const {return "Public Key Size Wrong";}
 		std::string errorDescription() const {return "Attempted to use a code or n of impropper size";}
 	};
+    class NULLPublicKey: public error
+    {
+    public:
+        std::string errorTitle() const {return "Public Key NULL";}
+        std::string errorDescription() const {return "Attempted to bind a public key of illegal type NULL";}
+    };
 	class NULLDataError: public error
 	{
 	public:
 		std::string errorTitle() const {return "NULL Data";}
 		std::string errorDescription() const {return "A function was passed NULL data where this is illegal";}
 	};
+    class NULLMaster: public error
+    {
+    public:
+        std::string errorTitle() const {return "NULL Master pointer";}
+        std::string errorDescription() const {return "A class received a NULL master pointer, this is illegal.";}
+    };
 	class unknownErrorType: public error
 	{
 	public:
