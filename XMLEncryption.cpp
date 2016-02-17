@@ -78,7 +78,7 @@ namespace crypto {
 		}
 
 		for(unsigned int i=0;i<6;i++)
-			headerData[i]^=strm->getNext();
+			headerData[i]=headerData[i]^strm->getNext();
 		ofs.write((char*)headerData,6);
 
 		//Output children
@@ -121,8 +121,10 @@ namespace crypto {
 	//Build an XML tree from an EXML file
 	static os::smartXMLNode recursiveXMLBuilding(os::smart_ptr<streamCipher> strm,std::vector<std::string> args,std::ifstream& ifs)
 	{
-		if(!strm) throw errorPointer(new NULLDataError(),os::shared_type);
-		if(!ifs.good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+		if(!strm)
+			throw errorPointer(new NULLDataError(),os::shared_type);
+		if(!ifs.good())
+			throw errorPointer(new actionOnFileError(),os::shared_type);
 		unsigned char headerData [6];
 
 		ifs.read((char*)headerData,6);
@@ -134,7 +136,8 @@ namespace crypto {
 		//Index
 		memcpy(&data,headerData,2);
 		data=os::from_comp_mode(data);
-		if(data>=args.size()) throw errorPointer(new customError("ID Index out-of-bound","Expected index less than "+std::to_string(args.size())+" but found index "+std::to_string(data)),os::shared_type);
+		if(data>=args.size())
+			throw errorPointer(new customError("ID Index out-of-bound","Expected index less than "+std::to_string(args.size())+" but found index "+std::to_string(data)),os::shared_type);
 		os::smartXMLNode ret(new os::XML_Node(args[data]),os::shared_type);
 
 		//Number of children
@@ -144,7 +147,8 @@ namespace crypto {
 		{
 			for(unsigned int i=0;i<data;i++)
 			{
-				if(!ifs.good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+				if(!ifs.good())
+					throw errorPointer(new actionOnFileError(),os::shared_type);
 				ret->addElement(recursiveXMLBuilding(strm,args,ifs));
 			}
 			return ret;
@@ -156,7 +160,8 @@ namespace crypto {
 		std::vector<std::string> pData;
 		for(unsigned int i=0;i<data;i++)
 		{
-			if(!ifs.good()) throw errorPointer(new actionOnFileError(),os::shared_type);
+			if(!ifs.good())
+				throw errorPointer(new actionOnFileError(),os::shared_type);
 			//Find string length
 			uint16_t strLen;
 
@@ -582,6 +587,7 @@ namespace crypto {
 				unsigned int keylen;
 				os::smart_ptr<unsigned char> raw_key=num->getCompCharData(keylen);
 				if(!raw_key) throw errorPointer(new hashGenerationError(),os::shared_type);
+
 				hash refHash=spf->hashData(raw_key.get(),keylen);
 				hash compHash(refHash);
 				compHash.fromString(trc2->getData());

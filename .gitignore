@@ -1,3 +1,13 @@
+# Ignore LaTeX build files
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.dvi
+doxygenFiles/
+
 # Debug/Release
 Debug/
 Release/
