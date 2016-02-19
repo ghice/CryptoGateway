@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 2/12/2016
+//Certified working 2/18/2016
 
 #ifndef XML_ENCRYPTION_CPP
 #define XML_ENCRYPTION_CPP
@@ -196,7 +196,7 @@ namespace crypto {
 			//Basic checks
 			if(!head) throw errorPointer(new NULLDataError(),os::shared_type);
 			if(os::check_exists(path) && os::is_directory(path)) throw errorPointer(new fileOpenError(),os::shared_type);;
-			std::ofstream fileout(path);
+			std::ofstream fileout(path,std::ios::binary);
 			if(!fileout.good()) throw errorPointer(new fileOpenError(),os::shared_type);
         
 			//Check stream package
@@ -268,7 +268,7 @@ namespace crypto {
 			if(!head) throw errorPointer(new NULLDataError(),os::shared_type);
 			if(os::check_exists(path) && os::is_directory(path)) throw errorPointer(new fileOpenError(),os::shared_type);
 			if(!pbk) throw errorPointer(new NULLDataError(),os::shared_type);
-			std::ofstream fileout(path);
+			std::ofstream fileout(path,std::ios::binary);
 			if(!fileout.good()) throw errorPointer(new fileOpenError(),os::shared_type);
         
 			//Check stream package
@@ -360,7 +360,7 @@ namespace crypto {
 		{
 			//Basic checks
 			if(os::check_exists(path) && os::is_directory(path)) throw errorPointer(new fileOpenError(),os::shared_type);
-			std::ifstream filein(path);
+			std::ifstream filein(path,std::ios::binary);
 			if(!filein.good()) throw errorPointer(new fileOpenError(),os::shared_type);
 
 			//Check header
@@ -477,7 +477,7 @@ namespace crypto {
 			//Basic checks
 			if(os::check_exists(path) && os::is_directory(path)) throw errorPointer(new fileOpenError(),os::shared_type);
 			if(!pbk) throw errorPointer(new NULLDataError(),os::shared_type);
-			std::ifstream filein(path);
+			std::ifstream filein(path,std::ios::binary);
 			if(!filein.good()) throw errorPointer(new fileOpenError(),os::shared_type);
 		
 			//Check header
