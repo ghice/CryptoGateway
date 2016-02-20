@@ -9,7 +9,6 @@ MESSAGE(STATUS )
 MESSAGE(STATUS ========= CryptoGateway ==========)
 MESSAGE(STATUS )
 
-SET(EXE_LIBS ${EXE_LIBS} CryptoGateway)
 SET(CUR_SRC ${GLOBAL_DIR}/CryptoGateway)
 INCLUDE_DIRECTORIES(${CUR_SRC})
 
@@ -79,6 +78,11 @@ ADD_LIBRARY( CryptoGateway STATIC
 	${SRC_CPP}
 	${SRC_H}
 )
+TARGET_LINK_LIBRARIES( CryptoGateway
+	${OS_LIBS}
+	${EXE_LIBS}
+)
+SET(EXE_LIBS ${EXE_LIBS} CryptoGateway)
 INCLUDE(${GLOBAL_DIR}/CryptoGateway/test/CMakeLists.txt)
 
 ENDIF(NOT CRYPTOGATEWAY_CMAKE)

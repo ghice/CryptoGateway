@@ -5,7 +5,6 @@ MESSAGE(STATUS )
 MESSAGE(STATUS --------- Tests --------- )
 MESSAGE(STATUS )
 
-SET(TEST_LIBS ${TEST_LIBS} CryptoGatewayTest)
 SET(CUR_SRC ${GLOBAL_DIR}/CryptoGateway/test)
 INCLUDE_DIRECTORIES(${CUR_SRC})
 
@@ -37,5 +36,10 @@ ADD_LIBRARY( CryptoGatewayTest STATIC
 	${SRC_CPP}
 	${SRC_H}
 )
+TARGET_LINK_LIBRARIES( CryptoGatewayTest
+	${OS_LIBS}
+	${EXE_LIBS}
+)
+SET(TEST_LIBS ${TEST_LIBS} CryptoGatewayTest)
 
 ENDIF(NOT CRYPTOGATEWAY_TEST_CMAKE)
