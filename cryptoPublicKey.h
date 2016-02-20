@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   2/7/2016
+ * @date   2/19/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -109,48 +109,63 @@ namespace crypto
 		bool operator>=(const publicKey& cmp) const {return -1!=compare(cmp);}
 	};
     
-    //RSA
-    class RSAKeyGenerator;
-    class publicRSA: public publicKey
-    {
+	class RSAKeyGenerator;
+	class publicRSA: public publicKey
+	{
 		friend class RSAKeyGenerator;
-        integer e;
+		integer e;
 		os::smart_ptr<RSAKeyGenerator> keyGen;
-        void initE();
-    public:
-        publicRSA(uint16_t sz=size::public512);
-        publicRSA(publicRSA& ky);
-        publicRSA(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d,uint16_t sz=size::public512);
-		publicRSA(uint32_t* _n,uint32_t* _d,uint16_t sz=size::public512);
-        publicRSA(std::string fileName,std::string password="",os::smart_ptr<streamPackageFrame> stream_algo=NULL);
-        publicRSA(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
-        
-        virtual ~publicRSA(){}
+		void initE();
+	public:
+	    publicRSA(uint16_t sz=size::public512);
+	    publicRSA(publicRSA& ky);
+	    publicRSA(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d,uint16_t sz=size::public512);
+		    publicRSA(uint32_t* _n,uint32_t* _d,uint16_t sz=size::public512);
+	    publicRSA(std::string fileName,std::string password="",os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+	    publicRSA(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+	    
+	    virtual ~publicRSA(){}
 
-		os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
-        os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
-        os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
-        
-        static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
-        static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
-        static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
-        
-		inline static uint16_t staticAlgorithm() {return algo::publicRSA;}
-        inline static std::string staticAlgorithmName() {return "RSA";}
-        inline uint16_t algorithm() const {return publicRSA::staticAlgorithm();}
-		inline std::string algorithmName() const {return publicRSA::staticAlgorithmName();}
-        bool generating();
-		void generateNewKeys();
-        
-        //Encoding/Decoding
-        static os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size);
-        static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
-        
-        os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN=NULL) const;
-        void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
-        
-        os::smart_ptr<number> decode(os::smart_ptr<number> code) const;
-    };
+		    os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
+	    os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+	    os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
+	    
+	    static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
+	    static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
+	    static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
+	    
+		    inline static uint16_t staticAlgorithm() {return algo::publicRSA;}
+	    inline static std::string staticAlgorithmName() {return "RSA";}
+	    inline uint16_t algorithm() const {return publicRSA::staticAlgorithm();}
+		    inline std::string algorithmName() const {return publicRSA::staticAlgorithmName();}
+	    bool generating();
+		    void generateNewKeys();
+	    
+	    //Encoding/Decoding
+	    static os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size);
+	    static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
+	    
+	    os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN=NULL) const;
+	    void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
+	    
+	    os::smart_ptr<number> decode(os::smart_ptr<number> code) const;
+	};
+	//RSA Generator
+	class RSAKeyGenerator
+	{
+		publicRSA* master;
+	
+	public:
+		integer p;
+		integer q;
+		
+		RSAKeyGenerator(publicRSA& m);
+		virtual ~RSAKeyGenerator(){}
+		
+		integer generatePrime();
+		void pushValues();
+	};
+  
 };
 
 #endif

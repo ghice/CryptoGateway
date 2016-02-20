@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   2/19/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -660,25 +660,15 @@ using namespace crypto;
     RSA Public Key Generation
  ------------------------------------------------------------*/
 
-	//Requires generating primes twice
-	namespace crypto
-	{
-		//Key generation helper class
-		class RSAKeyGenerator
-		{
-			publicRSA* master;
-		public:
-			integer p;
-			integer q;
 
-			//Basic constructor
-			RSAKeyGenerator(publicRSA& m)
-			{
-				master=&m;
-			}
-			//Generate prime
-			integer generatePrime()
-			{
+	//Basic constructor
+	RSAKeyGenerator::RSAKeyGenerator(publicRSA& m)
+	{
+		master=&m;
+	}
+	//Generate prime
+	integer RSAKeyGenerator::generatePrime()
+	{
 				integer ret(2*master->size());
 				for(unsigned int i=0;i<master->size()/2;i++)
 					ret[i]=((uint32_t) rand())^(((uint32_t)rand())<<16);
@@ -688,27 +678,29 @@ using namespace crypto;
 					ret+=integer::two();
 				return ret;
 			}
-			//Push calculated values
-			void pushValues()
-			{
-				master->writeLock();
-				if(master->n && master->d) master->pushOldKeys(master->n,master->d);
+	//Push calculated values
+	void RSAKeyGenerator::pushValues()
+	{
+		master->writeLock();
+		if(master->n && master->d) master->pushOldKeys(master->n,master->d);
 
-				integer tn=p*q;
-				integer phi = (p-integer::one())*(q-integer::one());
-				phi.expand(2*master->size());
-				integer td = master->e.modInverse(phi);
+		integer tn=p*q;
+		integer phi = (p-integer::one())*(q-integer::one());
+		phi.expand(2*master->size());
+		integer td = master->e.modInverse(phi);
 
-				master->n=os::smart_ptr<number>(new integer(tn),os::shared_type);
-				master->d=os::smart_ptr<number>(new integer(td),os::shared_type);
-				master->n->expand(2*master->size());
-				master->d->expand(2*master->size());
+		master->n=os::smart_ptr<number>(new integer(tn),os::shared_type);
+		master->d=os::smart_ptr<number>(new integer(td),os::shared_type);			master->n->expand(2*master->size());
+		master->d->expand(2*master->size());
                 
                 publicRSA* temp=master;
                 temp->keyGen=NULL;
-				temp->writeUnlock();
-			}
-		};
+		temp->writeUnlock();
+	}
+	
+	//Key generation function
+	namespace crypto
+	{
 		//Basic key generation thread
 		void generateKeys(void* ptr,os::smart_ptr<os::threadHolder> th)
 		{

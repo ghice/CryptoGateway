@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 2/14/2016
+//Certified working 2/19/2016
 
 #ifndef CRYPTO_ERROR_H
 #define CRYPTO_ERROR_H
@@ -18,7 +18,7 @@ namespace crypto {
 		std::string whatString;
 	public:
 		error(){_timestamp=get_timestamp();}
-		virtual ~error() throw(){}
+		virtual ~error() throw() {}
 
 		inline virtual std::string errorTitle() const {return "Error";}
 		inline virtual std::string errorDescription() const {return "No description";}
@@ -38,12 +38,14 @@ namespace crypto {
 	class passwordSmallError: public error
 	{
 	public:
+		virtual ~passwordSmallError() throw() {}
 		inline std::string errorTitle() const {return "Password Size Error";}
 		inline std::string errorDescription() const {return "Password too small";}
 	};
 	class passwordLargeError: public error
 	{
 	public:
+		virtual ~passwordLargeError() throw() {}
 		inline std::string errorTitle() const {return "Password Size Error";}
 		inline std::string errorDescription() const {return "Password too large";}
 	};
@@ -51,12 +53,14 @@ namespace crypto {
 	class bufferSmallError: public error
 	{
 	public:
+		virtual ~bufferSmallError() throw() {}
 		inline std::string errorTitle() const {return "Buffer Size Error";}
 		inline std::string errorDescription() const {return "Buffer too small";}
 	};
 	class bufferLargeError: public error
 	{
 	public:
+		virtual ~bufferLargeError() throw() {}
 		inline std::string errorTitle() const {return "Buffer Size Error";}
 		inline std::string errorDescription() const {return "Buffer too large";}
 	};
@@ -71,6 +75,7 @@ namespace crypto {
 			_name=name;
 			_description=description;
 		}
+		virtual ~customError() throw() {}
 		inline std::string errorTitle() const {return _name;}
 		inline std::string errorDescription() const {return _description;}
 	};
@@ -78,12 +83,14 @@ namespace crypto {
 	class fileOpenError: public error
 	{
 	public:
+		virtual ~fileOpenError() throw() {}
 		std::string errorTitle() const {return "File Open Error";}
 		std::string errorDescription() const {return "Cannot open the specified file";}
 	};
 	class fileFormatError: public error
 	{
 	public:
+		virtual ~fileFormatError() throw() {}
 		std::string errorTitle() const {return "File Format Error";}
 		std::string errorDescription() const {return "The file is not of the specified format, and an error resulted";}
 	};
@@ -91,6 +98,7 @@ namespace crypto {
 	{
 		std::string algorithmName;
 	public:
+		virtual ~illegalAlgorithmBind() throw() {}
 		illegalAlgorithmBind(std::string algoName){algorithmName=algoName;}
 		std::string errorTitle() const {return "Illegal Algorithm Bind";}
 		std::string errorDescription() const {return "Cannot bind algorithm of type: "+algorithmName;}
@@ -98,12 +106,14 @@ namespace crypto {
 	class hashCompareError: public error
 	{
 	public:
+		virtual ~hashCompareError() throw() {}
 		std::string errorTitle() const {return "Hash Compare";}
 		std::string errorDescription() const {return "Provided and calculated hashes do not match";}
 	};
 	class hashGenerationError: public error
 	{
 	public:
+		virtual ~hashGenerationError() throw() {}
 		std::string errorTitle() const {return "Hash Generation";}
 		std::string errorDescription() const {return "Could not generate a hash with the given arguments";}
 	};
@@ -111,12 +121,14 @@ namespace crypto {
 	class actionOnFileError: public error
 	{
 	public:
+		virtual ~actionOnFileError() throw() {}
 		std::string errorTitle() const {return "Action on File Error";}
 		std::string errorDescription() const {return "Cannot preform action on a file in the error state.";}
 	};
 	class actionOnFileClosed: public error
 	{
 	public:
+		virtual ~actionOnFileClosed() throw() {}
 		std::string errorTitle() const {return "Action on File Closed";}
 		std::string errorDescription() const {return "Cannot preform action on a file in the closed state.";}
 	};
@@ -124,30 +136,35 @@ namespace crypto {
 	class publicKeySizeWrong: public error
 	{
 	public:
+		virtual ~publicKeySizeWrong() throw() {}
 		std::string errorTitle() const {return "Public Key Size Wrong";}
 		std::string errorDescription() const {return "Attempted to use a code or n of impropper size";}
 	};
-    class NULLPublicKey: public error
-    {
-    public:
-        std::string errorTitle() const {return "Public Key NULL";}
-        std::string errorDescription() const {return "Attempted to bind a public key of illegal type NULL";}
-    };
+	class NULLPublicKey: public error
+	{
+	public:
+		virtual ~NULLPublicKey() throw() {}
+		std::string errorTitle() const {return "Public Key NULL";}
+		std::string errorDescription() const {return "Attempted to bind a public key of illegal type NULL";}
+	};
 	class NULLDataError: public error
 	{
 	public:
+		virtual ~NULLDataError() throw() {}
 		std::string errorTitle() const {return "NULL Data";}
 		std::string errorDescription() const {return "A function was passed NULL data where this is illegal";}
 	};
-    class NULLMaster: public error
-    {
-    public:
-        std::string errorTitle() const {return "NULL Master pointer";}
-        std::string errorDescription() const {return "A class received a NULL master pointer, this is illegal.";}
-    };
+	class NULLMaster: public error
+	{
+	public:
+		virtual ~NULLMaster() throw() {}
+		std::string errorTitle() const {return "NULL Master pointer";}
+		std::string errorDescription() const {return "A class received a NULL master pointer, this is illegal.";}
+	};
 	class unknownErrorType: public error
 	{
 	public:
+		virtual ~unknownErrorType() throw() {}
 		std::string errorTitle() const {return "Unknown Error Type";}
 		std::string errorDescription() const {return "Caught some exception, but the type is unknown";}
 	};
