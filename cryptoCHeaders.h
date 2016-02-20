@@ -1,5 +1,10 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 11/28/2015
+/**
+ * @file	cryptoCHeaders.h
+ * @author	Jonathan Bedard
+ * @date   2/20/2016
+ * @brief	Collected headers for C source code
+ * @bug	None
+ **/
 
 #ifndef CRYPTO_C_HEADERS_H
 #define CRYPTO_C_HEADERS_H

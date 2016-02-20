@@ -1,7 +1,7 @@
 /**
  * @file   test/testKeyGeneration.h
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   2/20/2016
  * @brief  Implementation of test key binding
  * @bug No known bugs.
  *
@@ -26,8 +26,21 @@ namespace test
 		//RSA case
 		if(algoID==crypto::algo::publicRSA)
 		{
-			//Split into 4 case
-			if(keySize==crypto::size::public256)
+			//Split into 5 case
+			if(keySize==crypto::size::public128)
+			{
+				if(version)
+				{
+					nPtr=(uint32_t*)crypto::constant::keys_128::n_2;
+					dPtr=(uint32_t*)crypto::constant::keys_128::d_2;
+				}
+				else
+				{
+					nPtr=(uint32_t*)crypto::constant::keys_128::n_1;
+					dPtr=(uint32_t*)crypto::constant::keys_128::d_1;
+				}
+			}
+			else if(keySize==crypto::size::public256)
 			{
 				if(version)
 				{
@@ -79,7 +92,8 @@ namespace test
 					dPtr=(uint32_t*)crypto::constant::keys_2048::d_1;
 				}
 			}
-			else throw os::smart_ptr<std::exception>(new generalTestException("Illegal public key size: "+std::to_string(keySize*32),"testKeyGeneration.h, void findKeys(...)"),os::shared_type);
+			else
+				throw os::smart_ptr<std::exception>(new generalTestException("Illegal public key size: "+std::to_string(keySize*32),"testKeyGeneration.h, void findKeys(...)"),os::shared_type);
 		}
 		else throw os::smart_ptr<std::exception>(new generalTestException("Requested algorithm is not a public key algorithm","testKeyGeneration.h, void findKeys(...)"),os::shared_type);
 	}

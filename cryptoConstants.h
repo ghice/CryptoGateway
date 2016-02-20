@@ -1,5 +1,16 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/17/2016
+/**
+ * @file	cryptoConstants.h
+ * @author	Jonathan Bedard
+ * @date   	2/20/2016
+ * @brief	Extern definitions of CryptoGateway constants
+ * @bug	None
+ *
+ * Consult cryptoConstants.cpp for details.
+ * This file merely defines extern references
+ * to the global constants in cryptoConstants.cpp.
+ **/
+
+ ///@cond INTERNAL
 
 #ifndef CRYPTOCONSTANTS_H
 #define CRYPTOCONSTANTS_H
@@ -47,6 +58,7 @@ namespace crypto
 		extern const uint16_t STREAM_SEED_MAX;
 		extern const uint16_t RC4_MAX;
 
+		extern const uint16_t public128;
 		extern const uint16_t public256;
 		extern const uint16_t public512;
 		extern const uint16_t public1024;
@@ -63,3 +75,4 @@ namespace crypto
 }
 
 #endif
+///@endcond

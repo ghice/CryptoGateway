@@ -1,6 +1,16 @@
-//Primary author: Jonathan Bedard
-//Certified working 1/24/2016
+/**
+ * @file	binaryEncryption.cpp
+ * @author	Jonathan Bedard
+ * @date   	2/20/2016
+ * @brief	Implementation of binary encryption files
+ * @bug	None
+ *
+ * Implements the binary encryption files.
+ * Consult binaryEncryption.h for details
+ * on using these classes.
+ **/
 
+ ///@cond INTERNAL
 #ifndef BINARY_ENCRYPTION_CPP
 #define BINARY_ENCRYPTION_CPP
 
@@ -468,3 +478,4 @@ namespace crypto {
 }
 
 #endif
+///@endcond

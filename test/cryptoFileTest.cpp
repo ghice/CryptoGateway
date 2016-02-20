@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.cpp
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   2/20/2016
  * @brief  Implementation for cryptographic file testing
  * @bug No known bugs.
  *
@@ -187,6 +187,10 @@ using namespace test;
 		uint32_t *n,*d;
 		if(!pkg) return;
 		pkg=pkg->getCopy();
+
+		pkg->setKeySize(size::public128);
+		findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+		pushTest(os::smart_ptr<singleTest>(new publicKeyFileSaveTest(pkg->bindKeys(n,d)),os::shared_type));
 
 		pkg->setKeySize(size::public256);
 		findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
@@ -374,6 +378,10 @@ using namespace test;
         if(!pkg) return;
         pkg=pkg->getCopy();
     
+		pkg->setKeySize(size::public128);
+        findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+        pushTest(os::smart_ptr<singleTest>(new exmlPublicKeySaveTest(pkg->bindKeys(n,d)),os::shared_type));
+
         pkg->setKeySize(size::public256);
         findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
         pushTest(os::smart_ptr<singleTest>(new exmlPublicKeySaveTest(pkg->bindKeys(n,d)),os::shared_type));

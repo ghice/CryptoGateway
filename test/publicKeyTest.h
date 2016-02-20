@@ -1,7 +1,7 @@
 /**
  * @file   test/publicKeyTest.h
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   2/20/2016
  * @brief  Public Key tests
  * @bug No known bugs.
  *
@@ -169,6 +169,7 @@ namespace test
         {
             pushTest(os::smart_ptr<singleTest>(new generationTest<pkType>(),os::shared_type));
             
+			pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public128),os::shared_type));
 			pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public256),os::shared_type));
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public512),os::shared_type));
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public1024),os::shared_type));
