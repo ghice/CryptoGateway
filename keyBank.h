@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.h
  * @author Jonathan Bedard
- * @date   2/20/2016
+ * @date   2/21/2016
  * @brief  Header for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -532,7 +532,7 @@ namespace crypto {
         /** @brief Get save path
          * @return crypto::keyBank::_savePath
          */
-		std::string& savePath() const {_savePath;}
+		const std::string& savePath() const {return _savePath;}
         
         /** @brief Find by group name reference
          *
@@ -574,7 +574,7 @@ namespace crypto {
      * of keys that can be practically
      * managed through an AVL key bank.
      */
-    class avlKeyBank: public keyBank
+    class avlKeyBank: public keyBank, public errorSender
     {
         /** @brief List of all names associated with this node
          */

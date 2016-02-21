@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   2/20/2016
+ * @date   2/21/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -70,6 +70,13 @@ using namespace crypto;
         cbank.addPair("GroupA","Name1",key->getN(),algo::publicRSA,size::public512);
         cbank.addPair("GroupA","Name2",key->getD(),algo::publicRSA,size::public512);
         cbank.save();
+		if(cbank.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to save XML file",locString),os::shared_type);
+
+		//Load
+		avlKeyBank newBank("tempout.xml");
+		if(newBank.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to load XML file",locString),os::shared_type);
     }
 
 /*================================================================

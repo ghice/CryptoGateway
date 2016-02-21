@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.cpp
  * @author Jonathan Bedard
- * @date   2/20/2016
+ * @date   2/21/2016
  * @brief  Implimentation for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -306,15 +306,33 @@ namespace crypto {
     //Load file
     void avlKeyBank::load()
     {
-        
+		try
+		{
+			os::smartXMLNode headNode=os::XML_Input(savePath());
+			if(!headNode)
+				throw errorPointer(new fileOpenError(),os::shared_type);
+			if(headNode->getID()!="keyBank")
+				throw errorPointer(new fileFormatError(),os::shared_type);
+
+			//Iterate through children
+			auto it=headNode->getChildren()->getFirst();
+		}
+		catch (errorPointer e) {logError(e);}
+		catch (...) {logError(errorPointer(new unknownErrorType(),os::shared_type));}
     }
     //Save file
     void avlKeyBank::save()
     {
-        os::smartXMLNode headNode(new os::XML_Node("keyBank"),os::shared_type);
-        for(auto i=nodeBank.getFirst();i;i=i->getNext())
-            headNode->addElement(i->getData()->buildXML());
-        os::XML_Output(savePath(), headNode);
+		try
+		{
+			os::smartXMLNode headNode(new os::XML_Node("keyBank"),os::shared_type);
+			for(auto i=nodeBank.getFirst();i;i=i->getNext())
+				headNode->addElement(i->getData()->buildXML());
+			if(!os::XML_Output(savePath(), headNode))
+				throw errorPointer(new fileOpenError(),os::shared_type);
+		}
+		catch (errorPointer e) {logError(e);}
+		catch (...) {logError(errorPointer(new unknownErrorType(),os::shared_type));}
     }
     
     //Push node (name)
@@ -368,7 +386,7 @@ namespace crypto {
         if(!ref) NULL;
         
         auto trc = nodeBank.find(ref);
-        if(!trc) return;
+        if(!trc) return NULL;
         return trc->getData();
     }
     //Fine node (key)
@@ -381,7 +399,7 @@ namespace crypto {
         if(!ref) NULL;
         
         auto trc = nodeBank.find(ref);
-        if(!trc) return;
+        if(!trc) return NULL;
         return trc->getData();
     }
 }

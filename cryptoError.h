@@ -218,6 +218,7 @@ namespace crypto {
 
 		void setLogLength(unsigned int logLength);
 		unsigned int logLength() const {return _logLength;}
+		unsigned int numberErrors() const {return errorLog.size();}
 	};
 };
 
