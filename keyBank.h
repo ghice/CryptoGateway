@@ -40,6 +40,10 @@ namespace crypto {
      */
     class nodeGroup: public os::ptrComp
     {
+		/**@brief Only keyBank can load a node group
+		 */
+		friend class keyBank;
+
         /** @brief Pointer to key bank
          */
         keyBank* _master;
@@ -66,6 +70,16 @@ namespace crypto {
 		/**@brief Sorts names by timestamp
 		 */
 		void sortNames();
+		/** @brief Node group constructor
+         *
+		 * Constructs a node group with an XML tree.
+		 * This constructor throws exceptions if errors
+		 * occur.
+		 *
+         * @param [in/out] master Reference to the 'master' group holder
+         * @param [in] fileNode XML root which defines the group
+         */
+        nodeGroup(keyBank* master,os::smartXMLNode fileNode);
     public:
         /** @brief Node group constructor
          *
@@ -77,7 +91,7 @@ namespace crypto {
          * @param [in] keySize Size of the key provided
          */
         nodeGroup(keyBank* master,std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize);
-        /** @brief Virtual destructor
+		/** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object
          * of this type is deleted, the destructor
@@ -164,13 +178,15 @@ namespace crypto {
 		unsigned int numberOfKeys() const {return keyList.size();}
 
 		/** @brief Returns names sorted by timestamp
+		 * @param [out] size Size of array to be returned
 		 * @return crypto::nodeGroup::sortedNames
 		 */
-		os::smart_ptr<os::smart_ptr<nodeNameReference> > namesByTimestamp();
+		os::smart_ptr<os::smart_ptr<nodeNameReference> > namesByTimestamp(unsigned int& size);
 		/** @brief Returns keys sorted by timestamp
+		 * @param [out] size Size of array to be returned
 		 * @return crypto::nodeGroup::sortedKeys
 		 */
-		os::smart_ptr<os::smart_ptr<nodeKeyReference> > keysByTimestamp();
+		os::smart_ptr<os::smart_ptr<nodeKeyReference> > keysByTimestamp(unsigned int& size);
         
         /** @brief Build XML tree
          *
@@ -495,6 +511,12 @@ namespace crypto {
          */
 		virtual void load()=0;
     
+		/** @brief Construct node with XML tree
+         *
+         * @param [in] xmlTree XML tree from file
+		 * @return Node group constructed with tree
+         */
+		os::smart_ptr<nodeGroup> fileLoadHelper(os::smartXMLNode xmlTree) {return os::smart_ptr<nodeGroup> (new nodeGroup(this,xmlTree),os::shared_type);}
         /** @brief Construct with save path
          *
          * @param [in] savePath Path to save file
@@ -618,9 +640,9 @@ namespace crypto {
          * Intializes the key bank and
          * loads the the bank from a file.
          *
-         * @param [in] savePath Path to save file
+         * @param [in] savePath Path to save file, empty by default
          */
-        avlKeyBank(std::string savePath);
+        avlKeyBank(std::string savePath="");
         /** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object

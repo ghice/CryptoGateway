@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/23/2016
+//Certified working 2/21/2016
 
 #ifndef PUBLIC_KEY_PACKAGE_H
 #define PUBLIC_KEY_PACKAGE_H
@@ -22,7 +22,9 @@ namespace crypto {
         {return publicKey::encode(code,publicN,_publicSize);}
         virtual void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
         {publicKey::encode(code,codeLength,publicN,nLength,_publicSize);}
-        
+		virtual os::smart_ptr<number> convert(uint32_t* arr, uint16_t len){return publicKey::copyConvert(arr,len,_publicSize);}
+        virtual os::smart_ptr<number> convert(const unsigned char* arr,unsigned int len){return publicKey::copyConvert(arr,len,_publicSize);}
+
         virtual os::smart_ptr<publicKey> generate() const {return NULL;}
         virtual os::smart_ptr<publicKey> bindKeys(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d) const {return NULL;}
         virtual os::smart_ptr<publicKey> bindKeys(uint32_t* _n,uint32_t* _d) const {return NULL;}
@@ -50,6 +52,8 @@ namespace crypto {
         {return pkType::encode(code,publicN,_publicSize);}
         void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
         {pkType::encode(code,codeLength,publicN,nLength,_publicSize);}
+		os::smart_ptr<number> convert(uint32_t* arr, uint16_t len){return pkType::copyConvert(arr,len,_publicSize);}
+        os::smart_ptr<number> convert(const unsigned char* arr,unsigned int len){return pkType::copyConvert(arr,len,_publicSize);}
 
 		os::smart_ptr<publicKey> generate() const {return os::smart_ptr<publicKey>(new pkType(_publicSize),os::shared_type);}
         os::smart_ptr<publicKey> bindKeys(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d) const {return os::smart_ptr<publicKey>(new pkType(_n,_d,_publicSize),os::shared_type);}

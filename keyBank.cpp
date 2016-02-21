@@ -18,6 +18,7 @@
 
 #include "keyBank.h"
 #include "cryptoError.h"
+#include <sstream>
 
 namespace crypto {
     
@@ -25,23 +26,143 @@ namespace crypto {
      Node Group
   -----------------------------------*/
     
-    //Node group constructor
+    //Constructs a nodeName with an XML tree
+	nodeGroup::nodeGroup(keyBank* master,os::smartXMLNode fileNode)
+	{
+		if(!master) throw errorPointer(new NULLMaster(),os::shared_type);
+		_master=master;
+		sortingLock.lock();
+		try
+		{
+			if(fileNode->getID()!="nodeGroup") throw errorPointer(new fileFormatError(),os::shared_type);
+			
+			//Names
+			auto list1=fileNode->findElement("names");
+			if(list1->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+			os::smartXMLNode secondLevel=list1->getFirst()->getData();
+			auto list2=secondLevel->findElement("name");
+			if(list2->size()<=0) throw errorPointer(new fileFormatError(),os::shared_type);
+
+			//Insert name block
+			for(auto block=list2->getFirst();block;block=block->getNext())
+			{
+				//Group
+				auto parseList=block->getData()->findElement("group");
+				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				std::string gn=parseList->getFirst()->getData()->getData();
+
+				//Name
+				parseList=block->getData()->findElement("name");
+				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				std::string nm=parseList->getFirst()->getData()->getData();
+
+				//Timestamp
+				parseList=block->getData()->findElement("timestamp");
+				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				uint64_t times=0;
+				std::stringstream(parseList->getFirst()->getData()->getData())>>times;
+				if(times==0) throw errorPointer(new fileFormatError(),os::shared_type);
+
+				//Construct
+				os::smart_ptr<nodeNameReference> nameInsert(new nodeNameReference(this,gn,nm,times),os::shared_type);
+				if(nameList.insert(nameInsert))
+					_master->pushNewNode(nameInsert);
+			}
+
+			//Keys
+			list1=fileNode->findElement("keys");
+			if(list1->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+			secondLevel=list1->getFirst()->getData();
+			list2=secondLevel->findElement("key");
+			if(list2->size()<=0) throw errorPointer(new fileFormatError(),os::shared_type);
+
+			//Insert key block
+			for(auto block=list2->getFirst();block;block=block->getNext())
+			{
+				//Key size
+				auto parseList=block->getData()->findElement("keySize");
+				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				uint16_t ks=std::stoi(parseList->getFirst()->getData()->getData())/32;
+
+				//Algo ID
+				parseList=block->getData()->findElement("algo");
+				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				std::string ali=parseList->getFirst()->getData()->getData();
+
+				//Timestamp
+				parseList=block->getData()->findElement("timestamp");
+				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				uint64_t times=0;
+				std::stringstream(parseList->getFirst()->getData()->getData())>>times;
+				if(times==0) throw errorPointer(new fileFormatError(),os::shared_type);
+
+				//Key
+				parseList=block->getData()->findElement("key");
+				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				auto hld=parseList->getFirst()->getData();
+				if(hld->getDataList().size()!=ks) throw errorPointer(new fileFormatError(),os::shared_type);
+				os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(ali);
+				if(!pkfrm) throw errorPointer(new fileFormatError(),os::shared_type);
+				pkfrm->getCopy();
+				if(!pkfrm) throw errorPointer(new fileFormatError(),os::shared_type);
+				pkfrm->setKeySize(ks);
+				uint32_t* keyArr=new uint32_t[ks];
+				for(unsigned int arrcnt=0;arrcnt<ks;arrcnt++)
+					std::stringstream(hld->getDataList()[arrcnt])>>keyArr[arrcnt];
+				os::smart_ptr<number> key=pkfrm->convert(keyArr,ks);
+				delete [] keyArr;
+
+				//Construct
+				os::smart_ptr<nodeKeyReference> keyInsert(new nodeKeyReference(this,key,pkfrm->algorithm(),ks,times),os::shared_type);
+				if(keyList.insert(keyInsert))
+					_master->pushNewNode(keyInsert);
+			}
+
+			//Sort inserted elements
+			sortKeys();
+			sortNames();
+		}
+		catch(errorPointer e)
+		{
+			sortingLock.unlock();
+			throw e;
+		}
+		catch(...)
+		{
+			sortingLock.unlock();
+			throw errorPointer(new unknownErrorType(),os::shared_type);
+		}
+		sortingLock.unlock();
+	}
+	//Node group constructor
     nodeGroup::nodeGroup(keyBank* master,std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
     {
         if(!master) throw errorPointer(new NULLMaster(),os::shared_type);
 		_master=master;
-
-		sortingLock.lock();
-		os::smart_ptr<nodeNameReference> nameInsert(new nodeNameReference(this,groupName,name),os::shared_type);
-        if(nameList.insert(nameInsert))
-			_master->pushNewNode(nameInsert);
-		else throw errorPointer(new insertionFailed(),os::shared_type);
-		os::smart_ptr<nodeKeyReference> keyInsert(new nodeKeyReference(this,key,algoID,keySize),os::shared_type);
-        if(keyList.insert(keyInsert))
-			_master->pushNewNode(keyInsert);
-		else throw errorPointer(new insertionFailed(),os::shared_type);
-		sortKeys();
-		sortNames();
+		try
+		{
+			sortingLock.lock();
+			os::smart_ptr<nodeNameReference> nameInsert(new nodeNameReference(this,groupName,name),os::shared_type);
+			if(nameList.insert(nameInsert))
+				_master->pushNewNode(nameInsert);
+			else throw errorPointer(new insertionFailed(),os::shared_type);
+			os::smart_ptr<nodeKeyReference> keyInsert(new nodeKeyReference(this,key,algoID,keySize),os::shared_type);
+			if(keyList.insert(keyInsert))
+				_master->pushNewNode(keyInsert);
+			else throw errorPointer(new insertionFailed(),os::shared_type);
+			sortKeys();
+			sortNames();
+		}
+		catch(errorPointer e)
+		{
+			sortingLock.unlock();
+			throw e;
+		}
+		catch(...)
+		{
+			sortingLock.unlock();
+			throw errorPointer(new unknownErrorType(),os::shared_type);
+		}
 		sortingLock.unlock();
     }
 	//Returns the name of a node group
@@ -119,16 +240,18 @@ namespace crypto {
 	int compareKeysByTimestamp(os::smart_ptr<nodeKeyReference> ref1, os::smart_ptr<nodeKeyReference> ref2)
 	{
 		if(ref1->timestamp()>ref2->timestamp())
-			return 1;
+			return -1;
 		if(ref1->timestamp()<ref2->timestamp())
+			return 1;
 		return 0;
 	}
 	//Compare names by timestamp
 	int compareNamesByTimestamp(os::smart_ptr<nodeNameReference> ref1, os::smart_ptr<nodeNameReference> ref2)
 	{
 		if(ref1->timestamp()>ref2->timestamp())
-			return 1;
+			return -1;
 		if(ref1->timestamp()<ref2->timestamp())
+			return 1;
 		return 0;
 	}
 	//Preforms quicksort on keys by timestamp
@@ -153,9 +276,28 @@ namespace crypto {
 			sortedNames[cnt]=i->getData();
 			cnt++;
 		}
-		os::pointerQuicksort(sortedKeys,cnt,&compareKeysByTimestamp);
+		os::pointerQuicksort(sortedNames,cnt,&compareNamesByTimestamp);
 	}
     
+	//Return list of name nodes by timestamp
+	os::smart_ptr<os::smart_ptr<nodeNameReference> > nodeGroup::namesByTimestamp(unsigned int& size)
+	{
+		sortingLock.lock();
+		size=nameList.size();
+		os::smart_ptr<os::smart_ptr<nodeNameReference> > ret=sortedNames;
+		sortingLock.unlock();
+		return ret;
+	}
+	//Return list of key nodes by timestamp
+	os::smart_ptr<os::smart_ptr<nodeKeyReference> > nodeGroup::keysByTimestamp(unsigned int& size)
+	{
+		sortingLock.lock();
+		size=keyList.size();
+		os::smart_ptr<os::smart_ptr<nodeKeyReference> > ret=sortedKeys;
+		sortingLock.unlock();
+		return ret;
+	}
+
     //Builds XML tree
     os::smartXMLNode nodeGroup::buildXML()
     {
@@ -201,12 +343,14 @@ namespace crypto {
             
             //Key size
             temp=os::smartXMLNode(new os::XML_Node("keySize"),os::shared_type);
-            temp->setData(std::to_string(i->getData()->keySize()));
+            temp->setData(std::to_string(i->getData()->keySize()*32));
             klev->addElement(temp);
             
             //Algorithm
             temp=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
-            temp->setData(std::to_string(i->getData()->algoID()));
+			os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(i->getData()->algoID());
+			if(!pkfrm) pkfrm=publicKeyTypeBank::singleton()->defaultPackage();
+			temp->setData(pkfrm->algorithmName());
             klev->addElement(temp);
             
             //Timestamp
@@ -306,6 +450,7 @@ namespace crypto {
     //Load file
     void avlKeyBank::load()
     {
+		if(savePath()=="") return;
 		try
 		{
 			os::smartXMLNode headNode=os::XML_Input(savePath());
@@ -316,6 +461,12 @@ namespace crypto {
 
 			//Iterate through children
 			auto it=headNode->getChildren()->getFirst();
+			while(it)
+			{
+				os::smart_ptr<nodeGroup> nd=fileLoadHelper(it->getData());
+				nodeBank.insert(nd);
+				it=it->getNext();
+			}
 		}
 		catch (errorPointer e) {logError(e);}
 		catch (...) {logError(errorPointer(new unknownErrorType(),os::shared_type));}
@@ -323,6 +474,7 @@ namespace crypto {
     //Save file
     void avlKeyBank::save()
     {
+		if(savePath()=="") return;
 		try
 		{
 			os::smartXMLNode headNode(new os::XML_Node("keyBank"),os::shared_type);
