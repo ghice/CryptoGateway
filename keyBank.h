@@ -38,7 +38,7 @@ namespace crypto {
      * because nodes can change their
      * name during operation.
      */
-    class nodeGroup: os::ptrComp
+    class nodeGroup: public os::ptrComp
     {
         /** @brief Pointer to key bank
          */
@@ -171,6 +171,16 @@ namespace crypto {
 		 * @return crypto::nodeGroup::sortedKeys
 		 */
 		os::smart_ptr<os::smart_ptr<nodeKeyReference> > keysByTimestamp();
+        
+        /** @brief Build XML tree
+         *
+         * Builds an XML tree from this node group.
+         * This tree is designed to be saved by the
+         * key bank.
+         *
+         * @return Root of tree to be saved
+         */
+        os::smartXMLNode buildXML();
     };
     
     /** @brief Name storage node
@@ -189,6 +199,12 @@ namespace crypto {
          * and only accessable by crypto::nodeGroup.
          */
         friend class nodeGroup;
+        /** @brief Friendship with crypto::keyBank
+         *
+         * The key bank must be able to create
+         * a node name to search by name
+         */
+        friend class keyBank;
         
         /** @brief Pointer to node group
          */
@@ -211,14 +227,14 @@ namespace crypto {
          * @param timestamp The time this node was created, 'now' by defult
          */
         nodeNameReference(nodeGroup* master,std::string groupName,std::string name,uint64_t timestamp=os::getTimestamp());
-    
-    public:
-		 /** @brief Name reference node constructor for searching
+        /** @brief Name reference node constructor for searching
          *
          * @param [in] groupName Group name of the node being registered
          * @param [in] name Name of the node being registered
          */
-		nodeNameReference(std::string groupName,std::string name);
+        nodeNameReference(std::string groupName,std::string name);
+    public:
+		 
         /** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object
@@ -228,6 +244,10 @@ namespace crypto {
          */
         virtual ~nodeNameReference(){}
         
+        /** @brief Returns a pointer to its master
+         * @return crypto::nodeNameReference::_master
+         */
+        nodeGroup* master() {return _master;}
         /** @brief Returns the group name
          * @return crypto::nodeNameReference::_groupName
          */
@@ -306,6 +326,12 @@ namespace crypto {
          * and only accessable by crypto::nodeGroup.
          */
         friend class nodeGroup;
+        /** @brief Friendship with crypto::keyBank
+         *
+         * The key bank must be able to create
+         * a node key to search by key
+         */
+        friend class keyBank;
         
         /** @brief Pointer to node group
          */
@@ -332,14 +358,15 @@ namespace crypto {
         * @param timestamp The time this node was created, 'now' by defult
         */
         nodeKeyReference(nodeGroup* master,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize,uint64_t timestamp=os::getTimestamp());
-    public:
-		/** @brief Key reference node constructor for searching
-        *
-        * @param [in] key The public key of a given node
-        * @param [in] algoID The algorithm identifier
-        * @param [in] keySize Size of the key provided
-        */
+        /** @brief Key reference node constructor for searching
+         *
+         * @param [in] key The public key of a given node
+         * @param [in] algoID The algorithm identifier
+         * @param [in] keySize Size of the key provided
+         */
         nodeKeyReference(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize);
+    public:
+		
         /** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object
@@ -349,6 +376,10 @@ namespace crypto {
          */
         virtual ~nodeKeyReference(){}
         
+        /** @brief Returns a pointer to its master
+         * @return crypto::~nodeKeyReference::_master
+         */
+        nodeGroup* master() {return _master;}
         /** @brief Returns the key
          * @return crypto::nodeKeyReference::_key
          */
@@ -426,13 +457,49 @@ namespace crypto {
      */
     class keyBank
     {
+        /** @brief Path to save file
+         */
         std::string _savePath;
+        
+        /** @brief Friendship with node grouping
+         *
+         * Node groups must be able to push
+         * name and key nodes onto the key bank.
+         */
+        friend class nodeGroup;
     protected:
-		friend class nodeGroup;
-
+        /** @brief Add name node
+         *
+         * Inserts a name node into
+         * the bank.  The name node
+         * has a reference to a
+         * node group.
+         *
+         * @param [in] name Name node to be added
+         * @return void
+         */
 		virtual void pushNewNode(os::smart_ptr<nodeNameReference> name)=0;
+        /** @brief Add key node
+         *
+         * Inserts a key node into
+         * the bank.  The key node
+         * has a reference to a
+         * node group.
+         *
+         * @param [in] key Key node to be added
+         * @return void
+         */
 		virtual void pushNewNode(os::smart_ptr<nodeKeyReference> key)=0;
+        /** @brief Loads bank from file
+         * @return void
+         */
 		virtual void load()=0;
+    
+        /** @brief Construct with save path
+         *
+         * @param [in] savePath Path to save file
+         */
+        keyBank(std::string savePath){_savePath=savePath;}
     public:
         /** @brief Virtual destructor
          *
@@ -442,10 +509,60 @@ namespace crypto {
          * be called.
          */
         virtual ~keyBank(){}
+        /** @brief Adds authenticated node to bank
+         *
+         * Note that if a node has not be authenticated,
+         * adding it to the bank will cause a potential
+         * security vulnerability.  Nodes should be authenticated
+         * before being added to the bank.
+         *
+         * @param [in] groupName Name of the node's group
+         * @param [in] name Name of the node
+         * @param [in] key Key of node to be added
+         * @param [in] algoID ID of algorithm for key
+         * @param [in] keySize Length of key of the node
+         * @return Return reference to the new node group
+         */
         virtual os::smart_ptr<nodeGroup> addPair(std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)=0;
 
+        /** @brief Saves bank to file
+         * @return void
+         */
 		virtual void save()=0;
-		std::string savePath() const {_savePath;}
+        /** @brief Get save path
+         * @return crypto::keyBank::_savePath
+         */
+		std::string& savePath() const {_savePath;}
+        
+        /** @brief Find by group name reference
+         *
+         * @param [in] name Name reference to be searched
+         * @return Node group found by arguments
+         */
+        virtual os::smart_ptr<nodeGroup> find(os::smart_ptr<nodeNameReference> name)=0;
+        /** @brief Find by group key reference
+         *
+         * @param [in] key Key reference to be searched
+         * @return Node group found by arguments
+         */
+        virtual os::smart_ptr<nodeGroup> find(os::smart_ptr<nodeKeyReference> key)=0;
+        /** @brief Find by group name and name
+         *
+         * @param [in] groupName Name of the node's group
+         * @param [in] name Name of the node
+         * @return Node group found by arguments
+         */
+        virtual os::smart_ptr<nodeGroup> find(std::string groupName,std::string name)
+        {return find(os::smart_ptr<nodeNameReference>(new nodeNameReference(groupName,name),os::shared_type));}
+        /** @brief Find by key information
+         *
+         * @param [in] key Key of node to be added
+         * @param [in] algoID ID of algorithm for key
+         * @param [in] keySize Length of key of the node
+         * @return Node group found by arguments
+         */
+        virtual os::smart_ptr<nodeGroup> find(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
+        {return find(os::smart_ptr<nodeKeyReference>(new nodeKeyReference(key,algoID,keySize),os::shared_type));}
     };
     /** @brief AVL key back
      *
@@ -457,9 +574,111 @@ namespace crypto {
      * of keys that can be practically
      * managed through an AVL key bank.
      */
-    class avlKeyBank
+    class avlKeyBank: public keyBank
     {
+        /** @brief List of all names associated with this node
+         */
+        os::asyncAVLTree<nodeNameReference> nameTree;
+        /** @brief List of all keys associated with this node
+         */
+        os::asyncAVLTree<nodeKeyReference> keyTree;
+        /** @brief List of all node groups
+         */
+        os::asyncAVLTree<nodeGroup> nodeBank;
+    protected:
+        /** @brief Add name node
+         *
+         * Inserts a name node into
+         * the bank.  The name node
+         * has a reference to a
+         * node group.
+         *
+         * @param [in] name Name node to be added
+         * @return void
+         */
+        void pushNewNode(os::smart_ptr<nodeNameReference> name);
+        /** @brief Add key node
+         *
+         * Inserts a key node into
+         * the bank.  The key node
+         * has a reference to a
+         * node group.
+         *
+         * @param [in] key Key node to be added
+         * @return void
+         */
+        void pushNewNode(os::smart_ptr<nodeKeyReference> key);
+        /** @brief Loads bank from file
+         * @return void
+         */
+        void load();
+    public:
+        /** @brief Construct with save path
+         *
+         * Intializes the key bank and
+         * loads the the bank from a file.
+         *
+         * @param [in] savePath Path to save file
+         */
+        avlKeyBank(std::string savePath);
+        /** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
+        virtual ~avlKeyBank(){}
         
+        /** @brief Saves bank to file
+         * @return void
+         */
+        void save();
+        
+        /** @brief Adds authenticated node to bank
+         *
+         * Note that if a node has not be authenticated,
+         * adding it to the bank will cause a potential
+         * security vulnerability.  Nodes should be authenticated
+         * before being added to the bank.
+         *
+         * @param [in] groupName Name of the node's group
+         * @param [in] name Name of the node
+         * @param [in] key Key of node to be added
+         * @param [in] algoID ID of algorithm for key
+         * @param [in] keySize Length of key of the node
+         * @return Return reference to the new node group
+         */
+        os::smart_ptr<nodeGroup> addPair(std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize);
+        /** @brief Find by group name reference
+         *
+         * @param [in] name Name reference to be searched
+         * @return Node group found by arguments
+         */
+        os::smart_ptr<nodeGroup> find(os::smart_ptr<nodeNameReference> name);
+        /** @brief Find by group key reference
+         *
+         * @param [in] key Key reference to be searched
+         * @return Node group found by arguments
+         */
+        os::smart_ptr<nodeGroup> find(os::smart_ptr<nodeKeyReference> key);
+        /** @brief Find by group name and name
+         *
+         * @param [in] groupName Name of the node's group
+         * @param [in] name Name of the node
+         * @return Node group found by arguments
+         */
+        inline os::smart_ptr<nodeGroup> find(std::string groupName,std::string name)
+        {return keyBank::find(groupName,name);}
+        /** @brief Find by key information
+         *
+         * @param [in] key Key of node to be added
+         * @param [in] algoID ID of algorithm for key
+         * @param [in] keySize Length of key of the node
+         * @return Node group found by arguments
+         */
+        inline os::smart_ptr<nodeGroup> find(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
+        {return keyBank::find(key,algoID,keySize);}
     };
 
 }

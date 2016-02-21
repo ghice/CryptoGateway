@@ -18,6 +18,7 @@ SET( SRC_H
 
 	${CUR_SRC}/staticTestKeys.h
 	${CUR_SRC}/testKeyGeneration.h
+	${CUR_SRC}/gatewayTest.h
 )
 
 SET( SRC_CPP
@@ -30,6 +31,7 @@ SET( SRC_CPP
 
 	${CUR_SRC}/staticTestKeys.cpp
 	${CUR_SRC}/testKeyGeneration.cpp
+	${CUR_SRC}/gatewayTest.cpp
 )
 
 ADD_LIBRARY( CryptoGatewayTest STATIC
