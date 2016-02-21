@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.h
  * @author Jonathan Bedard
- * @date   2/14/2016
+ * @date   2/20/2016
  * @brief  Header for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -38,7 +38,7 @@ namespace crypto {
      * because nodes can change their
      * name during operation.
      */
-    class nodeGroup
+    class nodeGroup: os::ptrComp
     {
         /** @brief Pointer to key bank
          */
@@ -49,6 +49,23 @@ namespace crypto {
         /** @brief List of all keys associated with this node
          */
         os::asyncAVLTree<nodeKeyReference> keyList;
+		/** @brief Lock used for sorting
+	     */
+		std::mutex sortingLock;
+
+		/** @brief Array of names sorted by timestamp
+		*/
+		os::smart_ptr<os::smart_ptr<nodeNameReference> > sortedNames;
+		/** @brief Array of keys sorted by timestamp
+		*/
+		os::smart_ptr<os::smart_ptr<nodeKeyReference> > sortedKeys;
+
+		/**@brief Sorts keys by timestamp
+		 */
+		void sortKeys();
+		/**@brief Sorts names by timestamp
+		 */
+		void sortNames();
     public:
         /** @brief Node group constructor
          *
@@ -69,6 +86,22 @@ namespace crypto {
          */
         virtual ~nodeGroup(){}
         
+		/** @brief Allows access to the most recent name
+		 *
+		 * @param [out] groupName crypto::nodeGroup::sortedNames[0]->groupName()
+		 * @param [out] name crypto::nodeGroup::sortedNames[0]->name()
+		 * @return void
+		 */
+		void getName(std::string& groupName,std::string& name);
+		/** @brief Concatenated name
+		 *
+		 * Concatenated the groupName and name
+		 * and then returns the combination.
+		 *
+		 * return groupName+":"+name
+		 */
+		std::string name();
+
         /** @brief Returns first name in the list
          *
          * This function returns an alphabetical
@@ -89,6 +122,55 @@ namespace crypto {
         * @return crypto::nodeGroup::keyList.getFirst()
         */
         os::smart_ptr<os::adnode<nodeKeyReference> > getFirstKey() {return keyList.getFirst();}
+
+		/**@brief Merge a node group into this
+		 *
+		 * Acheives merge entirely by reference.
+		 * It is assumed that the node being
+		 * merged into this node will shortly be
+		 * deleted.
+		 *
+		 * @param [in] source Node group to merge
+		 * @return void
+		 */
+		void merge(nodeGroup& source);
+		/**@brief Add new alias for group
+		 *
+		 * @param [in] groupName Group name of the node being registered
+         * @param [in] name Name of the node being registered
+         * @param timestamp The time this node was created, 'now' by defult
+		 * @return void
+		 */
+		void addAlias(std::string groupName,std::string name,uint64_t timestamp=os::getTimestamp());
+		/**@brief Add new key for group
+		 *
+		 * @param [in] key The public key of a given node
+         * @param [in] algoID The algorithm identifier
+         * @param [in] keySize Size of the key provided
+         * @param timestamp The time this node was created, 'now' by defult
+		 * @return void
+		 */
+		void addKey(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize,uint64_t timestamp=os::getTimestamp());
+
+		/** @brief Returns the number of names
+		 *
+		 * @return crypto::nodeGroup::nameList.size()
+		 */
+		unsigned int numberOfNames() const {return nameList.size();}
+		/** @brief Returns the number of keys
+		 *
+		 * @return crypto::nodeGroup::keyList.size()
+		 */
+		unsigned int numberOfKeys() const {return keyList.size();}
+
+		/** @brief Returns names sorted by timestamp
+		 * @return crypto::nodeGroup::sortedNames
+		 */
+		os::smart_ptr<os::smart_ptr<nodeNameReference> > namesByTimestamp();
+		/** @brief Returns keys sorted by timestamp
+		 * @return crypto::nodeGroup::sortedKeys
+		 */
+		os::smart_ptr<os::smart_ptr<nodeKeyReference> > keysByTimestamp();
     };
     
     /** @brief Name storage node
@@ -131,6 +213,12 @@ namespace crypto {
         nodeNameReference(nodeGroup* master,std::string groupName,std::string name,uint64_t timestamp=os::getTimestamp());
     
     public:
+		 /** @brief Name reference node constructor for searching
+         *
+         * @param [in] groupName Group name of the node being registered
+         * @param [in] name Name of the node being registered
+         */
+		nodeNameReference(std::string groupName,std::string name);
         /** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object
@@ -245,6 +333,13 @@ namespace crypto {
         */
         nodeKeyReference(nodeGroup* master,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize,uint64_t timestamp=os::getTimestamp());
     public:
+		/** @brief Key reference node constructor for searching
+        *
+        * @param [in] key The public key of a given node
+        * @param [in] algoID The algorithm identifier
+        * @param [in] keySize Size of the key provided
+        */
+        nodeKeyReference(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize);
         /** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object
@@ -331,9 +426,13 @@ namespace crypto {
      */
     class keyBank
     {
-        std::string savePath;
+        std::string _savePath;
     protected:
-        
+		friend class nodeGroup;
+
+		virtual void pushNewNode(os::smart_ptr<nodeNameReference> name)=0;
+		virtual void pushNewNode(os::smart_ptr<nodeKeyReference> key)=0;
+		virtual void load()=0;
     public:
         /** @brief Virtual destructor
          *
@@ -343,7 +442,10 @@ namespace crypto {
          * be called.
          */
         virtual ~keyBank(){}
-        virtual os::smart_ptr<nodeGroup> pushPair(std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)=0;
+        virtual os::smart_ptr<nodeGroup> addPair(std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)=0;
+
+		virtual void save()=0;
+		std::string savePath() const {_savePath;}
     };
     /** @brief AVL key back
      *

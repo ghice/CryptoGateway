@@ -64,6 +64,13 @@ namespace crypto {
 		inline std::string errorTitle() const {return "Buffer Size Error";}
 		inline std::string errorDescription() const {return "Buffer too large";}
 	};
+	class insertionFailed: public error
+	{
+	public:
+		virtual ~insertionFailed() throw() {}
+		inline std::string errorTitle() const {return "Insertion Failed";}
+		inline std::string errorDescription() const {return "Insertion into an abstract data-structure unexpectedly failed";}
+	};
 
 	class customError: public error
 	{
@@ -160,6 +167,13 @@ namespace crypto {
 		virtual ~NULLMaster() throw() {}
 		std::string errorTitle() const {return "NULL Master pointer";}
 		std::string errorDescription() const {return "A class received a NULL master pointer, this is illegal.";}
+	};
+	class masterMismatch: public error
+	{
+	public:
+		virtual ~masterMismatch() throw() {}
+		std::string errorTitle() const {return "Master Comparison Mis-match";}
+		std::string errorDescription() const {return "Two nodes which are interacting have different masters!";}
 	};
 	class unknownErrorType: public error
 	{
