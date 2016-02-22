@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Certified working 2/12/2016
+/**
+ * @file	cryptoError.cpp
+ * @author	Jonathan Bedard
+ * @date   	2/22/2016
+ * @brief	Implementation of error sender and listener
+ * @bug	None
+ *
+ * Implements the error sender and listeners.
+ * These classes allow for managing the throwing
+ * of crypto::errorPointer.  Consult cryptoError.h
+ * for details.
+ **/
+
+ ///@cond INTERNAL
 
 #ifndef CRYPTO_ERROR_CPP
 #define CRYPTO_ERROR_CPP
@@ -86,7 +98,7 @@ namespace crypto {
 	errorPointer errorSender::popError()
 	{
 		listenerLock.acquire();
-		errorPointer ptr=errorLog.getFirst()->getData();
+		errorPointer ptr=errorLog.getLast()->getData();
 		errorLog.findDelete(ptr);
 		listenerLock.release();
 		return ptr;
@@ -100,10 +112,12 @@ namespace crypto {
 		_logLength=logLength;
 
 		while(errorLog.size()>logLength)
-			errorLog.findDelete(errorLog.getFirst()->getData());
+			errorLog.findDelete(errorLog.getLast()->getData());
 
 		listenerLock.release();
 	}
 }
 
 #endif
+
+///@endcond
