@@ -1,6 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 11/1/2015
-
+/**
+ * @file	cryptoFrameworks.cpp
+ * @author	Jonathan Bedard
+ * @date   	2/22/2016
+ * @brief	Deprecated public-key framework implementation
+ * @bug	Deprecated
+ *
+ * Deprecated implementation file which
+ * implements an old base class for
+ * public key cryptography.  This
+ * has been replaced by cryptoNumber.cpp
+ **/
+ 
+///@cond INTERNAL
 #ifndef CRYPTO_FRAMEWORKS_CPP
 #define CRYPTO_FRAMEWORKS_CPP
 
@@ -163,3 +174,4 @@ using namespace crypto;
     const bool publicField::operator!=(const publicField& comp) const{return compare(comp)!=0;}
 
 #endif
+///@endcond

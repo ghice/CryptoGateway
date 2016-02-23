@@ -1,11 +1,24 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 2/20/2016
+/**
+ * @file	CryptoGateway.h
+ * @author	Jonathan Bedard
+ * @date   	2/22/2016
+ * @brief	Global include file
+ * @bug	None
+ *
+ * This file contains all of the
+ * headers in the CryptoGateway
+ * library.  Project which depend
+ * on the CryptoGateway library
+ * need only include this file.
+ **/
 
 #ifndef CRYPTOGATEWAY_H
 #define CRYPTOGATEWAY_H
 
 namespace crypto
 {
+	/** @brief Deprecated logging flag
+	 */
 	extern bool global_logging;
 }
 

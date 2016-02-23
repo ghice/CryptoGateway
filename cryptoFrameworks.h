@@ -1,6 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 2/12/2016
+/**
+ * @file	cryptoFrameworks.h
+ * @author	Jonathan Bedard
+ * @date   	2/22/2016
+ * @brief	Deprecated public-key framework declaration
+ * @bug	Deprecated
+ *
+ * Deprecated header file which
+ * defines an old base class for
+ * public key cryptography.  This
+ * has been replaced by cryptoNumber.h
+ **/
 
+ ///@cond INTERNAL
 #ifndef CRYPTO_FRAMEWORKS_H
 #define CRYPTO_FRAMEWORKS_H
 
@@ -69,3 +80,5 @@ namespace crypto
 }
 
 #endif
+
+///@endcond
