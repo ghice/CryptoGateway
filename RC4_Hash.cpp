@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/10/2016
+/**
+ * @file    cryptoHash.cpp
+ * @author  Jonathan Bedard
+ * @date    2/23/2016
+ * @brief   Implementation of RC4 hash
+ * @bug None
+ *
+ * Implements the RC-4 hash algorithm.
+ * The RC-4 hashing algorithm is likely
+ * secure, but not proven secure.  Consult
+ * the RC4_Hash.h for details.
+ **/
+
+ ///@cond INTERNAL
 
 #ifndef RC4_HASH_CPP
 #define RC4_HASH_CPP
@@ -56,3 +68,5 @@ using namespace crypto;
     }
 
 #endif
+
+///@endcond
