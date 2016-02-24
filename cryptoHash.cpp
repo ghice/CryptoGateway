@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/16/2016
+/**
+ * @file    cryptoHash.cpp
+ * @author  Jonathan Bedard
+ * @date    2/23/2016
+ * @brief   Implementation of crypto hashing
+ * @bug None
+ *
+ * Implements basic hashing frameworks and
+ * the XOR hash.  Note that the XOR hash is
+ * not cryptographically secure.  Consult
+ * cryptoHash.h for details.
+ **/
+
+ ///@cond INTERNAL
 
 #ifndef CRYPTO_HASH_CPP
 #define CRYPTO_HASH_CPP
@@ -172,3 +184,5 @@ using namespace crypto;
         }
     }
 #endif
+
+///@endcond
