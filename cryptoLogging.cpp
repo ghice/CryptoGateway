@@ -1,5 +1,16 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 10/10/2015
+/**
+ * @file   cryptoLogging.cpp
+ * @Author Jonathan Bedard
+ * @date   2/23/2016
+ * @brief  Logging for crypto namespace, implementation
+ * @bug No known bugs.
+ *
+ * This file contains global functions and
+ * variables used for logging in the crypto namespace.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef CRYPTO_LOGGING_CPP
 #define CRYPTO_LOGGING_CPP
@@ -15,3 +26,5 @@ std::ostream& crypto::cryptoout_func() {return *crypto::cryptoout_ptr;}
 std::ostream& crypto::cryptoerr_func() {return *crypto::cryptoerr_ptr;}
 
 #endif
+
+///@endcond
