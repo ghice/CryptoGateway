@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   2/19/2016
+ * @date   2/24/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -26,6 +26,7 @@ namespace crypto
 	class publicKey
 	{
 		uint16_t _size;
+		uint16_t _algorithm;
         uint16_t _history;
 
 		//File Encryption
@@ -41,11 +42,11 @@ namespace crypto
         os::unsortedList<number> oldN;
         os::unsortedList<number> oldD;
 
-		publicKey(uint16_t sz=size::public512);
+		publicKey(uint16_t algo,uint16_t sz=size::public512);
         publicKey(const publicKey& ky);
-		publicKey(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint16_t sz=size::public512);
-		publicKey(std::string fileName,std::string password="",os::smart_ptr<streamPackageFrame> stream_algo=NULL);
-		publicKey(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+		publicKey(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint16_t algo,uint16_t sz=size::public512);
+		publicKey(uint16_t algo,std::string fileName,std::string password="",os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+		publicKey(uint16_t algo,std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
     
 		inline void writeLock() {keyLock.lock();}
 		inline void writeUnlock() {keyLock.unlock();}
@@ -71,7 +72,7 @@ namespace crypto
         virtual bool generating() {return false;}
 		inline static uint16_t staticAlgorithm() {return algo::publicNULL;}
         inline static std::string staticAlgorithmName() {return "NULL Public Key";}
-		inline virtual uint16_t algorithm() const {return publicKey::staticAlgorithm();}
+		inline uint16_t algorithm() const {return _algorithm;}
 		inline virtual std::string algorithmName() const {return publicKey::staticAlgorithmName();}
         uint16_t size() const {return _size;}
 
@@ -134,10 +135,9 @@ namespace crypto
 	    static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
 	    static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
 	    
-		    inline static uint16_t staticAlgorithm() {return algo::publicRSA;}
+		inline static uint16_t staticAlgorithm() {return algo::publicRSA;}
 	    inline static std::string staticAlgorithmName() {return "RSA";}
-	    inline uint16_t algorithm() const {return publicRSA::staticAlgorithm();}
-		    inline std::string algorithmName() const {return publicRSA::staticAlgorithmName();}
+		inline std::string algorithmName() const {return publicRSA::staticAlgorithmName();}
 	    bool generating();
 		    void generateNewKeys();
 	    

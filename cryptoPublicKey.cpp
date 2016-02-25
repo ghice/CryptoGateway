@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   2/19/2016
+ * @date   2/24/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -27,8 +27,9 @@ using namespace crypto;
  ------------------------------------------------------------*/
 
 	//Public key constructor (with size and algorithm)
-	publicKey::publicKey(uint16_t sz)
+	publicKey::publicKey(uint16_t algo,uint16_t sz)
 	{
+		_algorithm=algo;
 		_size=sz;
         _history=10;
 
@@ -39,6 +40,7 @@ using namespace crypto;
     //Copy public key
     publicKey::publicKey(const publicKey& ky)
     {
+		_algorithm=ky._algorithm;
         _size=ky._size;
         _history=10;
         _fileName="";
@@ -57,10 +59,11 @@ using namespace crypto;
         }
     }
     //Public key constructor
-	publicKey::publicKey(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint16_t sz)
+	publicKey::publicKey(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint16_t algo,uint16_t sz)
 	{
 		if(!_n || !_d) throw errorPointer(new customError("NULL Keys","Attempted to bind NULL keys to a public key frame"),os::shared_type);
 		if(_n->size()!=sz || _d->size()!=sz) throw errorPointer(new customError("Key Size Error","Attempted to bind keys of wrong size"),os::shared_type);
+		_algorithm=algo;
 		_size=sz;
 		_history=10;
         
@@ -69,9 +72,10 @@ using namespace crypto;
 		_fileName="";
 	}
 	//Password constructor
-	publicKey::publicKey(std::string fileName,std::string password,os::smart_ptr<streamPackageFrame> stream_algo)
+	publicKey::publicKey(uint16_t algo,std::string fileName,std::string password,os::smart_ptr<streamPackageFrame> stream_algo)
 	{
 		if(fileName=="") throw errorPointer(new fileOpenError(),os::shared_type);
+		_algorithm=algo;
 		_size=0;
         _history=10;
 		_fileName=fileName;
@@ -83,9 +87,10 @@ using namespace crypto;
 		setEncryptionAlgorithm(stream_algo);
 	}
 	//Password constructor
-	publicKey::publicKey(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo)
+	publicKey::publicKey(uint16_t algo,std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo)
 	{
 		if(fileName=="") throw errorPointer(new fileOpenError(),os::shared_type);
+		_algorithm=algo;
 		_size=0;
         _history=10;
 		_fileName=fileName;
@@ -139,32 +144,13 @@ using namespace crypto;
 	os::smart_ptr<number> publicKey::copyConvert(const unsigned char* arr,unsigned int len) const
     {return publicKey::copyConvert(arr,len,_size);}
 
-	//Compare two public keys
+	//Compare two public keys (by size and algorithm)
 	int publicKey::compare(const publicKey& cmp) const
 	{
-		//Weird NULL cases
-		if(!n&&cmp.n) return -1;
-		if(n&&!cmp.n) return 1;
-
-		//N Cases
-		if(n!=cmp.n)
-		{
-			int v=n->compare(cmp.n.get());
-			if(v>0) return 1;
-			else if(v<0) return -1;
-		}
-
-		//Weird NULL cases
-		if(!d&&cmp.d) return -1;
-		if(d&&!cmp.d) return 1;
-
-		//D Cases
-		if(d!=cmp.d)
-		{
-			int v=d->compare(cmp.d.get());
-			if(v>0) return 1;
-			else if(v<0) return -1;
-		}
+		if(_algorithm>cmp._algorithm) return 1;
+		else if(_algorithm<cmp._algorithm) return -1;
+		if(_size>cmp._size) return 1;
+		else if(_size<cmp._size) return -1;
 		return 0;
 	}
 
@@ -523,7 +509,7 @@ using namespace crypto;
 
     //Default constructor
     publicRSA::publicRSA(uint16_t sz):
-        publicKey(sz)
+        publicKey(algo::publicRSA,sz)
     {
         initE();
         generateNewKeys();
@@ -546,7 +532,7 @@ using namespace crypto;
     }
     //N, D constructor
     publicRSA::publicRSA(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d,uint16_t sz):
-        publicKey(os::cast<number,integer>(_n),os::cast<number,integer>(_d),sz)
+        publicKey(os::cast<number,integer>(_n),os::cast<number,integer>(_d),algo::publicRSA,sz)
     {
         initE();
         n=copyConvert(os::cast<number,integer>(_n));
@@ -554,7 +540,7 @@ using namespace crypto;
     }
 	//N and D from arrays
 	publicRSA::publicRSA(uint32_t* _n,uint32_t* _d,uint16_t sz):
-        publicKey(sz)
+        publicKey(algo::publicRSA,sz)
 	{
 		initE();
 		n=copyConvert(_n,sz);
@@ -562,14 +548,14 @@ using namespace crypto;
 	}
     //Load a public key from a file
     publicRSA::publicRSA(std::string fileName,std::string password,os::smart_ptr<streamPackageFrame> stream_algo):
-        publicKey(fileName,password,stream_algo)
+        publicKey(algo::publicRSA,fileName,password,stream_algo)
     {
         initE();
         loadFile();
     }
     //Load a public key from a file
     publicRSA::publicRSA(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo):
-        publicKey(fileName,key,keyLen,stream_algo)
+        publicKey(algo::publicRSA,fileName,key,keyLen,stream_algo)
     {
         initE();
         loadFile();
@@ -741,3 +727,5 @@ using namespace crypto;
     }
 
 #endif
+
+///@endcond

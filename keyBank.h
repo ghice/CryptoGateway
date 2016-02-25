@@ -471,7 +471,7 @@ namespace crypto {
      * These banks act, in essense, as
      * data-bases.
      */
-    class keyBank
+    class keyBank: public errorSender
     {
         /** @brief Path to save file
          */
@@ -596,7 +596,7 @@ namespace crypto {
      * of keys that can be practically
      * managed through an AVL key bank.
      */
-    class avlKeyBank: public keyBank, public errorSender
+    class avlKeyBank: public keyBank
     {
         /** @brief List of all names associated with this node
          */
