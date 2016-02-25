@@ -31,7 +31,7 @@ namespace crypto {
 	 * class allows for the encryption of a group
 	 * of files with the provided keys
 	 */
-	class user
+    class user: public os::savingGroup,public errorSender
 	{
 	protected:
 		/** @brief Name of user
@@ -46,6 +46,16 @@ namespace crypto {
 		/** @brief Save directory for user
 		 */
 		std::string _saveDir;
+        
+        /** @brief Creates meta-data XML file
+         *
+         * Constructs and returns the XML tree
+         * for this class.  The XML tree may
+         * or may not be encrypted.
+         *
+         * @return XML tree for saving
+         */
+        
 	public:
 		/** @brief Constructs the user from scratch or directory
 		 *

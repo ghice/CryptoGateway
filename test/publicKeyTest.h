@@ -1,7 +1,7 @@
 /**
  * @file   test/publicKeyTest.h
  * @author Jonathan Bedard
- * @date   2/20/2016
+ * @date   2/24/2016
  * @brief  Public Key tests
  * @bug No known bugs.
  *
@@ -46,7 +46,7 @@ namespace test
 				while(writeKey.generating()) os::sleep(50);
             
 				writeKey.setFileName("keytest.dmp");
-				writeKey.saveFile();
+				writeKey.save();
 
 				pkType readKey("keytest.dmp");
 

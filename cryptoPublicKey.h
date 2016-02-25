@@ -23,7 +23,7 @@
 namespace crypto
 {
 	//A public key class, base for all public key algorithms
-	class publicKey
+    class publicKey: public os::savable
 	{
 		uint16_t _size;
 		uint16_t _algorithm;
@@ -84,7 +84,7 @@ namespace crypto
         inline uint16_t history() const {return _history;}
 
 		//File loading and saving
-		void saveFile();
+		void save();
         void loadFile();
 		void setFileName(std::string fileName);
 		void setPassword(unsigned char* key,unsigned int keyLen);

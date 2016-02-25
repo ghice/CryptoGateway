@@ -169,6 +169,7 @@ using namespace crypto;
             oldN.findDelete(oldN.getLast()->getData());
         while(oldD.size()>_history)
             oldD.findDelete(oldN.getLast()->getData());
+        markChanged();
     }
     //Set the history length
     void publicKey::setHistory(uint16_t hist)
@@ -228,17 +229,20 @@ using namespace crypto;
 		n->expand(2*_size);
 		d->expand(2*_size);
 		writeUnlock();
+        
+        markChanged();
 	}
 
 //File loading and saving-------------------------------------
 
 	//Save file
-	void publicKey::saveFile()
+	void publicKey::save()
 	{
         readLock();
 		if(_fileName=="")
         {
             readUnlock();
+            errorSaving("Failed to open file");
             throw errorPointer(new fileOpenError(),os::shared_type);
         }
 
@@ -252,6 +256,7 @@ using namespace crypto;
         if(!ben->good())
         {
             readUnlock();
+            errorSaving("Write failed");
             throw errorPointer(new actionOnFileError(),os::shared_type);
         }
 
@@ -284,6 +289,7 @@ using namespace crypto;
 		if(!ben->good())
         {
             readUnlock();
+            errorSaving("Write failed");
             throw errorPointer(new actionOnFileError(),os::shared_type);
         }
 
@@ -294,6 +300,7 @@ using namespace crypto;
         if(!ben->good())
         {
             readUnlock();
+            errorSaving("Write failed");
             throw errorPointer(new actionOnFileError(),os::shared_type);
         }
         
@@ -318,12 +325,14 @@ using namespace crypto;
             if(!ben->good())
             {
                 readUnlock();
+                errorSaving("Write failed");
                 throw errorPointer(new actionOnFileError(),os::shared_type);
             }
             ntrc=ntrc->getPrev();
             dtrc=dtrc->getPrev();
         }
         readUnlock();
+        finishedSaving();
 	}
     //Opens a key file
     void publicKey::loadFile()
@@ -428,7 +437,11 @@ using namespace crypto;
 		writeUnlock();
     }
     //Set the file name
-	void publicKey::setFileName(std::string fileName){_fileName=fileName;}
+	void publicKey::setFileName(std::string fileName)
+    {
+        _fileName=fileName;
+        markChanged();
+    }
 	//Set password (by array)
 	void publicKey::setPassword(unsigned char* key,unsigned int keyLen)
 	{
@@ -445,6 +458,8 @@ using namespace crypto;
 		_key=new unsigned char[_keyLen];
 		memcpy(_key,key,_keyLen);
         writeUnlock();
+        
+        markChanged();
 	}
 	//Set password (by string)
 	void publicKey::setPassword(std::string password)
@@ -529,6 +544,7 @@ using namespace crypto;
         //Copy old d
         for(auto trc=ky.oldD.getLast();trc;trc=trc->getPrev())
             oldD.insert(trc->getData());
+        markChanged();
     }
     //N, D constructor
     publicRSA::publicRSA(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d,uint16_t sz):
@@ -537,6 +553,7 @@ using namespace crypto;
         initE();
         n=copyConvert(os::cast<number,integer>(_n));
         d=copyConvert(os::cast<number,integer>(_d));
+        markChanged();
     }
 	//N and D from arrays
 	publicRSA::publicRSA(uint32_t* _n,uint32_t* _d,uint16_t sz):
@@ -545,6 +562,7 @@ using namespace crypto;
 		initE();
 		n=copyConvert(_n,sz);
         d=copyConvert(_d,sz);
+        markChanged();
 	}
     //Load a public key from a file
     publicRSA::publicRSA(std::string fileName,std::string password,os::smart_ptr<streamPackageFrame> stream_algo):
@@ -676,12 +694,14 @@ using namespace crypto;
 		integer td = master->e.modInverse(phi);
 
 		master->n=os::smart_ptr<number>(new integer(tn),os::shared_type);
-		master->d=os::smart_ptr<number>(new integer(td),os::shared_type);			master->n->expand(2*master->size());
+		master->d=os::smart_ptr<number>(new integer(td),os::shared_type);
+        master->n->expand(2*master->size());
 		master->d->expand(2*master->size());
                 
-                publicRSA* temp=master;
-                temp->keyGen=NULL;
+        publicRSA* temp=master;
+        temp->keyGen=NULL;
 		temp->writeUnlock();
+        temp->markChanged();
 	}
 	
 	//Key generation function
