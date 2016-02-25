@@ -47,6 +47,10 @@ namespace crypto {
 		 */
 		std::string _saveDir;
         
+        /** @brief Default stream package
+         */
+        os::smart_ptr<streamPackageFrame> defaultPackage;
+        
         /** @brief Creates meta-data XML file
          *
          * Constructs and returns the XML tree
@@ -55,7 +59,7 @@ namespace crypto {
          *
          * @return XML tree for saving
          */
-        
+        os::smartXMLNode generateSaveTree();
 	public:
 		/** @brief Constructs the user from scratch or directory
 		 *

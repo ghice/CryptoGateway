@@ -30,6 +30,7 @@ namespace crypto {
 		//Basic initializers
 		_username=username;
 		_saveDir=saveDir;
+        defaultPackage=streamPackageTypeBank::singleton()->defaultPackage();
 		if(key==NULL || keyLen==0)
 		{
 			_password=NULL;
@@ -59,6 +60,28 @@ namespace crypto {
 		if(needsSaving()) save();
 		if(_password!=NULL) delete [] _password;
 	}
+    //Generate an XML tree for saving
+    os::smartXMLNode user::generateSaveTree()
+    {
+        os::smartXMLNode ret(new os::XML_Node("user"),os::shared_type);
+        
+        //Name
+        os::smartXMLNode lv1(new os::XML_Node("name"),os::shared_type);
+        lv1->setData(_username);
+        ret->addElement(lv1);
+        
+        //Password hash
+        lv1=os::smartXMLNode(new os::XML_Node("password"),os::shared_type);
+        if(_password==NULL) lv1->setData("NULL");
+        else
+        {
+            hash hsh=defaultPackage->hashData(_password, _passwordLength);
+            lv1->setData(hsh.toString());
+        }
+        ret->addElement(lv1);
+        
+        return ret;
+    }
 	//Save all data
 	void user::save()
 	{
@@ -71,6 +94,8 @@ namespace crypto {
         if(!needsSaving()) return;
 
 		//Save self first
+        os::smartXMLNode svTree=generateSaveTree();
+        os::XML_Output(_saveDir+"/"+_username+"/metaData.xml", svTree);
         
         //Save all listeners
         os::savingGroup::save();
