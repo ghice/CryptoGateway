@@ -18,6 +18,7 @@
 
 #include "keyBank.h"
 #include "cryptoError.h"
+#include "XMLEncryption.h"
 #include <sstream>
 
 namespace crypto {
@@ -438,12 +439,85 @@ namespace crypto {
     }
     
 /*-----------------------------------
+	Key Bank
+-----------------------------------*/
+
+	//Key bank constructor
+	keyBank::keyBank(std::string savePath,const unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> strmPck)
+	{
+		_savePath=savePath;
+
+		//Check key size
+		if(keyLen>size::STREAM_SEED_MAX)
+		{
+			logError(errorPointer(new passwordLargeError(),os::shared_type));
+			keyLen=size::STREAM_SEED_MAX;
+		}
+
+		//Copy key
+		if(key==NULL || keyLen==0)
+		{
+			_symKey=NULL;
+			_keyLen=0;
+		}
+		else
+		{
+			_symKey=new unsigned char[keyLen];
+			memcpy(_symKey,key,keyLen);
+			_keyLen=keyLen;
+		}
+
+		//Stream package
+		_streamPackage=strmPck;
+		if(_streamPackage)
+			_streamPackage=streamPackageTypeBank::singleton()->defaultPackage();
+		markChanged();
+	}
+	//Set password
+	void keyBank::setPassword(const unsigned char* key,unsigned int keyLen)
+	{
+		//Set key
+		if(_symKey!=NULL)
+			delete [] _symKey;
+
+		//Check key size
+		if(keyLen>size::STREAM_SEED_MAX)
+		{
+			logError(errorPointer(new passwordLargeError(),os::shared_type));
+			keyLen=size::STREAM_SEED_MAX;
+		}
+
+		//Copy key
+		if(key==NULL || keyLen==0)
+		{
+			_symKey=NULL;
+			_keyLen=0;
+		}
+		else
+		{
+			_symKey=new unsigned char[keyLen];
+			memcpy(_symKey,key,keyLen);
+			_keyLen=keyLen;
+		}
+
+		markChanged();
+	}
+	//Set stream package
+	void keyBank::setStreamPackage(os::smart_ptr<streamPackageFrame> strmPack)
+	{
+		_streamPackage=strmPack;
+		if(_streamPackage)
+			_streamPackage=streamPackageTypeBank::singleton()->defaultPackage();
+		markChanged();
+	}
+
+/*-----------------------------------
      AVL Key Bank
 -----------------------------------*/
     
     //AVL bank constructor
-    avlKeyBank::avlKeyBank(std::string savePath):
-        keyBank(savePath)
+    avlKeyBank::avlKeyBank(std::string savePath,const unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> strmPck):
+        keyBank(savePath,key,keyLen,strmPck)
     {
         load();
     }
@@ -453,7 +527,13 @@ namespace crypto {
 		if(savePath()=="") return;
 		try
 		{
-			os::smartXMLNode headNode=os::XML_Input(savePath());
+			os::smartXMLNode headNode;
+
+			//Have a symetric key
+			if(_symKey!=NULL&&_keyLen>0) headNode=EXML_Input(savePath(),_symKey,_keyLen);
+			//No encryption
+			else headNode=os::XML_Input(savePath());
+
 			if(!headNode)
 				throw errorPointer(new fileOpenError(),os::shared_type);
 			if(headNode->getID()!="keyBank")
@@ -474,23 +554,57 @@ namespace crypto {
     //Save file
     void avlKeyBank::save()
     {
-		if(savePath()=="") return;
+		if(savePath()=="")
+		{
+			errorSaving("No saving path");
+			return;
+		}
 		try
 		{
 			os::smartXMLNode headNode(new os::XML_Node("keyBank"),os::shared_type);
 			for(auto i=nodeBank.getFirst();i;i=i->getNext())
 				headNode->addElement(i->getData()->buildXML());
-			if(!os::XML_Output(savePath(), headNode))
-				throw errorPointer(new fileOpenError(),os::shared_type);
+
+			//Have a symetric key
+			if(_symKey!=NULL&&_keyLen>0)
+			{
+				if(!EXML_Output(savePath(),headNode,_symKey,_keyLen,_streamPackage))
+					throw errorPointer(new fileOpenError(),os::shared_type);
+			}
+			//No encryption
+			else
+			{
+				if(!os::XML_Output(savePath(), headNode))
+					throw errorPointer(new fileOpenError(),os::shared_type);
+			}
 		}
-		catch (errorPointer e) {logError(e);}
-		catch (...) {logError(errorPointer(new unknownErrorType(),os::shared_type));}
+		catch (errorPointer e)
+		{
+			logError(e);
+			errorSaving(e->errorTitle());
+			return;
+		}
+		catch (...) 
+		{
+			logError(errorPointer(new unknownErrorType(),os::shared_type));
+			errorSaving("Unknown error");
+			return;
+		}
+		finishedSaving();
     }
     
     //Push node (name)
-    void avlKeyBank::pushNewNode(os::smart_ptr<nodeNameReference> name) {nameTree.insert(name);}
+    void avlKeyBank::pushNewNode(os::smart_ptr<nodeNameReference> name)
+	{
+		nameTree.insert(name);
+		markChanged();
+	}
     //Push node (key)
-    void avlKeyBank::pushNewNode(os::smart_ptr<nodeKeyReference> key) {keyTree.insert(key);}
+    void avlKeyBank::pushNewNode(os::smart_ptr<nodeKeyReference> key)
+	{
+		keyTree.insert(key);
+		markChanged();
+	}
     
     //Add authenticated node
     os::smart_ptr<nodeGroup> avlKeyBank::addPair(std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
@@ -526,6 +640,7 @@ namespace crypto {
         }
         //Name and key are the same
         else ret=foundName;
+		markChanged();
         return ret;
     }
     //Find node (name)

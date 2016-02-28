@@ -471,7 +471,7 @@ namespace crypto {
      * These banks act, in essense, as
      * data-bases.
      */
-    class keyBank: public errorSender
+    class keyBank: public os::savable,public errorSender
     {
         /** @brief Path to save file
          */
@@ -484,6 +484,21 @@ namespace crypto {
          */
         friend class nodeGroup;
     protected:
+		/** @brief Stream package
+		 *
+		 * Used for the saving of the key bank.
+		 * This defines the algorithms used for
+		 * encrypting the saved bank, if it is
+		 * encrypted.
+		 */
+		os::smart_ptr<streamPackageFrame> _streamPackage;
+		/** @brief Primary symmetric key
+		 */
+		unsigned char* _symKey;
+		/** @brief Length of symmetric key
+		 */
+		unsigned int _keyLen;
+
         /** @brief Add name node
          *
          * Inserts a name node into
@@ -520,8 +535,11 @@ namespace crypto {
         /** @brief Construct with save path
          *
          * @param [in] savePath Path to save file
+		 * @param [in] key Symetric key
+		 * @param [in] keyLen Length of symetric key
+		 * @param [in] strmPck Definition of algorithms used
          */
-        keyBank(std::string savePath){_savePath=savePath;}
+        keyBank(std::string savePath,const unsigned char* key=NULL,unsigned int keyLen=0,os::smart_ptr<streamPackageFrame> strmPck=NULL);
     public:
         /** @brief Virtual destructor
          *
@@ -530,7 +548,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-        virtual ~keyBank(){}
+        virtual ~keyBank(){if(_symKey!=NULL) delete [] _symKey;}
         /** @brief Adds authenticated node to bank
          *
          * Note that if a node has not be authenticated,
@@ -585,6 +603,30 @@ namespace crypto {
          */
         virtual os::smart_ptr<nodeGroup> find(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
         {return find(os::smart_ptr<nodeKeyReference>(new nodeKeyReference(key,algoID,keySize),os::shared_type));}
+
+	//Setting Encryption--------------------------------------------------
+
+		/** @brief Set password
+		 *
+		 * Sets symetric key used to securely
+		 * save user data.
+		 *
+		 * @param [in] key Symetric key
+		 * @param [in] keyLen Length of symetric key
+		 *
+		 * @return void
+		 */
+		void setPassword(const unsigned char* key=NULL,unsigned int keyLen=0);
+		/** @brief Set stream package
+		 *
+		 * Binds a new stream package.  Calls
+		 * for saving of this user.
+		 *
+		 * @param [in] strmPack Stream package
+		 *
+		 * @return void
+		 */
+		void setStreamPackage(os::smart_ptr<streamPackageFrame> strmPack);
     };
     /** @brief AVL key back
      *
@@ -641,8 +683,11 @@ namespace crypto {
          * loads the the bank from a file.
          *
          * @param [in] savePath Path to save file, empty by default
+		 * @param [in] key Symetric key
+		 * @param [in] keyLen Length of symetric key
+		 * @param [in] strmPck Definition of algorithms used
          */
-        avlKeyBank(std::string savePath="");
+        avlKeyBank(std::string savePath="",const unsigned char* key=NULL,unsigned int keyLen=0,os::smart_ptr<streamPackageFrame> strmPck=NULL);
         /** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object

@@ -1,7 +1,7 @@
 /**
  * @file	user.h
  * @author	Jonathan Bedard
- * @date   	2/24/2016
+ * @date   	2/28/2016
  * @brief	Definition of the CryptoGateway user
  * @bug	None
  *
@@ -16,6 +16,7 @@
 #include "binaryEncryption.h"
 #include "cryptoLogging.h"
 #include "cryptoError.h"
+#include "keyBank.h"
 
 #include "streamPackage.h"
 #include "publicKeyPackage.h"
@@ -49,8 +50,14 @@ namespace crypto {
         
         /** @brief Default stream package
          */
-        os::smart_ptr<streamPackageFrame> defaultPackage;
-        
+        os::smart_ptr<streamPackageFrame> _streamPackage;
+        /** @brief Key bank 
+		 *
+		 * This key bank defines all of the public
+		 * keys which are known by this user
+		 */
+		os::smart_ptr<keyBank> _keyBank;
+
         /** @brief Creates meta-data XML file
          *
          * Constructs and returns the XML tree
@@ -69,11 +76,21 @@ namespace crypto {
 		 * it.  If no key is specified, all files are un-encrypted.
 		 * If a key is specified, all files are encrypted with this
 		 * key.
+		 *
+		 * @param [in] username Name of user to be saved
+		 * @param [in] saveDir Directory to save users in
+		 * @param [in] key Symetric key
+		 * @param [in] keyLen Length of symetric key
 		 * 
 		 */
 		user(std::string username,std::string saveDir="",const unsigned char* key=NULL,unsigned int keyLen=0);
-		/** @brief
-		 */
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
 		virtual ~user();
 		
 		/** @brief Saves all dependencies
@@ -84,6 +101,32 @@ namespace crypto {
 		 */
 		void save();
 		
+	//Set Data-----------------------------------------------------------
+
+		/** @brief Set password
+		 *
+		 * Sets symetric key used to securely
+		 * save user data.
+		 *
+		 * @param [in] key Symetric key
+		 * @param [in] keyLen Length of symetric key
+		 *
+		 * @return void
+		 */
+		void setPassword(const unsigned char* key=NULL,unsigned int keyLen=0);
+		/** @brief Set stream package
+		 *
+		 * Binds a new stream package.  Calls
+		 * for saving of this user.
+		 *
+		 * @param [in] strmPack Stream package
+		 *
+		 * @return void
+		 */
+		void setStreamPackage(os::smart_ptr<streamPackageFrame> strmPack);
+
+	//Access-------------------------------------------------------------
+
 		/** @brief Access name of user
 		 * @return crypto::user::_username
 		 */
@@ -96,6 +139,14 @@ namespace crypto {
 		 * @return crypto::user::_passwordLength
 		 */
 		unsigned int passwordLength() const {return _passwordLength;}
+		/** @brief Access streaming package
+		 * @return crypto::user::_streamPackage
+		 */
+		os::smart_ptr<streamPackageFrame> streamPackage() const {return _streamPackage;}
+		/** @brief Access key bank
+		 * @return crypto::user::_keyBank
+		 */
+		os::smart_ptr<streamPackageFrame> getKeyBank() const {return _keyBank;}
 
 	};
 }

@@ -190,7 +190,11 @@ namespace crypto {
 
 	//Raw password output
     bool EXML_Output(std::string path, os::smartXMLNode head, std::string password, os::smart_ptr<streamPackageFrame> spf)
-    {
+	{
+		return EXML_Output(path,head,(unsigned char*) password.c_str(),password.length(),spf);
+	}
+    bool EXML_Output(std::string path, os::smartXMLNode head, unsigned char* symKey,unsigned int passwordLength, os::smart_ptr<streamPackageFrame> spf)
+	{
 		try
 		{
 			//Basic checks
@@ -198,6 +202,12 @@ namespace crypto {
 			if(os::check_exists(path) && os::is_directory(path)) throw errorPointer(new fileOpenError(),os::shared_type);;
 			std::ofstream fileout(path,std::ios::binary);
 			if(!fileout.good()) throw errorPointer(new fileOpenError(),os::shared_type);
+
+			//Password size check
+			if(passwordLength>size::STREAM_SEED_MAX)
+				throw errorPointer(new passwordLargeError(),os::shared_type);
+			if(passwordLength<=0)
+				throw errorPointer(new passwordSmallError(),os::shared_type);
         
 			//Check stream package
 			if(!spf) spf=streamPackageTypeBank::singleton()->defaultPackage();
@@ -232,7 +242,7 @@ namespace crypto {
 			//Key
 			trc1=os::smartXMLNode(new os::XML_Node("key"),os::shared_type);
 			trc2=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
-			hash hsh=spf->hashData((unsigned char*)password.c_str(),password.size());
+			hash hsh=spf->hashData(symKey,passwordLength);
 			trc2->setData(hsh.toString());
 			trc1->addElement(trc2);
 			encryHead->addElement(trc1);
@@ -246,7 +256,7 @@ namespace crypto {
 
 			os::xml::writeNode(fileout,encryHead,0);
 
-			os::smart_ptr<streamCipher> strm=spf->buildStream((unsigned char*)password.c_str(),password.size());
+			os::smart_ptr<streamCipher> strm=spf->buildStream(symKey,passwordLength);
 			if(!strm) throw errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type);
 			fileout<<'>';
 			recursiveXMLPrinting(head,strm,argList,fileout);
@@ -355,6 +365,10 @@ namespace crypto {
     //Decrypt with password
     os::smartXMLNode EXML_Input(std::string path, std::string password)
     {
+		return EXML_Input(path,(unsigned char*) password.c_str(),password.length());
+	}
+	os::smartXMLNode EXML_Input(std::string path, unsigned char* symKey,unsigned int passwordLength)
+	{
 		os::smartXMLNode ret;
 		try
 		{
@@ -362,6 +376,12 @@ namespace crypto {
 			if(os::check_exists(path) && os::is_directory(path)) throw errorPointer(new fileOpenError(),os::shared_type);
 			std::ifstream filein(path,std::ios::binary);
 			if(!filein.good()) throw errorPointer(new fileOpenError(),os::shared_type);
+
+			//Password size check
+			if(passwordLength>size::STREAM_SEED_MAX)
+				throw errorPointer(new passwordLargeError(),os::shared_type);
+			if(passwordLength<=0)
+				throw errorPointer(new passwordSmallError(),os::shared_type);
 
 			//Check header
 			os::xml::readTillTag(filein);
@@ -441,7 +461,7 @@ namespace crypto {
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=fnd->getData();
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				hash refHash=spf->hashData((unsigned char*)password.c_str(),password.size());
+				hash refHash=spf->hashData(symKey,passwordLength);
 				hash compHash(refHash);
 				compHash.fromString(trc2->getData());
 				if(refHash!=compHash) throw errorPointer(new hashCompareError(),os::shared_type);
@@ -458,7 +478,7 @@ namespace crypto {
 				argList.push_back(trc1->getData());
 			
 			while(filein.get()!='>');
-			ret=recursiveXMLBuilding(spf->buildStream((unsigned char*) password.c_str(),password.length()),argList,filein);
+			ret=recursiveXMLBuilding(spf->buildStream(symKey,passwordLength),argList,filein);
 		}
 		catch(errorPointer e)
 		{throw e;}
@@ -468,7 +488,7 @@ namespace crypto {
 
         return ret;
     }
-    //Decrypt with public key
+	//Decrypt with public key
     os::smartXMLNode EXML_Input(std::string path, os::smart_ptr<publicKey> pbk)
     {
 		os::smartXMLNode ret;

@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.h
  * @author Jonathan Bedard
- * @date   2/20/2016
+ * @date   2/28/2016
  * @brief  Header for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -29,6 +29,13 @@ namespace test
     public:
         keyBankSuite();
         virtual ~keyBankSuite(){}
+    };
+	//User test suite
+    class userSuite: public testSuite
+    {
+    public:
+        userSuite();
+        virtual ~userSuite(){}
     };
 }
 

@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   2/21/2016
+ * @date   2/28/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -20,6 +20,7 @@
 
 #include "gatewayTest.h"
 #include "testKeyGeneration.h"
+#include "user.h"
 #include <string>
 
 using namespace test;
@@ -209,6 +210,64 @@ using namespace crypto;
 	}
 
 /*================================================================
+	User Test
+ ================================================================*/
+
+	//Basic user saving test
+	void basicUserTest() throw (os::smart_ptr<std::exception>)
+	{
+		std::string locString = "gatewayTest.cpp, basicBankTest()";
+
+		try
+		{
+			user usr("testUser","TestFolder");
+			if(!usr.needsSaving())
+				throw os::smart_ptr<std::exception>(new generalTestException("User should call for save",locString),os::shared_type);
+			if(usr.numberErrors()>0)
+				throw os::smart_ptr<std::exception>(new generalTestException("Unexpected user error!",locString),os::shared_type);
+			usr.save();
+
+			//Check for basic file existance
+			if(!os::check_exists("TestFolder"))
+				throw os::smart_ptr<std::exception>(new generalTestException("Holding folder not created",locString),os::shared_type);
+			if(!os::check_exists("TestFolder/testUser"))
+				throw os::smart_ptr<std::exception>(new generalTestException("User folder not created",locString),os::shared_type);
+			if(!os::check_exists("TestFolder/testUser/metaData.xml"))
+				throw os::smart_ptr<std::exception>(new generalTestException("Meta data file not created",locString),os::shared_type);
+			if(!os::check_exists("TestFolder/testUser/keyBank.xml"))
+				throw os::smart_ptr<std::exception>(new generalTestException("Key bank file not created",locString),os::shared_type);
+
+			//Set password
+			std::string tempPass="password";
+			usr.setPassword((unsigned char*)tempPass.c_str(),tempPass.length());
+			if(!usr.needsSaving())
+				throw os::smart_ptr<std::exception>(new generalTestException("User should have call for save after changing password",locString),os::shared_type);
+			usr.save();
+
+			//Open a new user
+			user nusr("testUser","TestFolder",(unsigned char*)tempPass.c_str(),tempPass.length());
+			if(nusr.numberErrors()>0)
+				throw os::smart_ptr<std::exception>(new generalTestException("Error when re-loading user data",locString),os::shared_type);
+
+			//Bad user
+			user busr("testUser","TestFolder");
+			if(busr.numberErrors()==0)
+				throw os::smart_ptr<std::exception>(new generalTestException("Expected error for loading user without password",locString),os::shared_type);
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("TestFolder");
+			throw e;
+		}
+		catch (...)
+		{
+			os::delete_file("TestFolder");
+			throw os::smart_ptr<std::exception>(new unknownException(locString),os::shared_type);
+		}
+		os::delete_file("TestFolder");
+	}
+
+/*================================================================
 	Bind Suites
  ================================================================*/
 
@@ -221,6 +280,12 @@ using namespace crypto;
 		pushTest("Node Merging",&bankMergeTest);
 		pushTest("Timestamp: Name",&bankNameTimestampTest);
 		pushTest("Timestamp: Key",&bankKeyTimestampTest);
+    }
+	//User test
+    userSuite::userSuite():
+        testSuite("User")
+    {
+        pushTest("Basic Test",&basicUserTest);
     }
 
 #endif
