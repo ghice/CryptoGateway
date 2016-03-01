@@ -77,29 +77,120 @@ namespace crypto
 		 */
 		os::unsortedList<uint64_t> _timestamps;
 
+		/** @brief No key constructor
+		 *
+		 * @param algo Algorithm ID
+		 * @param sz Size of key, size::public512 by default
+		 */
 		publicKey(uint16_t algo,uint16_t sz=size::public512);
+		/** @brief Copy constructor
+		 *
+		 * @param ky Public key to be copied
+		 */
         publicKey(const publicKey& ky);
+		/** @brief Construct with keys
+		 *
+		 * @param _n Smart pointer to public key
+		 * @param _d Smart pointer to private key
+		 * @param algo Algorithm ID
+		 * @param sz Size of key, size::public512 by default
+		 * @param tms Timestamp of the current keys, now by default
+		 */
 		publicKey(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint16_t algo,uint16_t sz=size::public512,uint64_t tms=os::getTimestamp());
+		/** @brief Construct with path to file and password
+		 *
+		 * @param algo Algorithm ID
+		 * @param fileName Name of file to find keys
+		 * @param password String representing symetric key, "" by default
+		 * @param stream_algo Symetric key encryption algorithm, NULL by default
+		 */
 		publicKey(uint16_t algo,std::string fileName,std::string password="",os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+		/** @brief Construct with path to file and password
+		 *
+		 * @param algo Algorithm ID
+		 * @param fileName Name of file to find keys
+		 * @param key Symetric key
+		 * @param keyLen Length of symetric key
+		 * @param stream_algo Symetric key encryption algorithm, NULL by default
+		 */
 		publicKey(uint16_t algo,std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
     
+		/** @brief Increments the read lock
+		 * @return void
+		 */
 		inline void writeLock() {keyLock.lock();}
+		/** @brief Decrements the read lock
+		 * @return void
+		 */
 		inline void writeUnlock() {keyLock.unlock();}
-
+		/** @brief Compare this with another public key
+		 *
+		 * Compares based on the algorithm ID and size of
+		 * the key.  Note that this will return 0 if two
+		 * public keys have the same algorithm ID and size
+		 * even if they have different keys.
+		 *
+		 * @param [in] cmp Public key to compare against
+		 * @return 0 if equal, 1 if greater than, -1 if less than
+		 */
 		int compare(const publicKey& cmp) const;
-        
+        /** @brief Bind old keys to history
+		 *
+		 * @param [in] n Old public key
+		 * @param [in] d Old private key
+		 * @param [in] ts Old timestamp
+		 * @return void
+		 */
         void pushOldKeys(os::smart_ptr<number> n, os::smart_ptr<number> d,uint64_t ts);
     public:
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
 		virtual ~publicKey();
 
+		/** @brief Converts number to correct type
+		 * @param [in] num Number to be converted
+		 * @return Converted number
+		 */
 		virtual os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
+		/** @brief Converts array to correct number type
+		 * @param [in] arr Array to be converted
+		 * @param [in] len Length of array to be converted
+		 * @return Converted number
+		 */
         virtual os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+		/** @brief Converts byte array to correct number type
+		 * @param [in] arr Byte array to be converted
+		 * @param [in] len Length of array to be converted
+		 * @return Converted number
+		 */
         virtual os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
         
+		/** @brief Converts number to correct type, statically
+		 * @param [in] num Number to be converted
+		 * @return Converted number
+		 */
 		static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
+		/** @brief Converts array to correct number type, statically
+		 * @param [in] arr Array to be converted
+		 * @param [in] len Length of array to be converted
+		 * @return Converted number
+		 */
 		static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
+		/** @brief Converts byte array to correct number type, statically
+		 * @param [in] arr Byte array to be converted
+		 * @param [in] len Length of array to be converted
+		 * @return Converted number
+		 */
 		static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
 
+		/** @brief Public key access
+		 * @return crypto::publicKey::n
+		 */
 		os::smart_ptr<number> getN() const;
 		os::smart_ptr<number> getD() const;
 		uint64_t timestamp() const {return _timestamp;}

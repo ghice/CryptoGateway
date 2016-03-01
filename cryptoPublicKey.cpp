@@ -526,7 +526,11 @@ using namespace crypto;
 		else setPassword((unsigned char*)password.c_str(),password.length());
 	}
 	//Set algorithm to be used in encryption
-	void publicKey::setEncryptionAlgorithm(os::smart_ptr<streamPackageFrame> stream_algo) {fePackage=stream_algo;}
+	void publicKey::setEncryptionAlgorithm(os::smart_ptr<streamPackageFrame> stream_algo)
+	{
+		fePackage=stream_algo;
+		markChanged();
+	}
 
 //Encoding and decoding---------------------------------------
 
