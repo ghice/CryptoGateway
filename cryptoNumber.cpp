@@ -1,6 +1,18 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 2/12/2016
+/**
+ * @file   cryptoNumber.cpp
+ * @author Jonathan Bedard
+ * @date   3/1/2016
+ * @brief  Implements basic number types
+ * @bug No known bugs.
+ *
+ * Implements basic large numbers and the
+ * more specific large integer.  Consult
+ * cryptoNumber.h for details.
+ *
+ */
 
+///@cond INTERNAL
+ 
 #ifndef CRYPTO_NUMBER_CPP
 #define CRYPTO_NUMBER_CPP
 
@@ -1162,3 +1174,5 @@ using namespace crypto;
     }
 
 #endif
+
+///@endcond

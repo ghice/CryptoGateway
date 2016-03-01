@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   2/29/2016
+ * @date   3/1/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -41,10 +41,10 @@ namespace crypto
 		 */
         uint16_t _history;
 
-		/** @brief Symetric key for encryption
+		/** @brief Symmetric key for encryption
 		 */
 		unsigned char* _key;
-		/** @brief Length of symetric key
+		/** @brief Length of symmetric key
 		 */
 		unsigned int _keyLen;
 		/**@ brief Algorithm used for encryption
@@ -73,7 +73,7 @@ namespace crypto
 		/**@ brief List of old private keys
 		 */
         os::unsortedList<number> oldD;
-		/**@ brief List of timestamps for old pairs
+		/**@ brief List of time-stamps for old pairs
 		 */
 		os::unsortedList<uint64_t> _timestamps;
 
@@ -94,32 +94,32 @@ namespace crypto
 		 * @param _d Smart pointer to private key
 		 * @param algo Algorithm ID
 		 * @param sz Size of key, size::public512 by default
-		 * @param tms Timestamp of the current keys, now by default
+		 * @param tms Time-stamp of the current keys, now by default
 		 */
 		publicKey(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint16_t algo,uint16_t sz=size::public512,uint64_t tms=os::getTimestamp());
 		/** @brief Construct with path to file and password
 		 *
 		 * @param algo Algorithm ID
 		 * @param fileName Name of file to find keys
-		 * @param password String representing symetric key, "" by default
-		 * @param stream_algo Symetric key encryption algorithm, NULL by default
+		 * @param password String representing symmetric key, "" by default
+		 * @param stream_algo Symmetric key encryption algorithm, NULL by default
 		 */
 		publicKey(uint16_t algo,std::string fileName,std::string password="",os::smart_ptr<streamPackageFrame> stream_algo=NULL);
 		/** @brief Construct with path to file and password
 		 *
 		 * @param algo Algorithm ID
 		 * @param fileName Name of file to find keys
-		 * @param key Symetric key
-		 * @param keyLen Length of symetric key
-		 * @param stream_algo Symetric key encryption algorithm, NULL by default
+		 * @param key Symmetric key
+		 * @param keyLen Length of symmetric key
+		 * @param stream_algo Symmetric key encryption algorithm, NULL by default
 		 */
 		publicKey(uint16_t algo,std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
     
-		/** @brief Increments the read lock
+		/** @brief Locks the write lock
 		 * @return void
 		 */
 		inline void writeLock() {keyLock.lock();}
-		/** @brief Decrements the read lock
+		/** @brief Unlocks the write lock
 		 * @return void
 		 */
 		inline void writeUnlock() {keyLock.unlock();}
@@ -138,7 +138,7 @@ namespace crypto
 		 *
 		 * @param [in] n Old public key
 		 * @param [in] d Old private key
-		 * @param [in] ts Old timestamp
+		 * @param [in] ts Old time-stamp
 		 * @return void
 		 */
         void pushOldKeys(os::smart_ptr<number> n, os::smart_ptr<number> d,uint64_t ts);
@@ -192,43 +192,198 @@ namespace crypto
 		 * @return crypto::publicKey::n
 		 */
 		os::smart_ptr<number> getN() const;
+		/** @brief Private key access
+		 * @return crypto::publicKey::d
+		 */
 		os::smart_ptr<number> getD() const;
+		/** @brief Time-stamp access
+		 * @return crypto::publicKey::_timestamp
+		 */
 		uint64_t timestamp() const {return _timestamp;}
+		/** @brief Access old public keys
+		 * @param history Historical index, 0 by default
+		 * @return Public key at given index
+		 */
 		os::smart_ptr<number> getOldN(unsigned int history=0);
+		/** @brief Access old private keys
+		 * @param history Historical index, 0 by default
+		 * @return Private key at given index
+		 */
 		os::smart_ptr<number> getOldD(unsigned int history=0);
+		/** @brief Access old time-stamps
+		 * @param history Historical index, 0 by default
+		 * @return Time-stamp at given index
+		 */
 		uint64_t getOldTimestamp(unsigned int history=0);
+		/** @brief Key generation function
+		 *
+		 * Generates new keys for the specific
+		 * algorithm.  This is re-implemented
+		 * by every algorithm.
+		 *
+		 * @return void
+		 */
 		virtual void generateNewKeys();
+		/** @brief Tests if the keys are in the process of generating
+		 * @return True if generating new keys
+		 */
         virtual bool generating() {return false;}
+		/** @brief Access algorithm ID
+		 * @return crypto::algo::publicNULL
+		 */
 		inline static uint16_t staticAlgorithm() {return algo::publicNULL;}
+		/** @brief Access algorithm name
+		 * @return "NULL Public Key"
+		 */
         inline static std::string staticAlgorithmName() {return "NULL Public Key";}
+		/** @brief Access algorithm ID
+		 * @return crypto::publicKey::_algorithm
+		 */
 		inline uint16_t algorithm() const {return _algorithm;}
+		/** @brief Access algorithm name
+		 * @return crypto::publicKey::staticAlgorithmName()
+		 */
 		inline virtual std::string algorithmName() const {return publicKey::staticAlgorithmName();}
+		/** @brief Access key size
+		 * @return crypto::publicKey::_size
+		 */
         uint16_t size() const {return _size;}
 
+		/** @brief Increment read lock
+		 * @return void
+		 */
 		inline void readLock() {keyLock.increment();}
+		/** @brief Decrement read lock
+		 * @return void
+		 */
 		inline void readUnlock() {keyLock.decrement();}
         
-        //History
+        /** @brief Sets history size
+		 *
+		 * Determines the number of historical keys to
+		 * keep recorded.  Note that keys are sorted
+		 * by the order they were received into this
+		 * structure, not their time-stamp.
+		 *
+		 * @param [in] hist History size to be bound
+		 * @return void
+		 */
         void setHistory(uint16_t hist);
+		/** @breif Access history size
+		 * @return crypto::publicKey::_history
+		 */
         inline uint16_t history() const {return _history;}
 
-		//File loading and saving
+		/** @brief Re-save the entire structure
+		 * @return void
+		 */
 		void save();
+		/** @brief Loads the structure from a file
+		 * @return void
+		 */
         void loadFile();
+		/** @brief Set the save file name
+		 * @param [in] fileName Path of save file
+		 * @return void
+		 */
 		void setFileName(std::string fileName);
+		/** @brief Binds a new symmetric key
+		 *
+		 * Re-binding of the symmetric key will
+		 * result in a re-save event through the
+		 * savable class.
+		 *
+		 * @param [in] key Symmetric key
+		 * @param [in] keyLen Length of symmetric key
+		 * @return void
+		 */
 		void setPassword(unsigned char* key,unsigned int keyLen);
+		/** @breif Binds a new symmetric key
+		 *
+		 * @param [in] password String representing the symmetric key
+		 * @return void
+		 */
 		void setPassword(std::string password);
+		/** @brief Sets the symmetric encryption algorithm
+		 * @param [in] stream_algo Symmetric key algorithm
+		 * @return void
+		 */
 		void setEncryptionAlgorithm(os::smart_ptr<streamPackageFrame> stream_algo);
+		/** @brief Return the save file path
+		 * @return crypto::publicKey::_fileName
+		 */
 		const std::string& fileName() const {return _fileName;}
 
-		//Encoding and decoding
+		/** @brief Static number encode
+		 *
+		 * This function is expected to be re-implemented
+		 * for each public-key type.  This function must be
+		 * static because data can be encoded with a public
+		 * key even though a node does not have its own keys defined.
+		 *
+		 * @param [in] code Data to be encoded
+		 * @param [in] publicN Public key to be encoded against
+		 * @param [in] size Size of key used
+		 * @return Encoded number
+		 */
         static os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size);
-        static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
+        /** @brief Static data encode
+		 *
+		 * This function is expected to be re-implemented
+		 * for each public-key type.  This function must be
+		 * static because data can be encoded with a public
+		 * key even though a node does not have its own keys defined.
+		 *
+		 * @param [in/out] code Data to be encoded
+		 * @param [in] codeLength Length of code array
+		 * @param [in] publicN Public key to be encoded against
+		 * @param [in] nLength Length of key array
+		 * @param [in] size Size of key used
+		 * @return void
+		 */
+		static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
         
+		/** @brief Number encode
+		 * @param [in] code Data to be encoded
+		 * @param [in] publicN Public key to be encoded against, NULL by default
+		 * @return Encoded number
+		 */
 		virtual os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN=NULL) const;
+		/** @brief Data encode against number
+		 * @param [in/out] code Data to be encoded
+		 * @param [in] codeLength Length of code array
+		 * @param [in] publicN Public key to be encoded against, NULL by default
+		 * @return void
+		 */
 		void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN=NULL) const;
+		/** @brief Data encode
+		 * @param [in/out] code Data to be encoded
+		 * @param [in] codeLength Length of code array
+		 * @param [in] publicN Public key to be encoded against
+		 * @param [in] nLength Length of key array
+		 * @return void
+		 */
 		virtual void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
+		/** @brief Number decode
+		 *
+		 * Uses the private key to decode a
+		 * set of data.  Re-implemented by
+		 * algorithm definitions which inherit
+		 * from this class.
+		 *
+		 * @param  [in] code Data to be decoded
+		 * @return Decoded number
+		 */
 		virtual os::smart_ptr<number> decode(os::smart_ptr<number> code) const;
+		/** @brief Data decode
+		 *
+		 * Uses the private key to decode a
+		 * set of data.
+		 *
+		 * @param [in/out] code Data to be decoded
+		 * @param [in] codeLength Length of code to be decoded
+		 * @return void
+		 */
         void decode(unsigned char* code, unsigned int codeLength) const;
 
 		/** @brief Compares equality by size and algorithm
@@ -256,60 +411,259 @@ namespace crypto
 		 */
 		bool operator>=(const publicKey& cmp) const {return -1!=compare(cmp);}
 	};
-    
+    ///@cond INTERNAL
 	class RSAKeyGenerator;
+	///@endcond
+	
+	/** @brief RSA public-key encryption
+	 *
+	 * This class defines an RSA algorithm
+	 * for public-key cryptography.
+	 */
 	class publicRSA: public publicKey
 	{
+		/** @brief Friendship with key generation
+		 *
+		 * The crypto::RSAKeyGenerator must be able
+		 * to access the private members of the RSA
+		 * public key class to bind newly generated keys.
+		 */
 		friend class RSAKeyGenerator;
+		/** @brief Used in intermediate calculation
+		 */
 		integer e;
+		/** @brief Key generation class
+		 *
+		 * This pointer will be NULL unless a
+		 * key is currently being generated/
+		 */
 		os::smart_ptr<RSAKeyGenerator> keyGen;
+		/** @brief Subroutine initializing crypto::publicRSA::e
+		 */
 		void initE();
 	public:
-	    publicRSA(uint16_t sz=size::public512);
+		/** @brief Default RSA constructor
+		 *
+		 * Initializes and generates keys for
+		 * a new pair of RSA keys.  This serves
+		 * as the default constructor for RSA keys.
+		 *
+		 * @param [in] sz Size of keys, crypto::size::public256 by default
+		 */
+	    publicRSA(uint16_t sz=size::public256);
+		/** @brief Copy Constructor
+		 *
+		 * Copies the keys in one RSA pair into
+		 * another.  This copying includes all
+		 * historical records as well.
+		 *
+		 * @param [in] ky Key pair to be copied
+		 */
 	    publicRSA(publicRSA& ky);
+		/** @brief Construct with keys
+		 *
+		 * @param _n Smart pointer to public key
+		 * @param _d Smart pointer to private key
+		 * @param sz Size of key, size::public512 by default
+		 * @param tms Time-stamp of the current keys, now by default
+		 */
 	    publicRSA(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d,uint16_t sz=size::public512,uint64_t tms=os::getTimestamp());
+		/** @brief Construct with key arrays
+		 *
+		 * @param _n Array of public key
+		 * @param _d Array of private key
+		 * @param sz Size of key, size::public512 by default
+		 * @param tms Time-stamp of the current keys, now by default
+		 */
 		publicRSA(uint32_t* _n,uint32_t* _d,uint16_t sz=size::public512,uint64_t tms=os::getTimestamp());
+		/** @brief Construct with path to file and password
+		 *
+		 * @param fileName Name of file to find keys
+		 * @param password String representing symmetric key, "" by default
+		 * @param stream_algo Symmetric key encryption algorithm, NULL by default
+		 */
 	    publicRSA(std::string fileName,std::string password="",os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+		/** @brief Construct with path to file and password
+		 *
+		 * @param fileName Name of file to find keys
+		 * @param key Symmetric key
+		 * @param keyLen Length of symmetric key
+		 * @param stream_algo Symmetric key encryption algorithm, NULL by default
+		 */
 	    publicRSA(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
 	    
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
 	    virtual ~publicRSA(){}
 
+		/** @brief Converts number to integer
+		 * @param [in] num Number to be converted
+		 * @return Converted number
+		 */
 		os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num) const;
-	    os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
-	    os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
+	    /** @brief Converts array to integer
+		 * @param [in] arr Array to be converted
+		 * @param [in] len Length of array to be converted
+		 * @return Converted number
+		 */
+		os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+	    /** @brief Converts byte array to integer
+		 * @param [in] arr Byte array to be converted
+		 * @param [in] len Length of array to be converted
+		 * @return Converted number
+		 */
+		os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
 	    
+		/** @brief Converts number to integer, statically
+		 * @param [in] num Number to be converted
+		 * @return Converted number
+		 */
 	    static os::smart_ptr<number> copyConvert(const os::smart_ptr<number> num,uint16_t size);
-	    static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
-	    static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
+	    /** @brief Converts array to integer, statically
+		 * @param [in] arr Array to be converted
+		 * @param [in] len Length of array to be converted
+		 * @return Converted number
+		 */
+		static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
+	    /** @brief Converts byte array to integer, statically
+		 * @param [in] arr Byte array to be converted
+		 * @param [in] len Length of array to be converted
+		 * @return Converted number
+		 */
+		static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
 	    
+		/** @brief Access algorithm ID
+		 * @return crypto::algo::publicRSA
+		 */
 		inline static uint16_t staticAlgorithm() {return algo::publicRSA;}
-	    inline static std::string staticAlgorithmName() {return "RSA";}
+	    /** @brief Access algorithm name
+		 * @return "RSA"
+		 */
+		inline static std::string staticAlgorithmName() {return "RSA";}
+		/** @brief Access algorithm name
+		 * @return crypto::publicRSA::staticAlgorithmName()
+		 */
 		inline std::string algorithmName() const {return publicRSA::staticAlgorithmName();}
-	    bool generating();
+	    /** @brief Tests if the keys are in the process of generating
+		 * @return True if generating new keys
+		 */
+		bool generating();
+		/** @brief Key generation function
+		 *
+		 * Generates new keys for the specific
+		 * algorithm.  This is re-implemented
+		 * by every algorithm.
+		 *
+		 * @return void
+		 */
 		void generateNewKeys();
 	    
-	    //Encoding/Decoding
+	    /** @brief Static number encode
+		 *
+		 * Encodes based on the RSA algorithm.  This function
+		 * must be static because data can be encoded with a
+		 * public key even though a node does not have its
+		 * own keys defined.
+		 *
+		 * @param [in] code Data to be encoded
+		 * @param [in] publicN Public key to be encoded against
+		 * @param [in] size Size of key used
+		 * @return Encoded number
+		 */
 	    static os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size);
-	    static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
+	    /** @brief Static data encode
+		 *
+		 * Encodes based on the RSA algorithm.  This function
+		 * must be static because data can be encoded with a
+		 * public key even though a node does not have its
+		 * own keys defined.
+		 *
+		 * @param [in/out] code Data to be encoded
+		 * @param [in] codeLength Length of code array
+		 * @param [in] publicN Public key to be encoded against
+		 * @param [in] nLength Length of key array
+		 * @param [in] size Size of key used
+		 * @return void
+		 */
+		static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
 	    
+		/** @brief Number encode
+		 * @param [in] code Data to be encoded
+		 * @param [in] publicN Public key to be encoded against, NULL by default
+		 * @return Encoded number
+		 */
 	    os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN=NULL) const;
-	    void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
+	    /** @brief Data encode against number
+		 * @param [in/out] code Data to be encoded
+		 * @param [in] codeLength Length of code array
+		 * @param [in] publicN Public key to be encoded against, NULL by default
+		 * @return void
+		 */
+		void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
 	    
+		/** @brief Number decode
+		 *
+		 * Uses the private key to decode a
+		 * set of data based on the RSA
+		 * algorithm.
+		 *
+		 * @param  [in] code Data to be decoded
+		 * @return Decoded number
+		 */
 	    os::smart_ptr<number> decode(os::smart_ptr<number> code) const;
 	};
-	//RSA Generator
+	/** @brief Helper key generation class
+	 *
+	 * This class helps to generate
+	 * RSA keys.  Once keys are generated,
+	 * this class is destroyed.
+	 */
 	class RSAKeyGenerator
 	{
+		/** @brief Pointer to keys
+		 *
+		 * Points to the RSA keys this
+		 * generator will be placing
+		 * its generated keys into.
+		 */
 		publicRSA* master;
 	
 	public:
+		/** @brief Intermediate prime
+		 */
 		integer p;
+		/** @brief Intermediate prime
+		 */
 		integer q;
 		
+		/** @brief Constructs a generator with an RSA key
+		 *
+		 * This class is meaningless without a
+		 * a reference to an RSA key to bind
+		 * newly created keys to.
+		 */
 		RSAKeyGenerator(publicRSA& m);
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
 		virtual ~RSAKeyGenerator(){}
 		
+		/** @brief Generates a prime number
+		 * @return Prime integer
+		 */
 		integer generatePrime();
+		/** @brief Bind generated keys to master
+         * @return void
+         */
 		void pushValues();
 	};
   

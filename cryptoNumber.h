@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 2/9/2016
+/**
+ * @file   cryptoNumber.h
+ * @author Jonathan Bedard
+ * @date   3/1/2016
+ * @brief  Defines basic number types
+ * @bug No known bugs.
+ *
+ * Contains declarations of large numbers
+ * for usage inside the CryptoGateway.  The
+ * two numbers defined in this file are the
+ * general structure for large numbers and
+ * a basic integer.
+ *
+ */
 
 #ifndef CRYPTO_NUMBER_H
 #define CRYPTO_NUMBER_H
@@ -11,11 +23,34 @@
 
 namespace crypto
 {
+	///@cond INTERNAL
     class number;
+	///@endcond
+	
+	/** @brief Output stream operator
+	 *
+	 * @param [in/out] os Output stream
+	 * @param [in] num Number to be output
+	 *
+	 * @return reference to std::ostream& os
+	 */
     std::ostream& operator<<(std::ostream& os, const number& num);
+	/** @brief Input stream operator
+	 *
+	 * @param [in/out] is Input stream
+	 * @param [in] num Number to set with the string
+	 *
+	 * @return reference to std::istream& is
+	 */
     std::istream& operator>>(std::istream& is, number& num);
     
-    //Basic number
+    /** @brief Basic number definition
+	 *
+	 * This class defines the basics
+	 * of all large number classes.
+	 * Operators are specifically defined
+	 * in each class which inherits from number.
+	 */
     class number
     {
     protected:
@@ -108,7 +143,11 @@ namespace crypto
         inline std::string name() const {return std::string(_numDef->name);}
     };
     
-    //Integer
+    /** @brief Integer number definition
+	 *
+	 * A traditional numerical definition
+	 * which can be of arbitrary size.
+	 */
     class integer:public number
     {
     public:
