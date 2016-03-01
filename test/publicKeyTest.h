@@ -75,6 +75,12 @@ namespace test
 				if((*readKey.getN()) == (*rnum))
 					throw os::smart_ptr<std::exception>(new generalTestException("Old and new n values match",locString),os::shared_type);
 			}
+			catch(crypto::errorPointer e)
+			{
+				if(os::check_exists("keytest.dmp"))
+					os::delete_file("keytest.dmp");
+				throw os::smart_ptr<std::exception>(new generalTestException(e->errorTitle(),e->errorDescription()),os::shared_type);
+			}
 			catch(os::smart_ptr<std::exception> e)
 			{
 				if(os::check_exists("keytest.dmp"))

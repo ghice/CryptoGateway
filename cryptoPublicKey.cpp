@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   2/24/2016
+ * @date   2/29/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -59,13 +59,14 @@ using namespace crypto;
         }
     }
     //Public key constructor
-	publicKey::publicKey(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint16_t algo,uint16_t sz)
+	publicKey::publicKey(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint16_t algo,uint16_t sz,uint64_t tms)
 	{
 		if(!_n || !_d) throw errorPointer(new customError("NULL Keys","Attempted to bind NULL keys to a public key frame"),os::shared_type);
 		if(_n->size()!=sz || _d->size()!=sz) throw errorPointer(new customError("Key Size Error","Attempted to bind keys of wrong size"),os::shared_type);
 		_algorithm=algo;
 		_size=sz;
 		_history=10;
+		_timestamp=tms;
         
 		_key=NULL;
 		_keyLen=0;
@@ -157,18 +158,21 @@ using namespace crypto;
 //History Management-------------------------------------------
 
     //Push the old keys
-    void publicKey::pushOldKeys(os::smart_ptr<number> n, os::smart_ptr<number> d)
+    void publicKey::pushOldKeys(os::smart_ptr<number> n, os::smart_ptr<number> d,uint64_t ts)
     {
         if(!n || !d) return;
         if(_history==0) return;
         oldN.insert(n);
         oldD.insert(d);
+		_timestamps.insert(os::smart_ptr<uint64_t>(new uint64_t(ts),os::shared_type));
         
         //Remove extra n and d
         while(oldN.size()>_history)
             oldN.findDelete(oldN.getLast()->getData());
         while(oldD.size()>_history)
-            oldD.findDelete(oldN.getLast()->getData());
+            oldD.findDelete(oldD.getLast()->getData());
+		while(_timestamps.size()>_history)
+            _timestamps.findDelete(_timestamps.getLast()->getData());
         markChanged();
     }
     //Set the history length
@@ -178,13 +182,15 @@ using namespace crypto;
         if(hist<_history)
         {
             //Remove extra n and d
-            while(oldN.size()>hist)
-                oldN.findDelete(oldN.getLast()->getData());
-            while(oldD.size()>hist)
-                oldD.findDelete(oldN.getLast()->getData());
-            
+            while(oldN.size()>_history)
+				oldN.findDelete(oldN.getLast()->getData());
+			while(oldD.size()>_history)
+				oldD.findDelete(oldD.getLast()->getData());
+			while(_timestamps.size()>_history)
+				_timestamps.findDelete(_timestamps.getLast()->getData());
         }
         _history=hist;
+		markChanged();
     }
 
 //Access and Generation----------------------------------------
@@ -217,14 +223,47 @@ using namespace crypto;
 		if(!trc) return NULL;
 		return trc->getData();
 	}
+	//Return the old D
+	os::smart_ptr<number> publicKey::getOldD(unsigned int history)
+	{
+		if(history>=oldD.size()) return NULL;
+
+		readLock();
+		auto trc=oldD.getFirst();
+		for(unsigned int i=0;i<history&&trc;i++)
+		{
+			trc=trc->getNext();
+		}
+		readUnlock();
+
+		if(!trc) return NULL;
+		return trc->getData();
+	}
+	//Return an old timestamp
+	uint64_t publicKey::getOldTimestamp(unsigned int history)
+	{
+		if(history>=_timestamps.size()) return NULL;
+
+		readLock();
+		auto trc=_timestamps.getFirst();
+		for(unsigned int i=0;i<history&&trc;i++)
+		{
+			trc=trc->getNext();
+		}
+		readUnlock();
+
+		if(!trc) return NULL;
+		return *(trc->getData());
+	}
 	//Generate a new key
 	void publicKey::generateNewKeys()
 	{
 		writeLock();
-		if(n && d) pushOldKeys(n,d);
+		if(n && d) pushOldKeys(n,d,_timestamp);
 
 		n=os::smart_ptr<number>(new number(),os::shared_type);
 		d=os::smart_ptr<number>(new number(),os::shared_type);
+		_timestamp=os::getTimestamp();
 
 		n->expand(2*_size);
 		d->expand(2*_size);
@@ -270,6 +309,10 @@ using namespace crypto;
 		memcpy(dumpArray.get()+2,&dumpVal,2);
 		ben->write(dumpArray.get(),4);
 
+		//Write out timestamp
+		uint64_t tsTemp=os::to_comp_mode(_timestamp);
+		ben->write((unsigned char*)&tsTemp,8);
+
 		//Write keys
 		uint32_t ldval;
 		for(unsigned int i1=0;i1<2;i1++)
@@ -306,8 +349,12 @@ using namespace crypto;
         
         auto ntrc=oldN.getLast();
         auto dtrc=oldD.getLast();
-        while(ntrc && dtrc)
+		auto ttrc=_timestamps.getLast();
+        while(ntrc && dtrc && ttrc)
         {
+			tsTemp=os::to_comp_mode(*(ttrc->getData()));
+			ben->write((unsigned char*)&tsTemp,8);
+
             for(unsigned int i1=0;i1<2;i1++)
             {
                 os::smart_ptr<number> t;
@@ -330,6 +377,7 @@ using namespace crypto;
             }
             ntrc=ntrc->getPrev();
             dtrc=dtrc->getPrev();
+			ttrc=ttrc->getPrev();
         }
         readUnlock();
         finishedSaving();
@@ -373,6 +421,11 @@ using namespace crypto;
 			throw errorPointer(new illegalAlgorithmBind("RSA File Read"),os::shared_type);
 		}
         
+		//Read timestamp
+		uint64_t tempts;
+		bde->read((unsigned char*) &tempts,8);
+		_timestamp=os::from_comp_mode(tempts);
+
         //Read keys
         os::smart_ptr<unsigned char>dumpArray(new unsigned char[2*4*_size],os::shared_type_array);
 		os::smart_ptr<uint32_t>keyArray(new uint32_t[_size],os::shared_type_array);
@@ -414,12 +467,17 @@ using namespace crypto;
 		unsigned int numOlds=0;
 		while(bde->bytesLeft()>0 && numOlds<_history)
 		{
+			bde->read((unsigned char*) &tempts,8);
+			tempts=os::from_comp_mode(tempts);
 			bde->read(dumpArray.get(),2*4*_size);
 			if(!bde->good())
 			{
 				writeUnlock();
 				throw errorPointer(new actionOnFileError(),os::shared_type);
 			}
+
+			//Parse timestamp
+			_timestamps.insert(os::smart_ptr<uint64_t>(new uint64_t(tempts),os::shared_type));
 
 			//Parse numbers
 			for(unsigned int i1=0;i1<2;i1++)
@@ -547,8 +605,8 @@ using namespace crypto;
         markChanged();
     }
     //N, D constructor
-    publicRSA::publicRSA(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d,uint16_t sz):
-        publicKey(os::cast<number,integer>(_n),os::cast<number,integer>(_d),algo::publicRSA,sz)
+    publicRSA::publicRSA(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d,uint16_t sz,uint64_t tms):
+        publicKey(os::cast<number,integer>(_n),os::cast<number,integer>(_d),algo::publicRSA,sz,tms)
     {
         initE();
         n=copyConvert(os::cast<number,integer>(_n));
@@ -556,12 +614,13 @@ using namespace crypto;
         markChanged();
     }
 	//N and D from arrays
-	publicRSA::publicRSA(uint32_t* _n,uint32_t* _d,uint16_t sz):
+	publicRSA::publicRSA(uint32_t* _n,uint32_t* _d,uint16_t sz,uint64_t tms):
         publicKey(algo::publicRSA,sz)
 	{
 		initE();
 		n=copyConvert(_n,sz);
         d=copyConvert(_d,sz);
+		_timestamp=tms;
         markChanged();
 	}
     //Load a public key from a file
@@ -686,7 +745,7 @@ using namespace crypto;
 	void RSAKeyGenerator::pushValues()
 	{
 		master->writeLock();
-		if(master->n && master->d) master->pushOldKeys(master->n,master->d);
+		if(master->n && master->d) master->pushOldKeys(master->n,master->d,master->_timestamp);
 
 		integer tn=p*q;
 		integer phi = (p-integer::one())*(q-integer::one());
@@ -695,6 +754,7 @@ using namespace crypto;
 
 		master->n=os::smart_ptr<number>(new integer(tn),os::shared_type);
 		master->d=os::smart_ptr<number>(new integer(td),os::shared_type);
+		master->_timestamp=os::getTimestamp();
         master->n->expand(2*master->size());
 		master->d->expand(2*master->size());
                 
