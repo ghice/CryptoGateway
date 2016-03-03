@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Certified working 8/29/2015
+/**
+ * @file   file_mechanics.h
+ * @author Jonathan Bedard
+ * @date   3/2/2016
+ * @brief  Deprecated file functions
+ * @bug No known bugs.
+ *
+ * The functions defined in this file
+ * were moved into the osMechanics library.
+ * This file is slowly being phased on.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef FILE_MECHANICS_H
 #define FILE_MECHANICS_H
@@ -216,3 +228,5 @@ static uint64_t convert_64(const std::string& str)
 }
 
 #endif
+
+///@endcond
