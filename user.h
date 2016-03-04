@@ -1,7 +1,7 @@
 /**
  * @file	user.h
  * @author	Jonathan Bedard
- * @date   	2/28/2016
+ * @date   	3/3/2016
  * @brief	Definition of the CryptoGateway user
  * @bug	None
  *
@@ -57,7 +57,20 @@ namespace crypto {
 		 * keys which are known by this user
 		 */
 		os::smart_ptr<keyBank> _keyBank;
-
+		/** @brief Public keys
+		 *
+		 * This stores all public keys accociated with
+		 * this specific user.
+		 */
+		os::asyncAVLTree<publicKey> _publicKeys;
+		/** @brief Default public key
+		 *
+		 * Sets the default public key definition.
+		 * Note that a default public key will be
+		 * defined the moment any public key
+		 * is bound to a user.
+		 */
+		os::smart_ptr<publicKey> _defaultKey;
         /** @brief Creates meta-data XML file
          *
          * Constructs and returns the XML tree
@@ -124,6 +137,39 @@ namespace crypto {
 		 * @return void
 		 */
 		void setStreamPackage(os::smart_ptr<streamPackageFrame> strmPack);
+		/** @brief Sets the default public key
+		 *
+		 * Attempts to bind a public key as the
+		 * default public key.  First checks if the
+		 * key in question exists and binds the
+		 * key with the characteristics of the
+		 * provided key as the default key.
+		 * 
+		 * @param [in] key Public key to be bound as the default key
+		 * @return True if default key bound, else, false
+		 */
+		bool setDefaultPublicKey(os::smart_ptr<publicKey> key);
+		/** @brief Attempt to add new public key
+		 *
+		 * Attempts to add a public key to the
+		 * public key bank.  If successful, and
+		 * if the default key is NULL, the added
+		 * key becomes the default key.
+		 *
+		 * @param [in] key Public key to be added
+		 * @return True if successfully added, else, false
+		 */
+		bool addPublicKey(os::smart_ptr<publicKey> key);
+		/** @brief Find public key by information
+		 *
+		 * Searches for a public key with the given'
+		 * characteristics.  Keys are searched by
+		 * algorithm and size.
+		 *
+		 * @param [in] pkfrm Public key information to match
+		 * @return Public key matching intrinsics
+		 */
+		os::smart_ptr<publicKey> findPublicKey(os::smart_ptr<publicKeyPackageFrame> pkfrm);
 
 	//Access-------------------------------------------------------------
 
@@ -146,7 +192,11 @@ namespace crypto {
 		/** @brief Access key bank
 		 * @return crypto::user::_keyBank
 		 */
-		os::smart_ptr<streamPackageFrame> getKeyBank() const {return _keyBank;}
+		os::smart_ptr<keyBank> getKeyBank() {return _keyBank;}
+		/** @brief Returns the default public key
+		 * @return crypto::user::_defaultKey
+		 */
+		os::smart_ptr<publicKey> getDefaultPublicKey() {return _defaultKey;}
 
 	};
 }

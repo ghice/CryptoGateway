@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   3/1/2016
+ * @date   3/3/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -143,6 +143,24 @@ namespace crypto
 		 */
         void pushOldKeys(os::smart_ptr<number> n, os::smart_ptr<number> d,uint64_t ts);
     public:
+		/** @brief Current key index
+		 * Allows the current key to be accessed
+		 * as historical index '-1'
+		 */
+		static const unsigned int CURRENT_INDEX = ~0;
+		/** @brief Public boolean marker
+		 */
+		static const bool PUBLIC=true;
+		/** @brief Private boolean marker
+		 */
+		static const bool PRIVATE=false;
+		/** @brief N (public) boolean marker
+		 */
+		static const bool N_MARKER=true;
+		/** @brief D (private) boolean marker
+		 */
+		static const bool D_MARKER=false;
+
 		/** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object
@@ -152,6 +170,28 @@ namespace crypto
          */
 		virtual ~publicKey();
 
+		/** @brief Searches for key by hash
+		 *
+		 * Binds the location that the keys were found
+		 * in to the arguments of the function.
+		 *
+		 * @param [in] hsh Hash of the key to be searched for
+		 * @param [out] hist History value the key was found
+		 * @param [out] type Type (public or private)
+		 * @return True if the key was found, else, false
+		 */
+		bool searchKey(hash hsh, unsigned int& hist,bool& type);
+		/** @brief Searches for key
+		 *
+		 * Binds the location that the keys were found
+		 * in to the arguments of the function.
+		 *
+		 * @param [in] num Key to search for
+		 * @param [out] hist History value the key was found
+		 * @param [out] type Type (public or private)
+		 * @return True if the key was found, else, false
+		 */
+		bool searchKey(os::smart_ptr<number> key, unsigned int& hist,bool& type);
 		/** @brief Converts number to correct type
 		 * @param [in] num Number to be converted
 		 * @return Converted number
@@ -375,6 +415,18 @@ namespace crypto
 		 * @return Decoded number
 		 */
 		virtual os::smart_ptr<number> decode(os::smart_ptr<number> code) const;
+		/** @brief Number decode, old key
+		 *
+		 * Uses the private key to decode a
+		 * set of data.  Re-implemented by
+		 * algorithm definitions which inherit
+		 * from this class.
+		 *
+		 * @param  [in] code Data to be decoded
+		 * @param [in] hist Index of historical key
+		 * @return Decoded number
+		 */
+		virtual os::smart_ptr<number> decode(os::smart_ptr<number> code, unsigned int hist);
 		/** @brief Data decode
 		 *
 		 * Uses the private key to decode a
@@ -385,6 +437,17 @@ namespace crypto
 		 * @return void
 		 */
         void decode(unsigned char* code, unsigned int codeLength) const;
+		/** @brief Data decode, old key
+		 *
+		 * Uses the private key to decode a
+		 * set of data.
+		 *
+		 * @param [in/out] code Data to be decoded
+		 * @param [in] codeLength Length of code to be decoded
+		 * @param [in] hist Index of historical key
+		 * @return void
+		 */
+        void decode(unsigned char* code, unsigned int codeLength, unsigned int hist);
 
 		/** @brief Compares equality by size and algorithm
 		 * @return boolean '=='
@@ -616,6 +679,17 @@ namespace crypto
 		 * @return Decoded number
 		 */
 	    os::smart_ptr<number> decode(os::smart_ptr<number> code) const;
+		/** @brief Old number decode
+		 *
+		 * Uses old private keys to decode a
+		 * set of data based on the RSA
+		 * algorithm.
+		 *
+		 * @param  [in] code Data to be decoded
+		 * @param [in] hist Index of historical key
+		 * @return Decoded number
+		 */
+	    os::smart_ptr<number> decode(os::smart_ptr<number> code, unsigned int hist);
 	};
 	/** @brief Helper key generation class
 	 *

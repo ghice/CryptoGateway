@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   2/29/2016
+ * @date   3/3/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -118,7 +118,11 @@ using namespace crypto;
     //Static copy/convert
     os::smart_ptr<number> publicKey::copyConvert(const uint32_t* arr,uint16_t len,uint16_t size)
     {
-        os::smart_ptr<number> ret(new number(arr,len),os::shared_type);
+		os::smart_ptr<number> ret;
+		if(arr==NULL)
+			ret=os::smart_ptr<number>(new number(),os::shared_type);
+		else
+			ret=os::smart_ptr<number>(new number(arr,len),os::shared_type);
         ret->expand(size*2);
         return ret;
     }
@@ -210,6 +214,7 @@ using namespace crypto;
 	//Return the old N
 	os::smart_ptr<number> publicKey::getOldN(unsigned int history)
 	{
+		if(history==CURRENT_INDEX) return getN();
 		if(history>=oldN.size()) return NULL;
 
 		readLock();
@@ -221,11 +226,12 @@ using namespace crypto;
 		readUnlock();
 
 		if(!trc) return NULL;
-		return trc->getData();
+		return copyConvert(trc->getData());
 	}
 	//Return the old D
 	os::smart_ptr<number> publicKey::getOldD(unsigned int history)
 	{
+		if(history==CURRENT_INDEX) return getN();
 		if(history>=oldD.size()) return NULL;
 
 		readLock();
@@ -237,11 +243,12 @@ using namespace crypto;
 		readUnlock();
 
 		if(!trc) return NULL;
-		return trc->getData();
+		return copyConvert(trc->getData());
 	}
 	//Return an old timestamp
 	uint64_t publicKey::getOldTimestamp(unsigned int history)
 	{
+		if(history==CURRENT_INDEX) return timestamp();
 		if(history>=_timestamps.size()) return NULL;
 
 		readLock();
@@ -573,10 +580,25 @@ using namespace crypto;
 		if(*code > *n) throw errorPointer(new publicKeySizeWrong(), os::shared_type);
 		return code;
 	}
+	//Old decode
+	os::smart_ptr<number> publicKey::decode(os::smart_ptr<number> code,unsigned int hist)
+	{
+		if(hist==CURRENT_INDEX) return decode(code);
+		os::smart_ptr<number> histN=getOldN(hist);
+		if(!histN) throw errorPointer(new NULLPublicKey(),os::shared_type);
+		if(*code > *histN) throw errorPointer(new publicKeySizeWrong(), os::shared_type);
+		return code;
+	}
 	//Decode with raw data
 	void publicKey::decode(unsigned char* code, unsigned int codeLength) const
 	{
 		os::smart_ptr<number> enc=decode(copyConvert(code,codeLength));
+		memcpy(code,enc->data(),codeLength);
+	}
+	//Old decode raw data
+	void publicKey::decode(unsigned char* code, unsigned int codeLength,unsigned int hist)
+	{
+		os::smart_ptr<number> enc=decode(copyConvert(code,codeLength),hist);
 		memcpy(code,enc->data(),codeLength);
 	}
 
@@ -657,7 +679,11 @@ using namespace crypto;
     //Static copy/convert
     os::smart_ptr<number> publicRSA::copyConvert(const uint32_t* arr,uint16_t len,uint16_t size)
     {
-        os::smart_ptr<number> ret(new integer(arr,len),os::shared_type);
+        os::smart_ptr<number> ret;
+		if(arr==NULL)
+			ret=os::smart_ptr<number>(new integer(),os::shared_type);
+		else
+			ret=os::smart_ptr<number>(new integer(arr,len),os::shared_type);
         ret->expand(size*2);
         return ret;
     }
@@ -721,6 +747,19 @@ using namespace crypto;
             throw errorPointer(new illegalAlgorithmBind("Base10"),os::shared_type);
         publicKey::decode(code);
         return os::smart_ptr<number>(new integer(os::cast<integer,number>(code)->moduloExponentiation(*os::cast<integer,number>(d), *os::cast<integer,number>(n))),os::shared_type);
+    }
+	//Old decode key
+    os::smart_ptr<number> publicRSA::decode(os::smart_ptr<number> code, unsigned int hist)
+    {
+		if(hist==CURRENT_INDEX) return decode(code);
+        if(code->typeID()!=numberType::Base10)
+            throw errorPointer(new illegalAlgorithmBind("Base10"),os::shared_type);
+        os::smart_ptr<number> histN=getOldN(hist);
+		os::smart_ptr<number> histD=getOldD(hist);
+		if(!histN) throw errorPointer(new NULLPublicKey(),os::shared_type);
+		if(*code > *histN) throw errorPointer(new publicKeySizeWrong(), os::shared_type);
+
+        return os::smart_ptr<number>(new integer(os::cast<integer,number>(code)->moduloExponentiation(*os::cast<integer,number>(histD), *os::cast<integer,number>(histN))),os::shared_type);
     }
 
 /*------------------------------------------------------------

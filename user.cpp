@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	2/28/2016
+ * @date   	3/3/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -20,6 +20,8 @@
 
 #define META_FILE "metaData.xml"
 #define KEY_BANK_FILE "keyBank.xml"
+#define PUBLIC_KEY_FILE "publicKey.bin"
+#define BLOCK_SIZE 20
 
 namespace crypto {
     
@@ -203,6 +205,136 @@ namespace crypto {
 					}
 				}
 			}
+
+			//Pull public keys
+			{
+				//Super-holder first
+				xmlList=readTree->findElement("publicKeys");
+				if(xmlList->size()!=1)
+				{
+					logError(errorPointer(new fileFormatError(),os::shared_type));
+					return;
+				}
+				os::smartXMLNode pubKeys=xmlList->getFirst()->getData();
+
+				//List of nodes
+				xmlList=pubKeys->findElement("list");
+				if(xmlList->size()!=1)
+				{
+					logError(errorPointer(new fileFormatError(),os::shared_type));
+					return;
+				}
+				os::smartXMLNode nodeList=xmlList->getFirst()->getData();
+				xmlList=nodeList->findElement("node");
+
+				//Seed password
+				os::smart_ptr<unsigned char> streamArr;
+				if(_password!=NULL && _passwordLength>0)
+				{
+					os::smart_ptr<streamCipher> strm = _streamPackage->buildStream(_password,_passwordLength);
+					streamArr=os::smart_ptr<unsigned char>(new unsigned char[BLOCK_SIZE*_publicKeys.size()],os::shared_type_array);
+					for(unsigned int i=0;i<BLOCK_SIZE*_publicKeys.size();i++)
+						streamArr[i]=strm->getNext();
+				}
+
+				//Iterate through all nodes
+				unsigned int trc=0;
+				for(auto it=xmlList->getFirst();it;it=it->getNext())
+				{
+					std::string publicKeyName;
+					std::string algoNameTemp;
+					os::smartXMLNodeList tempList=it->getData()->findElement("algo");
+					if(tempList->size()!=1)
+					{
+						logError(errorPointer(new fileFormatError(),os::shared_type));
+						return;
+					}
+					algoNameTemp=tempList->getFirst()->getData()->getData();
+					publicKeyName=algoNameTemp;
+					tempList=it->getData()->findElement("size");
+					if(tempList->size()!=1)
+					{
+						logError(errorPointer(new fileFormatError(),os::shared_type));
+						return;
+					}
+					publicKeyName+="_"+tempList->getFirst()->getData()->getData();
+					publicKeyName+="_"+std::string(PUBLIC_KEY_FILE);
+					
+					//Load new key
+					os::smart_ptr<publicKeyPackageFrame> pkFrame=publicKeyTypeBank::singleton()->findPublicKey(algoNameTemp);
+					if(!pkFrame) logError(errorPointer(new illegalAlgorithmBind(algoNameTemp),os::shared_type));
+					else
+					{
+						os::smart_ptr<publicKey> tpk;
+						try
+						{
+							if(streamArr)
+								tpk=pkFrame->openFile(_saveDir+"/"+_username+"/"+publicKeyName,streamArr.get()+trc*BLOCK_SIZE,BLOCK_SIZE);
+							else
+								tpk=pkFrame->openFile(_saveDir+"/"+_username+"/"+publicKeyName,"");
+							if(!tpk) throw errorPointer(new NULLPublicKey(),os::shared_type);
+
+							if(!_publicKeys.insert(tpk)) throw errorPointer(new NULLPublicKey(),os::shared_type);
+							bindSavable(os::cast<os::savable,publicKey>(tpk));
+							tpk->setEncryptionAlgorithm(_streamPackage);
+						}
+						catch(errorPointer e)
+						{
+							logError(e);
+						}
+						catch(...)
+						{
+							logError(errorPointer(new unknownErrorType(),os::shared_type));
+						}
+					}
+					trc++;
+				}
+
+				//Default public key
+				if(_publicKeys.size()>0)
+				{
+					xmlList=pubKeys->findElement("default");
+					if(xmlList->size()!=1)
+					{
+						logError(errorPointer(new fileFormatError(),os::shared_type));
+						return;
+					}
+					os::smartXMLNode defNode=xmlList->getFirst()->getData();
+
+					//Algorithm
+					xmlList=defNode->findElement("algo");
+					if(xmlList->size()!=1)
+					{
+						logError(errorPointer(new fileFormatError(),os::shared_type));
+						return;
+					}
+					std::string defStr=xmlList->getFirst()->getData()->getData();
+
+					//Algorithm
+					xmlList=defNode->findElement("size");
+					if(xmlList->size()!=1)
+					{
+						logError(errorPointer(new fileFormatError(),os::shared_type));
+						return;
+					}
+					unsigned int defSize;
+					try
+					{
+						defSize=std::stoi(xmlList->getFirst()->getData()->getData())/32;
+						os::smart_ptr<publicKeyPackageFrame> pkFrame=publicKeyTypeBank::singleton()->findPublicKey(defStr);
+						pkFrame->setKeySize(defSize);
+						os::smart_ptr<publicKey> pk=findPublicKey(pkFrame);
+						if(!pk) throw -1;
+						setDefaultPublicKey(pk);
+					}
+					catch(...)
+					{
+						logError(errorPointer(new fileFormatError(),os::shared_type));
+						if(_publicKeys.getFirst())
+							setDefaultPublicKey(_publicKeys.getFirst()->getData());
+					}
+				}
+			}
 		}
 
 		//Load Key bank
@@ -256,6 +388,35 @@ namespace crypto {
         }
         lv1->addElement(lv2);
         ret->addElement(lv1);
+
+		//Public keys
+		lv1=os::smartXMLNode(new os::XML_Node("publicKeys"),os::shared_type);
+		lv2=os::smartXMLNode(new os::XML_Node("default"),os::shared_type);
+		lv3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+		if(_defaultKey==NULL) lv3->setData("NULL");
+		else lv3->setData(_defaultKey->algorithmName());
+		lv2->addElement(lv3);
+		lv3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+		if(_defaultKey==NULL) lv3->setData("NULL");
+		else lv3->setData(std::to_string(_defaultKey->size()*32));
+		lv2->addElement(lv3);
+
+		lv1->addElement(lv2);
+		lv2=os::smartXMLNode(new os::XML_Node("list"),os::shared_type);
+		for(auto it=_publicKeys.getFirst();it;it=it->getNext())
+		{
+			lv3=os::smartXMLNode(new os::XML_Node("node"),os::shared_type);
+			os::smartXMLNode lv4(new os::XML_Node("algo"),os::shared_type);
+			lv4->setData(it->getData()->algorithmName());
+			lv3->addElement(lv4);
+			lv4=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+			lv4->setData(std::to_string(it->getData()->size()*32));
+			lv3->addElement(lv4);
+			lv2->addElement(lv3);
+		}
+		lv1->addElement(lv2);
+
+		ret->addElement(lv1);
 
         return ret;
     }
@@ -312,6 +473,27 @@ namespace crypto {
 		//Set keybank
 		_keyBank->setPassword(_password,_passwordLength);
 
+		//Public keys
+		if(_password!=NULL && _passwordLength>0 && _publicKeys.size()>0)
+		{
+			os::smart_ptr<streamCipher> strm = _streamPackage->buildStream(_password,_passwordLength);
+			os::smart_ptr<unsigned char> streamArr(new unsigned char[BLOCK_SIZE*_publicKeys.size()],os::shared_type_array);
+			for(unsigned int i=0;i<BLOCK_SIZE*_publicKeys.size();i++)
+				streamArr[i]=strm->getNext();
+
+			unsigned int trc=0;
+			for(auto it=_publicKeys.getFirst();it;it=it->getNext())
+			{
+				it->getData()->setPassword(streamArr.get()+trc*BLOCK_SIZE,BLOCK_SIZE);
+				trc++;
+			}
+		}
+		else
+		{
+			for(auto it=_publicKeys.getFirst();it;it=it->getNext())
+				it->getData()->setPassword("");
+		}
+
 		markChanged();
 	}
 	//Set stream package
@@ -321,6 +503,55 @@ namespace crypto {
 		_keyBank->setStreamPackage(_streamPackage);
 
 		markChanged();
+	}
+	//Sets the default public key
+	bool user::setDefaultPublicKey(os::smart_ptr<publicKey> key)
+	{
+		if(key==NULL) return false;
+		if(!_publicKeys.find(key)) return false;
+		_defaultKey=key;
+		markChanged();
+		return true;
+	}
+	//Adds a public key to the list
+	bool user::addPublicKey(os::smart_ptr<publicKey> key)
+	{
+		if(!key) return false;
+		if(!_publicKeys.insert(key)) return false;
+
+		//Bind key to this
+		bindSavable(os::cast<os::savable,publicKey>(key));
+		key->setEncryptionAlgorithm(_streamPackage);
+		key->setFileName(_saveDir+"/"+_username+"/"+key->algorithmName()+"_"+std::to_string(key->size()*32)+"_"+PUBLIC_KEY_FILE);
+
+		//Set passwords (if appropriate)
+		if(_password!=NULL && _passwordLength>0)
+		{
+			os::smart_ptr<streamCipher> strm = _streamPackage->buildStream(_password,_passwordLength);
+			os::smart_ptr<unsigned char> streamArr(new unsigned char[BLOCK_SIZE*_publicKeys.size()],os::shared_type_array);
+			for(unsigned int i=0;i<BLOCK_SIZE*_publicKeys.size();i++)
+				streamArr[i]=strm->getNext();
+
+			unsigned int trc=0;
+			for(auto it=_publicKeys.getFirst();it;it=it->getNext())
+			{
+				it->getData()->setPassword(streamArr.get()+trc*BLOCK_SIZE,BLOCK_SIZE);
+				trc++;
+			}
+		}
+
+		if(!_defaultKey) setDefaultPublicKey(key);
+		markChanged();
+		return true;
+	}
+	//Search public key based on public-key frame
+	os::smart_ptr<publicKey> user::findPublicKey(os::smart_ptr<publicKeyPackageFrame> pkfrm)
+	{
+		if(!pkfrm) return NULL;
+		os::smart_ptr<publicKey> tpk=pkfrm->bindKeys(NULL,NULL);
+		auto it=_publicKeys.find(tpk);
+		if(!it) return NULL;
+		return it->getData();
 	}
 }
 
