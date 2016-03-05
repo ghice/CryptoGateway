@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   3/3/2016
+ * @date   3/4/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -44,6 +44,7 @@ using namespace crypto;
         _size=ky._size;
         _history=10;
         _fileName="";
+		_timestamp=ky._timestamp;
         
         //Copy encryption key
         if(ky._key==NULL)
@@ -106,6 +107,119 @@ using namespace crypto;
 	publicKey::~publicKey()
 	{
 		if(_key) delete [] _key;
+	}
+
+	//Find key by hash
+	bool publicKey::searchKey(hash hsh, unsigned int& hist,bool& type)
+	{
+		os::smart_ptr<streamPackageFrame> hsFrame=streamPackageTypeBank::singleton()->findStream(algo::streamRC4,hsh.algorithm());
+		if(!hsFrame) return false;
+		hsFrame=hsFrame->getCopy();
+
+		//Default D case
+		unsigned int dLen;
+		os::smart_ptr<unsigned char> dataChar=d->getCompCharData(dLen);
+		if(hsh==hsFrame->hashData(dataChar.get(),dLen))
+		{
+			hist=CURRENT_INDEX;
+			type=PRIVATE;
+			return true;
+		}
+
+		//Default N case
+		dataChar=n->getCompCharData(dLen);
+		if(hsh==hsFrame->hashData(dataChar.get(),dLen))
+		{
+			hist=CURRENT_INDEX;
+			type=PUBLIC;
+			return true;
+		}
+        
+        //Search private key history
+		unsigned int histTrc=0;
+        for(auto trc=oldD.getFirst();trc;trc=trc->getNext())
+		{
+			dataChar=trc->getData()->getCompCharData(dLen);
+			if(hsh==hsFrame->hashData(dataChar.get(),dLen))
+			{
+				hist=histTrc;
+				type=PRIVATE;
+				return true;
+			}
+			histTrc++;
+		}
+
+		//Search public key history
+		histTrc=0;
+        for(auto trc=oldN.getFirst();trc;trc=trc->getNext())
+		{
+			dataChar=trc->getData()->getCompCharData(dLen);
+			if(hsh==hsFrame->hashData(dataChar.get(),dLen))
+			{
+				hist=histTrc;
+				type=PUBLIC;
+				return true;
+			}
+			histTrc++;
+		}
+
+		return false;
+	}
+	//Find key by value
+	bool publicKey::searchKey(os::smart_ptr<number> key, unsigned int& hist,bool& type)
+	{
+		//Default D case
+		if(*key==*d)
+		{
+			hist=CURRENT_INDEX;
+			type=PRIVATE;
+			return true;
+		}
+
+		//Default N case
+		if(*key==*n)
+		{
+			hist=CURRENT_INDEX;
+			type=PUBLIC;
+			return true;
+		}
+        
+        //Search private key history
+		unsigned int histTrc=0;
+        for(auto trc=oldD.getFirst();trc;trc=trc->getNext())
+		{
+			if(*key == *trc->getData())
+			{
+				hist=histTrc;
+				type=PRIVATE;
+				return true;
+			}
+			histTrc++;
+		}
+
+		//Search public key history
+		histTrc=0;
+        for(auto trc=oldN.getFirst();trc;trc=trc->getNext())
+		{
+			if(*key == *trc->getData())
+			{
+				hist=histTrc;
+				type=PUBLIC;
+				return true;
+			}
+			histTrc++;
+		}
+
+		return false;
+	}
+
+	//Add a key pair to this public key bank
+	void publicKey::addKeyPair(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint64_t tms)
+	{
+		pushOldKeys(n,d,_timestamp);
+		n=copyConvert(_n);
+		d=copyConvert(_d);
+		_timestamp=tms;
 	}
 
     //Static copy/convert
@@ -623,11 +737,16 @@ using namespace crypto;
         
         //Copy old n
         for(auto trc=ky.oldN.getLast();trc;trc=trc->getPrev())
-            oldN.insert(trc->getData());
+            oldN.insert(copyConvert(trc->getData()));
         
         //Copy old d
         for(auto trc=ky.oldD.getLast();trc;trc=trc->getPrev())
-            oldD.insert(trc->getData());
+            oldD.insert(copyConvert(trc->getData()));
+
+		//Copy timestamps
+        for(auto trc=ky._timestamps.getLast();trc;trc=trc->getPrev())
+			_timestamps.insert(trc->getData());
+
         markChanged();
     }
     //N, D constructor

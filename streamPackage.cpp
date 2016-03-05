@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 1/24/2016
+//Certified working 3/4/2016
 
 #ifndef STREAM_PACKAGE_CPP
 #define STREAM_PACKAGE_CPP
@@ -20,6 +20,7 @@ namespace crypto {
     {
         //RC-Four stream, RC4 hash
         setDefaultPackage(os::smart_ptr<streamPackageFrame>(new streamPackage<RCFour,rc4Hash>(),os::shared_type));
+		pushPackage(os::smart_ptr<streamPackageFrame>(new streamPackage<RCFour,xorHash>(),os::shared_type));
     }
     //Singleton constructor
     os::smart_ptr<streamPackageTypeBank> streamPackageTypeBank::singleton()

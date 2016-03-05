@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   3/3/2016
+ * @date   3/4/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -134,7 +134,8 @@ namespace crypto
 		 * @return 0 if equal, 1 if greater than, -1 if less than
 		 */
 		int compare(const publicKey& cmp) const;
-        /** @brief Bind old keys to history
+
+		/** @brief Bind old keys to history
 		 *
 		 * @param [in] n Old public key
 		 * @param [in] d Old private key
@@ -353,6 +354,18 @@ namespace crypto
 		 * @return crypto::publicKey::_fileName
 		 */
 		const std::string& fileName() const {return _fileName;}
+		/** @brief Add key pair
+		 *
+		 * Adds a key-pair and binds the current keys
+		 * to the history;.
+		 *
+		 * @param _n Smart pointer to public key
+		 * @param _d Smart pointer to private key
+		 * @param tms Time-stamp of the current keys, now by default
+		 *
+		 * @return void
+		 */
+		void addKeyPair(os::smart_ptr<number> _n,os::smart_ptr<number> _d,uint64_t tms=os::getTimestamp());
 
 		/** @brief Static number encode
 		 *

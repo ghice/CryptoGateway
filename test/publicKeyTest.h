@@ -137,6 +137,67 @@ namespace test
             catch(...){throw os::smart_ptr<std::exception>(new unknownException(locString),os::shared_type);}
         }
     };
+
+	//Public key search test
+    template <class pkType,class numberType>
+    class publicKeySearchTest:public singleTest
+    {
+        uint16_t publicLen;
+    public:
+        publicKeySearchTest(uint16_t pl):singleTest("Search Test: "+std::to_string(pl*32)){publicLen=pl;}
+        virtual ~publicKeySearchTest(){}
+        
+        void test() throw(os::smart_ptr<std::exception>)
+        {
+			std::string locString = "publicKeyTest.h, publicKeySearchTest::test()";
+
+            try
+            {
+				uint32_t *arr_n1,*arr_d1;
+				uint32_t *arr_n2,*arr_d2;
+				findKeys<pkType>(arr_n1,arr_d1,publicLen,0);
+				findKeys<pkType>(arr_n2,arr_d2,publicLen,1);
+
+				os::smart_ptr<crypto::number> n1(new numberType(arr_n1,publicLen),os::shared_type);
+				os::smart_ptr<crypto::number> n2(new numberType(arr_n2,publicLen),os::shared_type);
+				os::smart_ptr<crypto::number> d1(new numberType(arr_d1,publicLen),os::shared_type);
+				os::smart_ptr<crypto::number> d2(new numberType(arr_d2,publicLen),os::shared_type);
+
+				//Create public key
+				pkType pk(os::cast<numberType,crypto::number>(n1),os::cast<numberType,crypto::number>(d1),publicLen);
+				pk.addKeyPair(n2,d2);
+
+				//Search by number
+				unsigned int histVal;
+				bool typ;
+				if(!pk.searchKey(n1,histVal,typ))
+					throw os::smart_ptr<std::exception>(new generalTestException("Could not find key N1",locString),os::shared_type);
+				if(typ!=crypto::publicKey::PUBLIC || histVal!=0)
+					throw os::smart_ptr<std::exception>(new generalTestException("N1 search returned incorrectly",locString),os::shared_type);
+				if(!pk.searchKey(d2,histVal,typ))
+					throw os::smart_ptr<std::exception>(new generalTestException("Could not find key D2",locString),os::shared_type);
+				if(typ!=crypto::publicKey::PRIVATE || histVal!=crypto::publicKey::CURRENT_INDEX)
+					throw os::smart_ptr<std::exception>(new generalTestException("D2 search returned incorrectly",locString),os::shared_type);
+
+				//Search by hash
+				unsigned int charLen;
+				os::smart_ptr<unsigned char> ptrArr=n2->getCompCharData(charLen);
+				if(!pk.searchKey(crypto::rc4Hash::hash256Bit(ptrArr.get(),charLen),histVal,typ))
+					throw os::smart_ptr<std::exception>(new generalTestException("Could not find key N2",locString),os::shared_type);
+				if(typ!=crypto::publicKey::PUBLIC || histVal!=crypto::publicKey::CURRENT_INDEX)
+					throw os::smart_ptr<std::exception>(new generalTestException("N2 search returned incorrectly",locString),os::shared_type);
+				ptrArr=d1->getCompCharData(charLen);
+				if(!pk.searchKey(crypto::rc4Hash::hash256Bit(ptrArr.get(),charLen),histVal,typ))
+					throw os::smart_ptr<std::exception>(new generalTestException("Could not find key D1",locString),os::shared_type);
+				if(typ!=crypto::publicKey::PRIVATE || histVal!=0)
+					throw os::smart_ptr<std::exception>(new generalTestException("D1 search returned incorrectly",locString),os::shared_type);
+
+            }
+            catch(crypto::errorPointer ep){throw os::smart_ptr<std::exception>(new generalTestException(ep->what(),locString),os::shared_type);}
+            catch(os::smart_ptr<std::exception> e){throw e;}
+            catch(...){throw os::smart_ptr<std::exception>(new unknownException(locString),os::shared_type);}
+        }
+    };
     
     //Simple key test
     template <class pkType>
@@ -180,6 +241,12 @@ namespace test
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public512),os::shared_type));
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public1024),os::shared_type));
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public2048),os::shared_type));
+
+			pushTest(os::smart_ptr<singleTest>(new publicKeySearchTest<pkType,numberType>(crypto::size::public128),os::shared_type));
+			pushTest(os::smart_ptr<singleTest>(new publicKeySearchTest<pkType,numberType>(crypto::size::public256),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new publicKeySearchTest<pkType,numberType>(crypto::size::public512),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new publicKeySearchTest<pkType,numberType>(crypto::size::public1024),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new publicKeySearchTest<pkType,numberType>(crypto::size::public2048),os::shared_type));
 
 			pushTest(os::smart_ptr<singleTest>(new packageSearchTest<pkType>(),os::shared_type));
         }
