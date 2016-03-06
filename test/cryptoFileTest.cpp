@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.cpp
  * @author Jonathan Bedard
- * @date   2/20/2016
+ * @date   3/5/2016
  * @brief  Implementation for cryptographic file testing
  * @bug No known bugs.
  *
@@ -22,6 +22,7 @@
 #include "publicKeyPackage.h"
 #include "testKeyGeneration.h"
 #include "XMLEncryption.h"
+#include "keyBank.h"
 
 using namespace crypto;
 using namespace test;
@@ -151,6 +152,128 @@ using namespace test;
 		os::delete_file("testExample.bin");
 	}
 
+	//Public header
+	void binaryPublicHeader() throw(os::smart_ptr<std::exception>)
+	{
+		std::string locString = "cryptoFileTest.cpp, binaryPublicHeader()";
+
+		//Bind data
+		unsigned char refData[100];
+		unsigned char readData[100];
+		for(int i=0;i<100;i++)
+			refData[i]=rand();
+
+		try
+		{
+			//Write data
+			uint32_t *n,*d;
+			os::smart_ptr<publicKeyPackageFrame> pkg=publicKeyTypeBank::singleton()->defaultPackage();
+			if(!pkg) return;
+			pkg=pkg->getCopy();
+
+			pkg->setKeySize(size::public128);
+			findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
+			binaryEncryptor binEn("testExample.bin",kys,file::PUBLIC_UNLOCK);
+			if(!binEn.good())
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary writer",locString),os::shared_type);
+			binEn.write(refData,100);
+			binEn.close();
+
+			//Decryptor
+			binaryDecryptor binDe("testExample.bin",kys);
+			if(!binDe.good())
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+			if(100!=binDe.read(readData,100))
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+
+			//Compare reference and read data
+			for(int i=0;i<100;i++)
+			{
+				if(refData[i]!=readData[i])
+					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
+			}
+
+			//Decrypt again
+			avlKeyBank kybnk;
+			os::smart_ptr<nodeGroup> ng=kybnk.addPair("No-G","Me",kys->getN(),kys->algorithm(),kys->size());
+			binaryDecryptor binDe2("testExample.bin",&kybnk);
+			if(!binDe2.good())
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader (signing case)",locString),os::shared_type);
+			if(100!=binDe2.read(readData,100))
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader (signing case)",locString),os::shared_type);
+			if(!binDe2.author() || binDe2.author()->name() != ng->name())
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to confirm author",locString),os::shared_type);
+
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("testExample.bin");
+			throw e;
+		}
+		catch(...)
+		{
+			os::delete_file("testExample.bin");
+			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type);
+		}
+		os::delete_file("testExample.bin");
+	}
+	//Public header
+	void binaryDoubleLock() throw(os::smart_ptr<std::exception>)
+	{
+		std::string locString = "cryptoFileTest.cpp, binaryDoubleLock()";
+
+		//Bind data
+		unsigned char refData[100];
+		unsigned char readData[100];
+		for(int i=0;i<100;i++)
+			refData[i]=rand();
+
+		try
+		{
+			//Write data
+			uint32_t *n,*d;
+			os::smart_ptr<publicKeyPackageFrame> pkg=publicKeyTypeBank::singleton()->defaultPackage();
+			if(!pkg) return;
+			pkg=pkg->getCopy();
+
+			pkg->setKeySize(size::public128);
+			findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
+			binaryEncryptor binEn("testExample.bin",kys,file::DOUBLE_LOCK);
+			if(!binEn.good())
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary writer",locString),os::shared_type);
+			binEn.write(refData,100);
+			binEn.close();
+
+			//Decryptor
+			binaryDecryptor binDe("testExample.bin",kys);
+			if(!binDe.good())
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+			if(100!=binDe.read(readData,100))
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+
+			//Compare reference and read data
+			for(int i=0;i<100;i++)
+			{
+				if(refData[i]!=readData[i])
+					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
+			}
+
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("testExample.bin");
+			throw e;
+		}
+		catch(...)
+		{
+			os::delete_file("testExample.bin");
+			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type);
+		}
+		os::delete_file("testExample.bin");
+	}
+
 /*------------------------------------------------------------
      Crypto File Test
  ------------------------------------------------------------*/
@@ -160,6 +283,8 @@ using namespace test;
 		pushTest("Package",&packageTest);
 		pushTestPackage(streamPackageTypeBank::singleton()->findStream(algo::streamRC4,algo::hashRC4));
 		pushTestPackage(publicKeyTypeBank::singleton()->findPublicKey(crypto::algo::publicRSA));
+		pushTest("Public Signing",&binaryPublicHeader);
+		pushTest("Double Lock",&binaryDoubleLock);
 	}
 	//Attempt to push packages to test
 	void cryptoFileTestSuite::pushTestPackage(os::smart_ptr<streamPackageFrame> spf)

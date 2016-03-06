@@ -1,7 +1,7 @@
 /**
  * @file	cryptoError.h
  * @author	Jonathan Bedard
- * @date   	2/22/2016
+ * @date   	3/5/2016
  * @brief	Declaration of cryptographic errors
  * @bug	None
  *
@@ -544,6 +544,36 @@ namespace crypto {
 		 * @return Error description std::string
 		 */
 		std::string errorDescription() const {return "Attempted to use a code or n of improper size";}
+	};
+	/** @brief Key missing error
+	 *
+	 * Thrown when a key cannot
+	 * be found to decrypt the
+	 * incoming data stream
+	 */
+	class keyMissing: public error
+	{
+	public:
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.  Must explicitly declare that
+         * this function does not throw exceptions.
+         */
+		virtual ~keyMissing() throw() {}
+		/** @brief Short error descriptor
+		 * Returns "Key missing"
+		 * @return Error title std::string
+		 */
+		std::string errorTitle() const {return "Key missing";}
+		/** @brief Long error descriptor
+		 * Returns "Cannot decrypt the
+		 * data stream, the key is missing!"
+		 * @return Error description std::string
+		 */
+		std::string errorDescription() const {return "Cannot decrypt the data stream, the key is missing!";}
 	};
 	/** @brief NULL public-key error
 	 *

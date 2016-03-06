@@ -1,7 +1,7 @@
 /**
  * @file	cryptoConstants.cpp
  * @author	Jonathan Bedard
- * @date   	2/20/2016
+ * @date   	3/5/2016
  * @brief	Implementation of CryptoGateway constants
  * @bug	None
  *
@@ -70,6 +70,18 @@ namespace crypto
 		 */
 		const uint16_t publicRSA=1;
     }
+	namespace file
+	{
+		/**@brief Lock with public key, unlock with private
+		 */
+		const uint16_t PRIVATE_UNLOCK=0;
+		/**@brief Lock with private key, unlock with public
+		 */
+		const uint16_t PUBLIC_UNLOCK=1;
+		/**@brief Lock with both public and private
+		 */
+		const uint16_t DOUBLE_LOCK=2;
+	}
     namespace size
     {
 		/** @brief 64 bit hash size in bytes

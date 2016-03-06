@@ -1,7 +1,7 @@
 /**
  * @file	cryptoConstants.h
  * @author	Jonathan Bedard
- * @date   	2/20/2016
+ * @date   	3/5/2016
  * @brief	Extern definitions of CryptoGateway constants
  * @bug	None
  *
@@ -47,6 +47,16 @@ namespace crypto
 		extern const uint16_t publicNULL;
 		extern const uint16_t publicRSA;
     }
+	namespace file
+	{
+		extern const uint16_t PRIVATE_UNLOCK;
+		/**@brief Lock with private key, unlock with public
+		 */
+		extern const uint16_t PUBLIC_UNLOCK;
+		/**@brief Lock with both public and private
+		 */
+		extern const uint16_t DOUBLE_LOCK;
+	}
     namespace size
     {
         extern const uint16_t hash64;

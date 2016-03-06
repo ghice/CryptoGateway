@@ -1,7 +1,7 @@
 /**
  * @file	binaryEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	2/20/2016
+ * @date   	3/5/2016
  * @brief	Implementation of binary encryption files
  * @bug	None
  *
@@ -17,6 +17,7 @@
 #include <string>
 #include <stdint.h>
 #include "binaryEncryption.h"
+#include "keyBank.h"
 
 namespace crypto {
    
@@ -25,16 +26,16 @@ namespace crypto {
  ------------------------------------------------------------*/
 
 	//Construct with public key
-	binaryEncryptor::binaryEncryptor(std::string file_name,os::smart_ptr<publicKey> publicKeyLock,os::smart_ptr<streamPackageFrame> stream_algo):
+	binaryEncryptor::binaryEncryptor(std::string file_name,os::smart_ptr<publicKey> publicKeyLock,unsigned int lockType,os::smart_ptr<streamPackageFrame> stream_algo):
 		output(file_name,std::ios::binary)
 	{
 		_fileName=file_name;
 		_state=true;
 		_finished=false;
 		_streamAlgorithm=stream_algo;
-		_publicKeyLock=publicKeyLock;
+		_publicLockType=lockType;
 		if(!stream_algo) _streamAlgorithm=streamPackageTypeBank::singleton()->defaultPackage();
-		if(!_publicKeyLock)
+		if(!publicKeyLock)
 		{
 			logError(errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type));
 			output.close();
@@ -46,7 +47,32 @@ namespace crypto {
 			output.close();
 			_state=false;
 		}
-		build(_publicKeyLock);
+		if(_publicLockType==file::PRIVATE_UNLOCK)
+			build(publicKeyLock->getN(),publicKeyLock->algorithm(),publicKeyLock->size());
+		else
+			build(publicKeyLock);
+	}
+	binaryEncryptor::binaryEncryptor(std::string file_name,os::smart_ptr<number> publicKey,unsigned int pkAlgo,unsigned int pkSize,os::smart_ptr<streamPackageFrame> stream_algo)
+	{
+		_fileName=file_name;
+		_state=true;
+		_finished=false;
+		_streamAlgorithm=stream_algo;
+		_publicLockType=file::PRIVATE_UNLOCK;
+		if(!stream_algo) _streamAlgorithm=streamPackageTypeBank::singleton()->defaultPackage();
+		if(!publicKey || pkAlgo!=algo::publicNULL)
+		{
+			logError(errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type));
+			output.close();
+			_state=false;
+		}
+		if(!output.good())
+		{
+			logError(errorPointer(new fileOpenError,os::shared_type));
+			output.close();
+			_state=false;
+		}
+		build(publicKey,pkAlgo,pkSize);
 	}
 	//Constructor with password
 	binaryEncryptor::binaryEncryptor(std::string file_name,std::string password,os::smart_ptr<streamPackageFrame> stream_algo):
@@ -131,6 +157,7 @@ namespace crypto {
 	//Build (triggered by public key encryptor
 	void binaryEncryptor::build(os::smart_ptr<publicKey> publicKeyLock)
 	{
+		publicKeyLock->readLock();
 		try
 		{
 			//Check key size first
@@ -139,7 +166,7 @@ namespace crypto {
 
 			//Attempt to output header
 			uint16_t valHld;
-			unsigned char head[10];
+			unsigned char head[11];
 			//Public key
 			valHld=os::to_comp_mode(publicKeyLock->algorithm());
 			memcpy(head,&valHld,2);
@@ -155,24 +182,130 @@ namespace crypto {
 			memcpy(head+6,&valHld,2);
 			valHld=os::to_comp_mode(_streamAlgorithm->hashSize());
 			memcpy(head+8,&valHld,2);
-			output.write((char*)head,10);
+
+			//Lock type
+			head[10]=_publicLockType;
+
+			output.write((char*)head,11);
 			if(!output.good()) throw errorPointer(new fileOpenError(),os::shared_type);
+
+			//Output hash of public key
+			unsigned int arrSize;
+			os::smart_ptr<unsigned char> randkey=publicKeyLock->getN()->getCompCharData(arrSize);
+			hash hsh=_streamAlgorithm->hashData(randkey.get(),arrSize);
+			//Output public key if encrypting with private key
+			if(_publicLockType==file::PUBLIC_UNLOCK)
+				output.write((char*)randkey.get(),arrSize);
+			//Else, output a hash of the public key
+			else
+				output.write((char*)hsh.data(),hsh.size());
 
 			//Generate key, and hash
 			srand(time(NULL));
-			os::smart_ptr<unsigned char> randkey=os::smart_ptr<unsigned char>(new unsigned char[publicKeyLock->size()*4],os::shared_type_array);
-			memset(randkey.get(),0,publicKeyLock->size()*4);
+			unsigned int arrayLen=publicKeyLock->size()*4;
+			if(_publicLockType==file::DOUBLE_LOCK) arrayLen=publicKeyLock->size()*8;
+			randkey=os::smart_ptr<unsigned char>(new unsigned char[arrayLen],os::shared_type_array);
+			
+			memset(randkey.get(),0,arrayLen);
 			for(unsigned int i=0;i<(publicKeyLock->size()-1)*4;i++)
 				randkey[i]=rand();
-			hash hsh=_streamAlgorithm->hashData(randkey.get(),publicKeyLock->size()*4);
+			if(_publicLockType==file::DOUBLE_LOCK)
+			{
+				for(unsigned int i=0;i<(publicKeyLock->size()-1)*4;i++)
+					randkey[i+publicKeyLock->size()*4]=rand();
+			}
+			hsh=_streamAlgorithm->hashData(randkey.get(),arrayLen);
 
 			//Generate stream cipher
-			currentCipher=_streamAlgorithm->buildStream(randkey.get(),publicKeyLock->size()*4);
+			currentCipher=_streamAlgorithm->buildStream(randkey.get(),arrayLen);
+			if(!currentCipher) throw errorPointer(new illegalAlgorithmBind("NULL build stream"),os::shared_type);
+
+			//Encrypt with private key
+			if(_publicLockType==file::PUBLIC_UNLOCK)
+				publicKeyLock->decode(randkey.get(),publicKeyLock->size()*4);
+			//Encrypt with private then public
+			else if(_publicLockType==file::DOUBLE_LOCK)
+			{
+				publicKeyLock->decode(randkey.get(),publicKeyLock->size()*4);
+				publicKeyLock->encode(randkey.get()+publicKeyLock->size()*4,publicKeyLock->size()*4);
+			}
+			//Default case, encrypt with public key
+			else
+				publicKeyLock->encode(randkey.get(),publicKeyLock->size()*4);
+			output.write((char*)randkey.get(),arrayLen);
+			if(!output.good()) throw errorPointer(new fileOpenError(),os::shared_type);
+
+			//Hash output
+			output.write((char*)hsh.data(),hsh.size());
+			if(!output.good()) throw errorPointer(new fileOpenError(),os::shared_type);
+		}
+		catch(errorPointer ptr)
+		{
+			logError(ptr);
+			output.close();
+			_state=false;
+		}
+		publicKeyLock->readUnlock();
+	}
+	//Build (public key encryption)
+	void binaryEncryptor::build(os::smart_ptr<number> pubKey,unsigned int pkAlgo,unsigned int pkSize)
+	{
+		try
+		{
+			//Check key size first
+			if(!pubKey) throw errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type);
+			if(!_streamAlgorithm) throw errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type);
+			os::smart_ptr<publicKeyPackageFrame> pkframe=publicKeyTypeBank::singleton()->findPublicKey(pkAlgo);
+			if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string(pkAlgo)),os::shared_type);
+			pkframe=pkframe->getCopy();
+			pkframe->setKeySize(pkSize);
+
+			//Attempt to output header
+			uint16_t valHld;
+			unsigned char head[11];
+			//Public key
+			valHld=os::to_comp_mode(pkframe->algorithm());
+			memcpy(head,&valHld,2);
+			valHld=os::to_comp_mode(pkframe->keySize());
+			memcpy(head+2,&valHld,2);
+
+			//Stream
+			valHld=os::to_comp_mode(_streamAlgorithm->streamAlgorithm());
+			memcpy(head+4,&valHld,2);
+
+			//Hash
+			valHld=os::to_comp_mode(_streamAlgorithm->hashAlgorithm());
+			memcpy(head+6,&valHld,2);
+			valHld=os::to_comp_mode(_streamAlgorithm->hashSize());
+			memcpy(head+8,&valHld,2);
+
+			//Lock type
+			head[10]=_publicLockType;
+
+			output.write((char*)head,11);
+			if(!output.good()) throw errorPointer(new fileOpenError(),os::shared_type);
+
+			//Output hash of public key
+			unsigned int arrSize;
+			os::smart_ptr<unsigned char> randkey=pubKey->getCompCharData(arrSize);
+			hash hsh=_streamAlgorithm->hashData(randkey.get(),arrSize);
+			output.write((char*)hsh.data(),hsh.size());
+
+			//Generate key, and hash
+			srand(time(NULL));
+			randkey=os::smart_ptr<unsigned char>(new unsigned char[pkframe->keySize()*4],os::shared_type_array);
+			memset(randkey.get(),0,pkframe->keySize()*4);
+			for(unsigned int i=0;i<(pkframe->keySize()-1)*4;i++)
+				randkey[i]=rand();
+			hsh=_streamAlgorithm->hashData(randkey.get(),pkframe->keySize()*4);
+
+			//Generate stream cipher
+			currentCipher=_streamAlgorithm->buildStream(randkey.get(),pkframe->keySize()*4);
 			if(!currentCipher) throw errorPointer(new illegalAlgorithmBind("NULL build stream"),os::shared_type);
 
 			//Encrypt random key with public key
-			_publicKeyLock->encode(randkey.get(),publicKeyLock->size()*4);
-			output.write((char*)randkey.get(),publicKeyLock->size()*4);
+			pkframe->encode(randkey.get(),pkframe->keySize()*4,pubKey);
+			output.write((char*)randkey.get(),pkframe->keySize()*4);
 			if(!output.good()) throw errorPointer(new fileOpenError(),os::shared_type);
 
 			//Hash output
@@ -278,6 +411,29 @@ namespace crypto {
 		}
 		else build();
 	}
+	//Binary decryptor, with key bank
+	binaryDecryptor::binaryDecryptor(std::string file_name,os::smart_ptr<keyBank> kBank):
+		input(file_name,std::ios::binary)
+	{
+		_fileName=file_name;
+		_state=true;
+		_finished=false;
+		_bytesLeft=0;
+		_keyBank=kBank;
+		if(!_keyBank)
+		{
+			logError(errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type));
+			input.close();
+			_state=false;
+		}
+		if(!input.good())
+		{
+			logError(errorPointer(new fileOpenError,os::shared_type));
+			input.close();
+			_state=false;
+		}
+		else build();
+	}
 	//Binary decryptor string password constructor
 	binaryDecryptor::binaryDecryptor(std::string file_name,std::string password):
 		input(file_name,std::ios::binary)
@@ -313,6 +469,7 @@ namespace crypto {
 	//Builds the file for decryption (with error logging)
 	void binaryDecryptor::build(unsigned char* key,unsigned int keyLen)
 	{
+		if(_publicKeyLock) _publicKeyLock->readLock();
 		try
 		{
 			//Bind file length
@@ -328,9 +485,10 @@ namespace crypto {
 			uint16_t streamAlgoVal;
 			uint16_t hashAlgoVal;
 			uint16_t hashSizeVal;
+			unsigned int pkType;
 
 			//Read data
-			unsigned char buffer[256];
+			unsigned char buffer[2048];
 			input.read((char*)buffer,10);
 			_bytesLeft-=10;
 			memcpy(&publicAlgoVal,buffer,2);
@@ -346,6 +504,15 @@ namespace crypto {
 			hashSizeVal=os::from_comp_mode(hashSizeVal);
 
 			//Check if input is good
+			if(!input.good()) throw errorPointer(new fileOpenError(),os::shared_type);
+
+			//Read PK type (if applicable)
+			if(publicAlgoVal!=algo::publicNULL)
+			{
+				input.read((char*)buffer,1);
+				_bytesLeft-=1;
+				pkType=buffer[0];
+			}
 			if(!input.good()) throw errorPointer(new fileOpenError(),os::shared_type);
 
 			//Bind algorithm
@@ -364,15 +531,74 @@ namespace crypto {
 			}
 			else
 			{
-				if(!_publicKeyLock) throw errorPointer(new illegalAlgorithmBind("NULL Public Key"),os::shared_type);
-				if(_publicKeyLock->algorithm()!=publicAlgoVal) throw errorPointer(new illegalAlgorithmBind("Algorithm ID mismatch"),os::shared_type);
-				if(_publicKeyLock->size()!=publicSizeVal) throw errorPointer(new illegalAlgorithmBind("Algorithm size mismatch"),os::shared_type);
+				//Read hash case (private and double unlock)
+				if(pkType==file::PRIVATE_UNLOCK || pkType==file::DOUBLE_LOCK)
+				{
+					if(!_publicKeyLock) throw errorPointer(new illegalAlgorithmBind("NULL Public Key"),os::shared_type);
+					if(_publicKeyLock->algorithm()!=publicAlgoVal) throw errorPointer(new illegalAlgorithmBind("Algorithm ID mismatch"),os::shared_type);
+					if(_publicKeyLock->size()!=publicSizeVal) throw errorPointer(new illegalAlgorithmBind("Algorithm size mismatch"),os::shared_type);
 
-				input.read((char*)buffer,_publicKeyLock->size()*4);
-				_bytesLeft-=_publicKeyLock->size();
-				_publicKeyLock->decode(buffer,_publicKeyLock->size()*4);
-				calcHash=_streamAlgorithm->hashData(buffer,_publicKeyLock->size()*4);
-				currentCipher=_streamAlgorithm->buildStream(buffer,_publicKeyLock->size()*4);
+					//Read hash
+					input.read((char*)buffer,_streamAlgorithm->hashSize());
+					_bytesLeft-=_streamAlgorithm->hashSize();
+					hash keyHash=_streamAlgorithm->hashCopy(buffer);
+
+					unsigned int kIndex;
+					bool kType;
+					if(!_publicKeyLock->searchKey(keyHash,kIndex,kType))
+						throw errorPointer(new keyMissing(),os::shared_type);
+
+					//Read key into buffer
+					unsigned int keyLen=_publicKeyLock->size()*4;
+					if(pkType==file::DOUBLE_LOCK)
+						keyLen=keyLen*2;
+					input.read((char*)buffer,keyLen);
+					_bytesLeft-=keyLen;
+					if(pkType==file::PRIVATE_UNLOCK)
+						_publicKeyLock->decode(buffer,_publicKeyLock->size()*4,kIndex);
+					else
+					{
+						_publicKeyLock->encode(buffer,_publicKeyLock->size()*4);
+						_publicKeyLock->decode(buffer+_publicKeyLock->size()*4,_publicKeyLock->size()*4);
+					}
+					calcHash=_streamAlgorithm->hashData(buffer,keyLen);
+					currentCipher=_streamAlgorithm->buildStream(buffer,keyLen);
+				}
+				//Public key case (read key)
+				else
+				{
+					if(!_publicKeyLock && !_keyBank) throw errorPointer(new illegalAlgorithmBind("No key check available"),os::shared_type);
+					input.read((char*)buffer,publicSizeVal*4);
+					_bytesLeft-=publicSizeVal*4;
+
+					os::smart_ptr<publicKeyPackageFrame> pkframe=publicKeyTypeBank::singleton()->findPublicKey(publicAlgoVal);
+					if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string(publicAlgoVal)),os::shared_type);
+					pkframe=pkframe->getCopy();
+					pkframe->setKeySize(publicSizeVal);
+					os::smart_ptr<number> tempNum=pkframe->convert(buffer,publicSizeVal*4);
+
+					//Check keys
+					unsigned int dmp1;
+					bool dmp2;
+					if(_publicKeyLock)
+					{
+						if(!_publicKeyLock->searchKey(tempNum,dmp1,dmp2))
+							throw errorPointer(new keyMissing(),os::shared_type);
+					}
+					else
+					{
+						_author=_keyBank->find(tempNum,publicAlgoVal,publicSizeVal);
+						if(!_author)
+							throw errorPointer(new keyMissing(),os::shared_type);
+					}
+
+					//Read key into buffer
+					input.read((char*)buffer,publicSizeVal*4);
+					_bytesLeft-=publicSizeVal*4;
+					pkframe->encode(buffer,publicSizeVal*4,tempNum);
+					calcHash=_streamAlgorithm->hashData(buffer,publicSizeVal*4);
+					currentCipher=_streamAlgorithm->buildStream(buffer,publicSizeVal*4);
+				}
 			}
 
 			//Pull hash
@@ -393,6 +619,7 @@ namespace crypto {
 			_bytesLeft=0;
 			currentCipher=NULL;
 		}
+		if(_publicKeyLock) _publicKeyLock->readUnlock();
 	}
 	
 	//Read character

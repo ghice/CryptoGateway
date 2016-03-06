@@ -18,12 +18,16 @@ namespace crypto {
         
         virtual os::smart_ptr<publicKeyPackageFrame> getCopy() const {return NULL;}
         
+		virtual os::smart_ptr<number> convert(uint32_t* arr, uint16_t len) const{return publicKey::copyConvert(arr,len,_publicSize);}
+        virtual os::smart_ptr<number> convert(const unsigned char* arr,unsigned int len) const{return publicKey::copyConvert(arr,len,_publicSize);}
+
         virtual os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
         {return publicKey::encode(code,publicN,_publicSize);}
+		virtual void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
+		{publicKey::encode(code,codeLength,publicN,_publicSize);}
         virtual void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
         {publicKey::encode(code,codeLength,publicN,nLength,_publicSize);}
-		virtual os::smart_ptr<number> convert(uint32_t* arr, uint16_t len){return publicKey::copyConvert(arr,len,_publicSize);}
-        virtual os::smart_ptr<number> convert(const unsigned char* arr,unsigned int len){return publicKey::copyConvert(arr,len,_publicSize);}
+		
 
         virtual os::smart_ptr<publicKey> generate() const {return NULL;}
         virtual os::smart_ptr<publicKey> bindKeys(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d) const {return NULL;}
@@ -48,12 +52,15 @@ namespace crypto {
         virtual ~publicKeyPackage(){}
         os::smart_ptr<publicKeyPackageFrame> getCopy() const {return os::smart_ptr<publicKeyPackageFrame>(new publicKeyPackage<pkType>(_publicSize),os::shared_type);}
         
+		os::smart_ptr<number> convert(uint32_t* arr, uint16_t len) const{return pkType::copyConvert(arr,len,_publicSize);}
+        os::smart_ptr<number> convert(const unsigned char* arr,unsigned int len) const{return pkType::copyConvert(arr,len,_publicSize);}
+
         os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
         {return pkType::encode(code,publicN,_publicSize);}
+		void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
+		{pkType::encode(code,codeLength,publicN,_publicSize);}
         void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
         {pkType::encode(code,codeLength,publicN,nLength,_publicSize);}
-		os::smart_ptr<number> convert(uint32_t* arr, uint16_t len){return pkType::copyConvert(arr,len,_publicSize);}
-        os::smart_ptr<number> convert(const unsigned char* arr,unsigned int len){return pkType::copyConvert(arr,len,_publicSize);}
 
 		os::smart_ptr<publicKey> generate() const {return os::smart_ptr<publicKey>(new pkType(_publicSize),os::shared_type);}
         os::smart_ptr<publicKey> bindKeys(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d) const {return os::smart_ptr<publicKey>(new pkType(_n,_d,_publicSize),os::shared_type);}

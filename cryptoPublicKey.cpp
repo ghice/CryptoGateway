@@ -662,7 +662,15 @@ using namespace crypto;
             throw errorPointer(new publicKeySizeWrong(), os::shared_type);
         return code;
     }
-    //Static raw encode
+    //Static hybrid encode
+	void publicKey::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN, uint16_t size)
+	{
+		os::smart_ptr<number> enc=publicKey::encode(publicKey::copyConvert(code,codeLength,size),publicN,size);
+		for(unsigned int i=0;i<codeLength/4+1;i++)
+			(*enc)[i]=os::to_comp_mode((*enc)[i]);
+		memcpy(code,enc->data(),codeLength);
+	}
+	//Static raw encode
     void publicKey::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size)
     {
         os::smart_ptr<number> enc=publicKey::encode(publicKey::copyConvert(code,codeLength,size),publicKey::copyConvert(code,codeLength,size),size);
@@ -678,12 +686,7 @@ using namespace crypto;
 	}
 	//Encode with raw data, public key
 	void publicKey::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
-	{
-		os::smart_ptr<number> enc=encode(copyConvert(code,codeLength),publicN);
-		for(unsigned int i=0;i<codeLength/4+1;i++)
-			(*enc)[i]=os::to_comp_mode((*enc)[i]);
-		memcpy(code,enc->data(),codeLength);
-	}
+	{publicKey::encode(code,codeLength,publicN,size());}
 	//Encode with raw data
 	void publicKey::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
     {publicKey::encode(code,codeLength,publicN,nLength,size());}
@@ -840,7 +843,15 @@ using namespace crypto;
         integer e((integer::one()<<16)+integer::one());
         return os::smart_ptr<number>(new integer(os::cast<integer,number>(code)->moduloExponentiation(e, *os::cast<integer,number>(publicN))),os::shared_type);
     }
-    //Static raw encode
+    //Static hybrid encode
+	void publicRSA::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN, uint16_t size)
+	{
+		os::smart_ptr<number> enc=publicRSA::encode(publicRSA::copyConvert(code,codeLength,size),publicN,size);
+		for(unsigned int i=0;i<codeLength/4+1;i++)
+			(*enc)[i]=os::to_comp_mode((*enc)[i]);
+		memcpy(code,enc->data(),codeLength);
+	}
+	//Static raw encode
     void publicRSA::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size)
     {
         os::smart_ptr<number> enc=publicRSA::encode(publicRSA::copyConvert(code,codeLength,size),publicRSA::copyConvert(code,codeLength,size),size);
@@ -855,7 +866,13 @@ using namespace crypto;
         if(!publicN) publicN=n;
         return publicRSA::encode(code,publicN,size());
     }
-    //Raw encode
+    //Hybrid encode
+	void publicRSA::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
+	{
+		if(!publicN) publicN=n;
+		publicRSA::encode(code,codeLength,publicN,size());
+	}
+	//Raw encode
     void publicRSA::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
     {publicRSA::encode(code,codeLength,publicN,nLength,size());}
 

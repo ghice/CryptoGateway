@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.h
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   3/5/2016
  * @brief  Header for cryptographic file testing
  * @bug No known bugs.
  *

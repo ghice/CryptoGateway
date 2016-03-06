@@ -380,6 +380,19 @@ namespace crypto
 		 * @return Encoded number
 		 */
         static os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size);
+		/** @brief Hybrid data encode against number
+		 *
+		 * This function is expected to be re-implemented
+		 * for each public-key type.  This function must be
+		 * static because data can be encoded with a public
+		 * key even though a node does not have its own keys defined.
+		 *
+		 * @param [in/out] code Data to be encoded
+		 * @param [in] codeLength Length of code array
+		 * @param [in] publicN Public key to be encoded against, NULL by default
+		 * @return void
+		 */
+		static void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN, uint16_t size);
         /** @brief Static data encode
 		 *
 		 * This function is expected to be re-implemented
@@ -408,7 +421,7 @@ namespace crypto
 		 * @param [in] publicN Public key to be encoded against, NULL by default
 		 * @return void
 		 */
-		void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN=NULL) const;
+		virtual void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN=NULL) const;
 		/** @brief Data encode
 		 * @param [in/out] code Data to be encoded
 		 * @param [in] codeLength Length of code array
@@ -652,6 +665,20 @@ namespace crypto
 		 * @return Encoded number
 		 */
 	    static os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN, uint16_t size);
+		/** @brief Static data encode
+		 *
+		 * Encodes based on the RSA algorithm.  This function
+		 * must be static because data can be encoded with a
+		 * public key even though a node does not have its
+		 * own keys defined.
+		 *
+		 * @param [in/out] code Data to be encoded
+		 * @param [in] codeLength Length of code array
+		 * @param [in] publicN Public key to be encoded against
+		 * @param [in] size Size of key used
+		 * @return void
+		 */
+		static void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN, uint16_t size);
 	    /** @brief Static data encode
 		 *
 		 * Encodes based on the RSA algorithm.  This function
@@ -674,7 +701,14 @@ namespace crypto
 		 * @return Encoded number
 		 */
 	    os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN=NULL) const;
-	    /** @brief Data encode against number
+	    /** @brief Hybrid data encode against number
+		 * @param [in/out] code Data to be encoded
+		 * @param [in] codeLength Length of code array
+		 * @param [in] publicN Public key to be encoded against, NULL by default
+		 * @return void
+		 */
+		void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const;
+		/** @brief Data encode against number
 		 * @param [in/out] code Data to be encoded
 		 * @param [in] codeLength Length of code array
 		 * @param [in] publicN Public key to be encoded against, NULL by default
