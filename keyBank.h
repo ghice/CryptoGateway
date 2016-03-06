@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.h
  * @author Jonathan Bedard
- * @date   2/21/2016
+ * @date   3/6/2016
  * @brief  Header for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -498,6 +498,9 @@ namespace crypto {
 		/** @brief Length of symmetric key
 		 */
 		unsigned int _keyLen;
+		/** @brief Public key group to encrypt file
+		 */
+		os::smart_ptr<publicKey> _pubKey;
 
         /** @brief Add name node
          *
@@ -532,7 +535,7 @@ namespace crypto {
 		 * @return Node group constructed with tree
          */
 		os::smart_ptr<nodeGroup> fileLoadHelper(os::smartXMLNode xmlTree) {return os::smart_ptr<nodeGroup> (new nodeGroup(this,xmlTree),os::shared_type);}
-        /** @brief Construct with save path
+        /** @brief Construct with save path and key
          *
          * @param [in] savePath Path to save file
 		 * @param [in] key Symetric key
@@ -540,6 +543,13 @@ namespace crypto {
 		 * @param [in] strmPck Definition of algorithms used
          */
         keyBank(std::string savePath,const unsigned char* key=NULL,unsigned int keyLen=0,os::smart_ptr<streamPackageFrame> strmPck=NULL);
+		/** @brief Construct with save path and public key
+         *
+         * @param [in] savePath Path to save file
+		 * @param [in] pubKey Public key
+		 * @param [in] strmPck Definition of algorithms used
+         */
+        keyBank(std::string savePath,os::smart_ptr<publicKey> pubKey,os::smart_ptr<streamPackageFrame> strmPck=NULL);
     public:
         /** @brief Virtual destructor
          *
@@ -627,6 +637,16 @@ namespace crypto {
 		 * @return void
 		 */
 		void setStreamPackage(os::smart_ptr<streamPackageFrame> strmPack);
+		/** @brief Set public key
+		 *
+		 * Binds a new public key to this.  Calls
+		 * for saving of this user.
+		 *
+		 * @param [in] pubKey Public key
+		 *
+		 * @return void
+		 */
+		void setPublicKey(os::smart_ptr<publicKey> pubKey);
     };
     /** @brief AVL key back
      *

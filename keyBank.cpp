@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.cpp
  * @author Jonathan Bedard
- * @date   2/21/2016
+ * @date   3/6/2016
  * @brief  Implimentation for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -473,6 +473,18 @@ namespace crypto {
 			_streamPackage=streamPackageTypeBank::singleton()->defaultPackage();
 		markChanged();
 	}
+	//Construct with public key
+    keyBank::keyBank(std::string savePath,os::smart_ptr<publicKey> pubKey,os::smart_ptr<streamPackageFrame> strmPck)
+	{
+		_savePath=savePath;
+		_symKey=NULL;
+		_keyLen=0;
+		_pubKey=pubKey;
+		_streamPackage=strmPck;
+		if(_streamPackage)
+			_streamPackage=streamPackageTypeBank::singleton()->defaultPackage();
+		markChanged();
+	}
 	//Set password
 	void keyBank::setPassword(const unsigned char* key,unsigned int keyLen)
 	{
@@ -510,6 +522,12 @@ namespace crypto {
 			_streamPackage=streamPackageTypeBank::singleton()->defaultPackage();
 		markChanged();
 	}
+	//Sets the public key
+	void keyBank::setPublicKey(os::smart_ptr<publicKey> pubKey)
+	{
+		_pubKey=pubKey;
+		markChanged();
+	}
 
 /*-----------------------------------
      AVL Key Bank
@@ -528,11 +546,37 @@ namespace crypto {
 		try
 		{
 			os::smartXMLNode headNode;
+			errorPointer tempE;
+			//First, try public key
+			if(_pubKey)
+			{
+				try{headNode=EXML_Input(savePath(),_symKey,_keyLen);}
+				catch (errorPointer e)
+				{
+					tempE=e;
+					headNode=NULL;
+				}
+				catch (...) {throw errorPointer(new unknownErrorType(),os::shared_type);}
+			}
 
-			//Have a symetric key
-			if(_symKey!=NULL&&_keyLen>0) headNode=EXML_Input(savePath(),_symKey,_keyLen);
-			//No encryption
-			else headNode=os::XML_Input(savePath());
+			//Symetric key attempt
+			try
+			{
+				//Have a symetric key
+				if(!headNode && _symKey!=NULL&&_keyLen>0) headNode=EXML_Input(savePath(),_symKey,_keyLen);
+				//No encryption
+				else if(!headNode) headNode=os::XML_Input(savePath());
+			}
+			catch (errorPointer e)
+			{
+				if(tempE) throw tempE;
+				throw e;
+			}
+			catch (...)
+			{
+				if(tempE) throw tempE;
+				throw errorPointer(new unknownErrorType(),os::shared_type);
+			}
 
 			if(!headNode)
 				throw errorPointer(new fileOpenError(),os::shared_type);
@@ -565,8 +609,14 @@ namespace crypto {
 			for(auto i=nodeBank.getFirst();i;i=i->getNext())
 				headNode->addElement(i->getData()->buildXML());
 
+			//Use public key first
+			if(_pubKey)
+			{
+				if(!EXML_Output(savePath(),headNode,_pubKey,file::DOUBLE_LOCK,_streamPackage))
+					throw errorPointer(new fileOpenError(),os::shared_type);
+			}
 			//Have a symetric key
-			if(_symKey!=NULL&&_keyLen>0)
+			else if(_symKey!=NULL&&_keyLen>0)
 			{
 				if(!EXML_Output(savePath(),headNode,_symKey,_keyLen,_streamPackage))
 					throw errorPointer(new fileOpenError(),os::shared_type);

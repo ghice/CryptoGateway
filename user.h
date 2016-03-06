@@ -1,7 +1,7 @@
 /**
  * @file	user.h
  * @author	Jonathan Bedard
- * @date   	3/3/2016
+ * @date   	3/6/2016
  * @brief	Definition of the CryptoGateway user
  * @bug	None
  *
@@ -198,6 +198,65 @@ namespace crypto {
 		 */
 		os::smart_ptr<publicKey> getDefaultPublicKey() {return _defaultKey;}
 
+		/** @brief Returns the first public key group
+		 *
+		 * Allows programs to list off the available
+		 * key groups bound to this user
+		 *
+		 * @return crypto::user::_publicKeys.getFirst()
+		 */
+		os::smart_ptr<os::adnode<publicKey> > getFirstPublicKey() {return _publicKeys.getFirst();}
+		/** @brief Returns the last public key group
+		 *
+		 * Allows programs to list off the available
+		 * key groups bound to this user
+		 *
+		 * @return crypto::user::_publicKeys.getFirst()
+		 */
+		os::smart_ptr<os::adnode<publicKey> > getLastPublicKey() {return _publicKeys.getLast();}
+
+		/** @brief Searches for key by hash
+		 *
+		 * Binds the location that the keys were found
+		 * in to the arguments of the function.
+		 *
+		 * @param [in] hsh Hash of the key to be searched for
+		 * @param [out] hist History value the key was found
+		 * @param [out] type Type (public or private)
+		 * @return Key pair conatining the searched key
+		 */
+		os::smart_ptr<publicKey> searchKey(hash hsh, unsigned int& hist,bool& type);
+		/** @brief Searches for key
+		 *
+		 * Binds the location that the keys were found
+		 * in to the arguments of the function.
+		 *
+		 * @param [in] num Key to search for
+		 * @param [out] hist History value the key was found
+		 * @param [out] type Type (public or private)
+		 * @return Key pair conatining the searched key
+		 */
+		os::smart_ptr<publicKey> searchKey(os::smart_ptr<number> key, unsigned int& hist,bool& type);
+		/** @brief Searches for key
+		 * @param [in] num Key to search for
+		 * @return Key pair conatining the searched key
+		 */
+		os::smart_ptr<publicKey> searchKey(hash hsh)
+		{
+			unsigned int hist;
+			bool type;
+			return searchKey(hsh,hist,type);
+		}
+		/** @brief Searches for key
+		 * @param [in] num Key to search for
+		 * @return Key pair conatining the searched key
+		 */
+		os::smart_ptr<publicKey> searchKey(os::smart_ptr<number> key)
+		{
+			unsigned int hist;
+			bool type;
+			return searchKey(key,hist,type);
+		}
 	};
 }
 

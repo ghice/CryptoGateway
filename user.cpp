@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	3/3/2016
+ * @date   	3/6/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -339,6 +339,8 @@ namespace crypto {
 
 		//Load Key bank
 		_keyBank=os::smart_ptr<keyBank>(new avlKeyBank(_saveDir+"/"+_username+"/"+KEY_BANK_FILE,_password,_passwordLength,_streamPackage),os::shared_type);
+		if(_defaultKey)
+			_keyBank->setPublicKey(_defaultKey);
 		bindSavable(os::cast<os::savable,keyBank>(_keyBank));
 	}
 	//Tear down, attempt a save first
@@ -510,6 +512,7 @@ namespace crypto {
 		if(key==NULL) return false;
 		if(!_publicKeys.find(key)) return false;
 		_defaultKey=key;
+		if(_defaultKey) _keyBank->setPublicKey(_defaultKey);
 		markChanged();
 		return true;
 	}
@@ -552,6 +555,30 @@ namespace crypto {
 		auto it=_publicKeys.find(tpk);
 		if(!it) return NULL;
 		return it->getData();
+	}
+
+	//Searching for key
+	os::smart_ptr<publicKey> user::searchKey(hash hsh, unsigned int& hist,bool& type)
+	{
+		auto trc=_publicKeys.getFirst();
+		while(trc)
+		{
+			if(trc->getData()->searchKey(hsh,hist,type))
+				return trc->getData();
+			trc=trc->getNext();
+		}
+		return NULL;
+	}
+	os::smart_ptr<publicKey> user::searchKey(os::smart_ptr<number> key, unsigned int& hist,bool& type)
+	{
+		auto trc=_publicKeys.getFirst();
+		while(trc)
+		{
+			if(trc->getData()->searchKey(key,hist,type))
+				return trc->getData();
+			trc=trc->getNext();
+		}
+		return NULL;
 	}
 }
 

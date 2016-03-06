@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   2/28/2016
+ * @date   3/6/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -316,6 +316,56 @@ using namespace crypto;
 		}
 		os::delete_file("TestFolder");
 	}
+	//Public-key iterative test
+	void userPublicKeyIterate() throw (os::smart_ptr<std::exception>)
+	{
+		std::string locString = "gatewayTest.cpp, userPublicKeyIterate()";
+
+		try
+		{
+			user usr("testUser","TestFolder");
+			usr.save();
+
+			//First and last should be NULL
+			if(usr.getFirstPublicKey())
+				throw os::smart_ptr<std::exception>(new generalTestException("User has no public keys (get first)!",locString),os::shared_type);
+			if(usr.getLastPublicKey())
+				throw os::smart_ptr<std::exception>(new generalTestException("User has no public keys (get last)!",locString),os::shared_type);
+
+			usr.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public128)));
+			usr.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public256)));
+			usr.save();
+
+			if(usr.numberErrors()>0)
+				throw os::smart_ptr<std::exception>(new generalTestException("Unexpected user error!",locString),os::shared_type);
+			auto trc=usr.getFirstPublicKey();
+			int cnt=0;
+			while(trc)
+			{
+				if(cnt>=2)
+					throw os::smart_ptr<std::exception>(new generalTestException("Too many public keys in list",locString),os::shared_type);
+				if(cnt==0 && trc->getData()->size()!=crypto::size::public128)
+					throw os::smart_ptr<std::exception>(new generalTestException("List order error (0)",locString),os::shared_type);
+				if(cnt==1 && trc->getData()->size()!=crypto::size::public256)
+					throw os::smart_ptr<std::exception>(new generalTestException("List order error (1)",locString),os::shared_type);
+				trc=trc->getNext();
+				cnt++;
+			}
+			
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("TestFolder");
+			throw e;
+		}
+		catch (...)
+		{
+			os::delete_file("TestFolder");
+			throw os::smart_ptr<std::exception>(new unknownException(locString),os::shared_type);
+		}
+		os::delete_file("TestFolder");
+	}
+
 /*================================================================
 	Bind Suites
  ================================================================*/
@@ -336,6 +386,7 @@ using namespace crypto;
     {
         pushTest("Basic Test",&basicUserTest);
 		pushTest("Public Key",&userPublicKeyTest);
+		pushTest("Public Key Iteration",&userPublicKeyIterate);
     }
 
 #endif

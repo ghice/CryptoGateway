@@ -1,7 +1,7 @@
 /**
  * @file	binaryEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	3/5/2016
+ * @date   	3/6/2016
  * @brief	Implementation of binary encryption files
  * @bug	None
  *
@@ -558,8 +558,8 @@ namespace crypto {
 						_publicKeyLock->decode(buffer,_publicKeyLock->size()*4,kIndex);
 					else
 					{
-						_publicKeyLock->encode(buffer,_publicKeyLock->size()*4);
-						_publicKeyLock->decode(buffer+_publicKeyLock->size()*4,_publicKeyLock->size()*4);
+						_publicKeyLock->encode(buffer,_publicKeyLock->size()*4,_publicKeyLock->getOldN(kIndex));
+						_publicKeyLock->decode(buffer+_publicKeyLock->size()*4,_publicKeyLock->size()*4,kIndex);
 					}
 					calcHash=_streamAlgorithm->hashData(buffer,keyLen);
 					currentCipher=_streamAlgorithm->buildStream(buffer,keyLen);

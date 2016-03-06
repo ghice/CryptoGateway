@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.cpp
  * @author Jonathan Bedard
- * @date   3/5/2016
+ * @date   3/6/2016
  * @brief  Implementation for cryptographic file testing
  * @bug No known bugs.
  *
@@ -205,6 +205,12 @@ using namespace test;
 			if(!binDe2.author() || binDe2.author()->name() != ng->name())
 				throw os::smart_ptr<std::exception>(new generalTestException("Failed to confirm author",locString),os::shared_type);
 
+			//Compare reference and read data
+			for(int i=0;i<100;i++)
+			{
+				if(refData[i]!=readData[i])
+					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
+			}
 		}
 		catch(os::smart_ptr<std::exception> e)
 		{
@@ -466,6 +472,105 @@ using namespace test;
 		os::delete_file("pubTest.xml");
     }
 
+	//Public header
+	void exlPublicHeader() throw(os::smart_ptr<std::exception>)
+	{
+		std::string locString = "cryptoFileTest.cpp, binaryPublicHeader()";
+
+		try
+		{
+			//Write data
+			uint32_t *n,*d;
+			os::smart_ptr<publicKeyPackageFrame> pkg=publicKeyTypeBank::singleton()->defaultPackage();
+			if(!pkg) return;
+			pkg=pkg->getCopy();
+
+			pkg->setKeySize(size::public128);
+			findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
+			os::smartXMLNode xmn=generateReferenceTree();
+			if(!crypto::EXML_Output("pubTest.xml",xmn,kys,file::PUBLIC_UNLOCK))
+				throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+
+			os::smartXMLNode xmlParse1=crypto::EXML_Input("pubTest.xml",kys);
+			if(!xmlParse1)
+				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure (unlock with self)",locString),os::shared_type);
+			if(!os::xml::compareTrees(xmn,xmlParse1))
+				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+
+			avlKeyBank kybnk;
+			os::smart_ptr<nodeGroup> ng=kybnk.addPair("No-G","Me",kys->getN(),kys->algorithm(),kys->size());
+			os::smart_ptr<nodeGroup> ntemp;
+			os::smartXMLNode xmlParse2=crypto::EXML_Input("pubTest.xml",&kybnk,ntemp);
+			if(!xmlParse2)
+				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure (unlock with bank)",locString),os::shared_type);
+			if(!os::xml::compareTrees(xmn,xmlParse2))
+				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+			if(!ntemp || ntemp->name() != ng->name())
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to confirm author",locString),os::shared_type);
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("pubTest.xml");
+			throw e;
+		}
+		catch(errorPointer e)
+		{
+			os::delete_file("pubTest.xml");
+			throw os::cast<std::exception,crypto::error>(e);
+		}
+		catch(...)
+		{
+			os::delete_file("pubTest.xml");
+			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type); 
+		}
+		os::delete_file("pubTest.xml");
+	}
+	//Public header
+	void exmlDoubleLock() throw(os::smart_ptr<std::exception>)
+	{
+		std::string locString = "cryptoFileTest.cpp, exmlDoubleLock()";
+
+		try
+		{
+			//Write data
+			uint32_t *n,*d;
+			os::smart_ptr<publicKeyPackageFrame> pkg=publicKeyTypeBank::singleton()->defaultPackage();
+			if(!pkg) return;
+			pkg=pkg->getCopy();
+
+			pkg->setKeySize(size::public128);
+			findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
+			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
+			os::smartXMLNode xmn=generateReferenceTree();
+			if(!crypto::EXML_Output("pubTest.xml",xmn,kys,file::DOUBLE_LOCK))
+				throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+
+			os::smartXMLNode xmlParse=crypto::EXML_Input("pubTest.xml",kys);
+			if(!xmlParse)
+				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure",locString),os::shared_type);
+
+			if(!os::xml::compareTrees(xmn,xmlParse))
+				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("pubTest.xml");
+			throw e;
+		}
+		catch(errorPointer e)
+		{
+			os::delete_file("pubTest.xml");
+			throw os::cast<std::exception,crypto::error>(e);
+		}
+		catch(...)
+		{
+			os::delete_file("pubTest.xml");
+			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type); 
+		}
+		os::delete_file("pubTest.xml");
+	}
+
 /*------------------------------------------------------------
     EXML File Test Driver
  ------------------------------------------------------------*/
@@ -475,6 +580,8 @@ using namespace test;
     {
         pushTestPackage(streamPackageTypeBank::singleton()->findStream(algo::streamRC4,algo::hashRC4));
         pushTestPackage(publicKeyTypeBank::singleton()->findPublicKey(crypto::algo::publicRSA));
+		pushTest("Public Signing",&exlPublicHeader);
+		pushTest("Double Lock",&exmlDoubleLock);
     }
     //Attempt to push packages to test
     void cryptoEXMLTestSuite::pushTestPackage(os::smart_ptr<streamPackageFrame> spf)
