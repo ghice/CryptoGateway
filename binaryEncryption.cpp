@@ -1,7 +1,7 @@
 /**
  * @file	binaryEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	3/6/2016
+ * @date   	3/7/2016
  * @brief	Implementation of binary encryption files
  * @bug	None
  *
@@ -702,6 +702,11 @@ namespace crypto {
 		input.close();
 		_bytesLeft=0;
 	}
+//Simple Access Functions
+
+	os::smart_ptr<nodeGroup> binaryDecryptor::author() {return _author;}
+	//Special case, GCC wants this in a .cpp file
+	binaryDecryptor::~binaryDecryptor(){close();}
 }
 
 #endif

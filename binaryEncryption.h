@@ -1,7 +1,7 @@
 /**
  * @file	binaryEncryption.h
  * @author	Jonathan Bedard
- * @date   	3/5/2016
+ * @date   	3/7/2016
  * @brief	Definition of binary encryption files
  * @bug	None
  *
@@ -373,7 +373,7 @@ namespace crypto {
 		/** @brief Pointer to the user which signed this file
 		 * @return crypto::binaryDecryptor::_author
 		 */
-		os::smart_ptr<nodeGroup> author() {return _author;}
+		os::smart_ptr<nodeGroup> author();
 		/** @brief Virtual destructor
 		 *
 		 * Destructor must be virtual, if an object
@@ -381,7 +381,7 @@ namespace crypto {
 		 * of the type which inherits this class should
 		 * be called.  Also closes the input file.
 		 */
-		virtual ~binaryDecryptor(){close();}
+		virtual ~binaryDecryptor();
 	};
 }
 
