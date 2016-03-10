@@ -1,7 +1,7 @@
 /**
  * @file	CryptoGateway.h
  * @author	Jonathan Bedard
- * @date   	2/22/2016
+ * @date   	3/9/2016
  * @brief	Global include file
  * @bug	None
  *
@@ -39,5 +39,6 @@ namespace crypto
 
 #include "cryptoPublicKey.h"
 #include "keyBank.h"
+#include "user.h"
 
 #endif
