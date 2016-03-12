@@ -1,7 +1,7 @@
 /**
  * @file	user.h
  * @author	Jonathan Bedard
- * @date   	3/6/2016
+ * @date   	3/11/2016
  * @brief	Definition of the CryptoGateway user
  * @bug	None
  *
@@ -35,6 +35,9 @@ namespace crypto {
     class user: public os::savingGroup,public errorSender
 	{
 	protected:
+		/** @breif Stores if the user was constructed
+		 */
+		bool _wasConstructed;
 		/** @brief Name of user
 		 */
 		std::string _username;
@@ -81,6 +84,10 @@ namespace crypto {
          */
         os::smartXMLNode generateSaveTree();
 	public:
+		/** @brief Returns the construction state of the user
+		 * @return crypto::bool::_wasConstructed
+		 */
+		inline bool wasConstructed() const {return _wasConstructed;}
 		/** @brief Constructs the user from scratch or directory
 		 *
 		 * Constructs a user from a directory or from scratch.

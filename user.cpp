@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	3/6/2016
+ * @date   	3/11/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -35,6 +35,7 @@ namespace crypto {
 		//Basic initializers
 		_username=username;
 		_saveDir=saveDir;
+		_wasConstructed=false;
         _streamPackage=streamPackageTypeBank::singleton()->defaultPackage();
 
 		//Unsavable key bank
@@ -69,7 +70,11 @@ namespace crypto {
 		}
 
 		//Check to see if the directory exists
-		if(_saveDir=="") return;
+		if(_saveDir=="")
+		{
+			_wasConstructed=true;
+			return;
+		}
 		markChanged();
         
         //Check if directory exists
@@ -232,14 +237,14 @@ namespace crypto {
 				if(_password!=NULL && _passwordLength>0)
 				{
 					os::smart_ptr<streamCipher> strm = _streamPackage->buildStream(_password,_passwordLength);
-					streamArr=os::smart_ptr<unsigned char>(new unsigned char[BLOCK_SIZE*_publicKeys.size()],os::shared_type_array);
-					for(unsigned int i=0;i<BLOCK_SIZE*_publicKeys.size();i++)
+					streamArr=os::smart_ptr<unsigned char>(new unsigned char[BLOCK_SIZE*xmlList->size()],os::shared_type_array);
+					for(unsigned int i=0;i<BLOCK_SIZE*xmlList->size();i++)
 						streamArr[i]=strm->getNext();
 				}
 
 				//Iterate through all nodes
 				unsigned int trc=0;
-				for(auto it=xmlList->getFirst();it;it=it->getNext())
+				for(auto it=xmlList->getFirst();it&&streamArr;it=it->getNext())
 				{
 					std::string publicKeyName;
 					std::string algoNameTemp;
@@ -342,11 +347,12 @@ namespace crypto {
 		if(_defaultKey)
 			_keyBank->setPublicKey(_defaultKey);
 		bindSavable(os::cast<os::savable,keyBank>(_keyBank));
+		_wasConstructed=true;
 	}
 	//Tear down, attempt a save first
 	user::~user()
 	{
-		if(needsSaving()) save();
+		if(_wasConstructed && numberErrors()==0 && needsSaving()) save();
 		if(_password!=NULL) delete [] _password;
 	}
     //Generate an XML tree for saving
@@ -434,8 +440,11 @@ namespace crypto {
         if(!needsSaving()) return;
 
 		//Save self first
-        os::smartXMLNode svTree=generateSaveTree();
-        os::XML_Output(_saveDir+"/"+_username+"/"+META_FILE, svTree);
+		if(_wasConstructed)
+		{
+			os::smartXMLNode svTree=generateSaveTree();
+			os::XML_Output(_saveDir+"/"+_username+"/"+META_FILE, svTree);
+		}
         
         //Save all listeners
         os::savingGroup::save();
@@ -544,6 +553,7 @@ namespace crypto {
 		}
 
 		if(!_defaultKey) setDefaultPublicKey(key);
+		bindSavable(os::cast<os::savable,publicKey>(key));
 		markChanged();
 		return true;
 	}

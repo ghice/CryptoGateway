@@ -610,7 +610,7 @@ namespace crypto {
 				headNode->addElement(i->getData()->buildXML());
 
 			//Use public key first
-			if(_pubKey)
+			if(_pubKey && !_pubKey->generating())
 			{
 				if(!EXML_Output(savePath(),headNode,_pubKey,file::DOUBLE_LOCK,_streamPackage))
 					throw errorPointer(new fileOpenError(),os::shared_type);

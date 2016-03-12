@@ -1,7 +1,7 @@
 /**
  * @file	binaryEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	3/7/2016
+ * @date   	3/11/2016
  * @brief	Implementation of binary encryption files
  * @bug	None
  *
@@ -612,7 +612,6 @@ namespace crypto {
 		}
 		catch(errorPointer ptr)
 		{
-			ptr->log();
 			logError(ptr);
 			input.close();
 			_state=false;

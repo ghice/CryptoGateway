@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   3/4/2016
+ * @date   3/11/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -398,6 +398,8 @@ using namespace crypto;
 	//Save file
 	void publicKey::save()
 	{
+		if(generating()) return;
+
         readLock();
 		if(_fileName=="")
         {
@@ -514,8 +516,10 @@ using namespace crypto;
 		}
         
         os::smart_ptr<binaryDecryptor> bde;
-        if(_key==NULL || _keyLen==0) bde=os::smart_ptr<binaryDecryptor>(new binaryDecryptor(_fileName,"default"),os::shared_type);
-        else bde=os::smart_ptr<binaryDecryptor>(new binaryDecryptor(_fileName,_key,_keyLen),os::shared_type);
+        if(_key==NULL || _keyLen==0)
+			bde=os::smart_ptr<binaryDecryptor>(new binaryDecryptor(_fileName,"default"),os::shared_type);
+        else
+			bde=os::smart_ptr<binaryDecryptor>(new binaryDecryptor(_fileName,_key,_keyLen),os::shared_type);
         
         //Check if this is even a good file
         if(!bde->good())
