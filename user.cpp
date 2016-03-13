@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	3/11/2016
+ * @date   	3/12/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -244,7 +244,7 @@ namespace crypto {
 
 				//Iterate through all nodes
 				unsigned int trc=0;
-				for(auto it=xmlList->getFirst();it&&streamArr;it=it->getNext())
+				for(auto it=xmlList->getFirst();it;it=it->getNext())
 				{
 					std::string publicKeyName;
 					std::string algoNameTemp;
