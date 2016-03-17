@@ -1,5 +1,16 @@
-//Primary author: Jonathan Bedard
-//Certified working 8/21/2015
+/**
+ * @file	interior_message.cpp
+ * @author	Jonathan Bedard
+ * @date   	3/16/2016
+ * @brief	Deprecated interior message
+ * @bug	Deprecated
+ *
+ * Deprecated implementation file which
+ * defines the message to be
+ * encrypted by the gateway
+ **/
+
+///@cond INTERNAL
 
 #ifndef INTERIOR_MESSAGE_CPP
 #define INTERIOR_MESSAGE_CPP
@@ -249,3 +260,5 @@ bool checksum_message::check_checksum()
 }
 
 #endif
+
+///@endcond

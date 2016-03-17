@@ -1,5 +1,16 @@
-//Primary author: Jonathan Bedard
-//Certified working 10/15/2015
+/**
+ * @file	interior_message.h
+ * @author	Jonathan Bedard
+ * @date   	3/16/2016
+ * @brief	Deprecated interior message
+ * @bug	Deprecated
+ *
+ * Deprecated header file which
+ * defines the message to be
+ * encrypted by the gateway
+ **/
+
+///@cond INTERNAL
 
 #ifndef INTERIOR_MESSAGE_H
 #define INTERIOR_MESSAGE_H
@@ -83,3 +94,5 @@ typedef os::smart_ptr<interior_message> smartInteriorMessage;
 }
 
 #endif
+
+///@endcond
