@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Certified working 10/6/2015
+/**
+ * @file	large_number.h
+ * @author	Jonathan Bedard
+ * @date   	3/16/2016
+ * @brief	Deprecated large number header
+ * @bug	Deprecated
+ *
+ * Deprecated header file which
+ * defines the large number used
+ * to define public keys in the
+ * old version of the gateway.
+ **/
+
+///@cond INTERNAL
 
 #ifndef LARGE_NUMBER_H
 #define LARGE_NUMBER_H
@@ -96,3 +108,5 @@ public:
 }
 
 #endif
+
+///@endcond

@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Certified working 8/21/2015
+/**
+ * @file	large_number.cpp
+ * @author	Jonathan Bedard
+ * @date   	3/16/2016
+ * @brief	Deprecated large number implementation
+ * @bug	Deprecated
+ *
+ * Deprecated implementation file which
+ * defines the large number used
+ * to define public keys in the
+ * old version of the gateway.
+ **/
+
+///@cond INTERNAL
 
 #ifndef LARGE_NUMBER_CPP
 #define LARGE_NUMBER_CPP
@@ -689,3 +701,5 @@ using namespace crypto;
   }
   
 #endif
+
+///@endcond
