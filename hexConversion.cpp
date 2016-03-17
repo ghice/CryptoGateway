@@ -1,5 +1,17 @@
-//Primary author: Jonathan Bedard
-//Certified working 12/18/2015
+/**
+ * @file   hexConversion.cpp
+ * @author Jonathan Bedard
+ * @date   3/16/2016
+ * @brief  Hex conversion implementation
+ * @bug No known bugs.
+ *
+ * Implements the set of hex conversion
+ * functions.  Consult hexConversion.h
+ * for details.
+ *
+ */
+
+///@cond INTERNAL
 
 #ifndef HEX_CONVERSION_CPP
 #define HEX_CONVERSION_CPP
@@ -295,3 +307,5 @@ uint32_t crypto::fromHex32(const std::string& str)
 }
 
 #endif
+
+///@endcond
