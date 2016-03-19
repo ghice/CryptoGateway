@@ -41,6 +41,7 @@ SET( SRC_H
 	${CUR_SRC}/hexConversion.h
 
 	${CUR_SRC}/gateway.h
+	${CUR_SRC}/message.h
 	${CUR_SRC}/keyBank.h
 	${CUR_SRC}/user.h
 )
@@ -72,6 +73,7 @@ SET( SRC_CPP
 	${CUR_SRC}/hexConversion.cpp
 
 	${CUR_SRC}/gateway.cpp
+	${CUR_SRC}/message.cpp
 	${CUR_SRC}/keyBank.cpp
 	${CUR_SRC}/user.cpp
 )

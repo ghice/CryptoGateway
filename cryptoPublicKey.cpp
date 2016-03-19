@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   3/11/2016
+ * @date   3/19/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -390,6 +390,9 @@ using namespace crypto;
 		d->expand(2*_size);
 		writeUnlock();
         
+		readLock();
+		keyChangeSender::triggerEvent();
+		readUnlock();
         markChanged();
 	}
 
@@ -915,15 +918,15 @@ using namespace crypto;
 	//Generate prime
 	integer RSAKeyGenerator::generatePrime()
 	{
-				integer ret(2*master->size());
-				for(unsigned int i=0;i<master->size()/2;i++)
-					ret[i]=((uint32_t) rand())^(((uint32_t)rand())<<16);
-				ret[0]=ret[0]|1;
-				ret[master->size()/2-1]^=1<<31;
-				while(!ret.prime())
-					ret+=integer::two();
-				return ret;
-			}
+		integer ret(2*master->size());
+		for(unsigned int i=0;i<master->size()/2;i++)
+			ret[i]=((uint32_t) rand())^(((uint32_t)rand())<<16);
+		ret[0]=ret[0]|1;
+		ret[master->size()/2-1]^=1<<31;
+		while(!ret.prime())
+			ret+=integer::two();
+		return ret;
+	}
 	//Push calculated values
 	void RSAKeyGenerator::pushValues()
 	{
@@ -944,6 +947,11 @@ using namespace crypto;
         publicRSA* temp=master;
         temp->keyGen=NULL;
 		temp->writeUnlock();
+
+		temp->readLock();
+		temp->keyChangeSender::triggerEvent();
+		temp->readUnlock();
+
         temp->markChanged();
 	}
 	

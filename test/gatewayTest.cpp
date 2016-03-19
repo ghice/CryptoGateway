@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   3/6/2016
+ * @date   3/17/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -365,7 +365,56 @@ using namespace crypto;
 		}
 		os::delete_file("TestFolder");
 	}
+	//Encrypted public key
+	void encryptPublicKeyUser() throw (os::smart_ptr<std::exception>)
+	{
+		std::string locString = "gatewayTest.cpp, encryptPublicKeyUser()";
+		std::string tempPass="password";
+		try
+		{
+			user usr("testUser","TestFolder",(unsigned char*)tempPass.c_str(),tempPass.length());
+			usr.save();
+			usr.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public256)));
+			usr.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public128)));
+			usr.save();
 
+			if(usr.numberErrors()>0)
+				throw os::smart_ptr<std::exception>(new generalTestException("Unexpected user error!",locString),os::shared_type);
+
+			//Attempt to find keys
+			os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(crypto::algo::publicRSA);
+			pkfrm->setKeySize(crypto::size::public256);
+			os::smart_ptr<publicKey> fnd=usr.findPublicKey(pkfrm);
+			if(!fnd)
+				throw os::smart_ptr<std::exception>(new generalTestException("Public key not found",locString),os::shared_type);
+			if(fnd->algorithm() != crypto::algo::publicRSA)
+				throw os::smart_ptr<std::exception>(new generalTestException("Algorithm mis-match",locString),os::shared_type);
+			if(fnd->size() != crypto::size::public256)
+				throw os::smart_ptr<std::exception>(new generalTestException("Size mis-match",locString),os::shared_type);
+
+			//Open a new user
+			user nusr("testUser","TestFolder",(unsigned char*)tempPass.c_str(),tempPass.length());
+			if(nusr.numberErrors()>0)
+				throw os::smart_ptr<std::exception>(new generalTestException("Error when re-loading user data",locString),os::shared_type);
+
+			//Compare old found to the default key
+			if(!nusr.getDefaultPublicKey())
+				throw os::smart_ptr<std::exception>(new generalTestException("No default public key loaded",locString),os::shared_type);
+			if(*nusr.getDefaultPublicKey()!=*fnd)
+				throw os::smart_ptr<std::exception>(new generalTestException("Default public key incorrect",locString),os::shared_type);
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("TestFolder");
+			throw e;
+		}
+		catch (...)
+		{
+			os::delete_file("TestFolder");
+			throw os::smart_ptr<std::exception>(new unknownException(locString),os::shared_type);
+		}
+		os::delete_file("TestFolder");
+	}
 /*================================================================
 	Bind Suites
  ================================================================*/
@@ -387,6 +436,7 @@ using namespace crypto;
         pushTest("Basic Test",&basicUserTest);
 		pushTest("Public Key",&userPublicKeyTest);
 		pushTest("Public Key Iteration",&userPublicKeyIterate);
+		pushTest("Encrypt Public Key",&encryptPublicKeyUser);
     }
 
 #endif

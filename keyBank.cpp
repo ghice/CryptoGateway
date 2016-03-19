@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.cpp
  * @author Jonathan Bedard
- * @date   3/6/2016
+ * @date   3/19/2016
  * @brief  Implimentation for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -139,6 +139,11 @@ namespace crypto {
     nodeGroup::nodeGroup(keyBank* master,std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
     {
         if(!master) throw errorPointer(new NULLMaster(),os::shared_type);
+		if(groupName.size()>size::GROUP_MAX)
+			throw errorPointer(new stringTooLarge(),os::shared_type);
+		if(name.size()>size::NAME_MAX)
+			throw errorPointer(new stringTooLarge(),os::shared_type);
+
 		_master=master;
 		try
 		{
@@ -372,6 +377,11 @@ namespace crypto {
     nodeNameReference::nodeNameReference(nodeGroup* master,std::string groupName,std::string name,uint64_t timestamp)
     {
         if(!master) throw errorPointer(new NULLMaster(),os::shared_type);
+		if(groupName.size()>size::GROUP_MAX)
+			throw errorPointer(new stringTooLarge(),os::shared_type);
+		if(name.size()>size::NAME_MAX)
+			throw errorPointer(new stringTooLarge(),os::shared_type);
+
         _master=master;
         _groupName=groupName;
         _name=name;
@@ -522,11 +532,22 @@ namespace crypto {
 			_streamPackage=streamPackageTypeBank::singleton()->defaultPackage();
 		markChanged();
 	}
+	
 	//Sets the public key
 	void keyBank::setPublicKey(os::smart_ptr<publicKey> pubKey)
 	{
+		if(_pubKey && _pubKey!=pubKey)
+			_pubKey->keyChangeSender::removeReceivers(this);
 		_pubKey=pubKey;
+		if(_pubKey)
+			_pubKey->keyChangeSender::pushReceivers(this);
 		markChanged();
+	}
+	//Triggers when the public key changes
+	void keyBank::publicKeyChanged(os::smart_ptr<publicKey> pbk)
+	{
+		if(pbk==_pubKey)
+			markChanged();
 	}
 
 /*-----------------------------------

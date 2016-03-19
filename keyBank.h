@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.h
  * @author Jonathan Bedard
- * @date   3/6/2016
+ * @date   3/19/2016
  * @brief  Header for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -471,7 +471,7 @@ namespace crypto {
      * These banks act, in essense, as
      * data-bases.
      */
-    class keyBank: public os::savable,public errorSender
+    class keyBank: public os::savable,public keyChangeReceiver, public errorSender
     {
         /** @brief Path to save file
          */
@@ -529,6 +529,15 @@ namespace crypto {
          */
 		virtual void load()=0;
     
+		/** @brief Triggers on key change
+		 *
+		 * Marks this class for re-saving when the
+		 * public key has been re-generated.
+		 *
+		 * @param [in] pbk Public key which was changed
+		 * @return void
+		 */
+		void publicKeyChanged(os::smart_ptr<publicKey> pbk);
 		/** @brief Construct node with XML tree
          *
          * @param [in] xmlTree XML tree from file

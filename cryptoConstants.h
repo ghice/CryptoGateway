@@ -74,6 +74,9 @@ namespace crypto
 		extern const uint16_t public1024;
 		extern const uint16_t public2048;
 		
+		extern const uint16_t GROUP_MAX;
+		extern const uint16_t NAME_MAX;
+		
 		namespace stream
 		{
 			extern const uint16_t PACKETSIZE;

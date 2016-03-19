@@ -1,7 +1,7 @@
 /**
  * @file	cryptoError.h
  * @author	Jonathan Bedard
- * @date   	3/5/2016
+ * @date   	3/19/2016
  * @brief	Declaration of cryptographic errors
  * @bug	None
  *
@@ -724,6 +724,37 @@ namespace crypto {
 		 * @return Error description std::string
 		 */
 		std::string errorDescription() const {return "Caught some exception, but the type is unknown";}
+	};
+
+	/** @brief String size error
+	 *
+	 * Thrown when either the username or
+	 * group ID are too large.
+	 */
+	class stringTooLarge: public error
+	{
+	public:
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.  Must explicitly declare that
+         * this function does not throw exceptions.
+         */
+		virtual ~stringTooLarge() throw() {}
+		/** @brief Short error descriptor
+		 * Returns "Group ID/Name Size Error"
+		 * @return Error title std::string
+		 */
+		std::string errorTitle() const {return "Group ID/Name Size Error";}
+		/** @brief Long error descriptor
+		 * Returns "Group ID or Name was
+		 * larger than the maximum size.
+		 * Please user a smaller string"
+		 * @return Error description std::string
+		 */
+		std::string errorDescription() const {return "Group ID or Name was larger than the maximum size.  Please user a smaller string";}
 	};
 
 	///@cond INTERNAL

@@ -21,6 +21,10 @@
 #include "streamPackage.h"
 #include "publicKeyPackage.h"
 
+///@cond INTERNAL
+class gatewaySettings;
+///@endcond
+
 namespace crypto {
   
 	/** @brief Primary user class

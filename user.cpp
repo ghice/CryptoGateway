@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	3/12/2016
+ * @date   	3/19/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -33,6 +33,8 @@ namespace crypto {
 	user::user(std::string username,std::string saveDir,const unsigned char* key,unsigned int keyLen)
 	{
 		//Basic initializers
+		if(_username.size()>size::NAME_MAX)
+			throw errorPointer(new stringTooLarge(),os::shared_type);
 		_username=username;
 		_saveDir=saveDir;
 		_wasConstructed=false;

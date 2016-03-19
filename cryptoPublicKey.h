@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   3/4/2016
+ * @date   3/19/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -22,6 +22,72 @@
 
 namespace crypto
 {
+	///@cond INTERNAL
+	class publicKey;
+	class keyChangeSender;
+	///@endcond
+
+	/** @brief Interface for receiving key changes
+	 *
+	 * A class which is alerted by public keys
+	 * when the public key is updated.
+	 */
+	class keyChangeReceiver: public os::eventReceiver<keyChangeSender>
+	{
+	protected:
+		/** @brief Allows access to crypto::keyChangeReceiver::publicKeyChanged
+		 */
+		friend class keyChangeSender;
+		/** @brief Triggers on key change
+		 *
+		 * Is triggered by crypto::publicKey whenever the public key
+		 * is updated.
+		 *
+		 * @param [in] pbk Public key which was changed
+		 * @return void
+		 */
+		virtual void publicKeyChanged(os::smart_ptr<publicKey> pbk){}
+	public:
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
+		virtual ~keyChangeReceiver(){}
+	};
+
+	/** @brief Interface inherited by publicKey
+	 *
+	 * This class is meaningless outside of
+	 * crypto::publicKey and is only designed
+	 * to be inherited by publicKey to
+	 * interface with crypto::keyChangeReceiver.
+	 */
+	class keyChangeSender: public os::eventSender<keyChangeReceiver>
+	{
+	protected:
+		/** @brief Sends key change event to listeners
+		 *
+		 * Useing the interface provided by the os::eventSender class,
+		 * alert any classes listening for a public key change that one has occured.
+		 *
+		 * @param [in] ptr Receiver to alert
+		 * @return void
+		 */
+		void sendEvent(os::smart_ptr<keyChangeReceiver> ptr){ptr->publicKeyChanged((publicKey*)this);}
+	public:
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
+		virtual ~keyChangeSender(){}
+	};
+
 	/** @brief Base public-key class
 	 *
 	 * Class which defines the general
@@ -29,7 +95,7 @@ namespace crypto
 	 * key pair.  The class does not
 	 * define the specifics of the algorithm.
 	 */
-    class publicKey: public os::savable
+	class publicKey: public os::savable, public keyChangeSender
 	{
 		/**@ brief Size of the keys used
 		 */

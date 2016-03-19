@@ -122,6 +122,13 @@ namespace crypto
 		/** @brief 2048 bit public-key size in uint32_t
 		 */
 		const uint16_t public2048=64;
+		
+		/** @brief Maximum characters in a group name
+		 */
+		const uint16_t GROUP_MAX=20;
+		/** @brief Maximum characters in a node name
+		 */
+		const uint16_t NAME_MAX=20;
 
 		namespace stream
 		{
