@@ -139,9 +139,9 @@ namespace crypto {
     nodeGroup::nodeGroup(keyBank* master,std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
     {
         if(!master) throw errorPointer(new NULLMaster(),os::shared_type);
-		if(groupName.size()>size::GROUP_MAX)
+		if(groupName.size()>size::GROUP_SIZE)
 			throw errorPointer(new stringTooLarge(),os::shared_type);
-		if(name.size()>size::NAME_MAX)
+		if(name.size()>size::NAME_SIZE)
 			throw errorPointer(new stringTooLarge(),os::shared_type);
 
 		_master=master;
@@ -377,9 +377,9 @@ namespace crypto {
     nodeNameReference::nodeNameReference(nodeGroup* master,std::string groupName,std::string name,uint64_t timestamp)
     {
         if(!master) throw errorPointer(new NULLMaster(),os::shared_type);
-		if(groupName.size()>size::GROUP_MAX)
+		if(groupName.size()>size::GROUP_SIZE)
 			throw errorPointer(new stringTooLarge(),os::shared_type);
-		if(name.size()>size::NAME_MAX)
+		if(name.size()>size::NAME_SIZE)
 			throw errorPointer(new stringTooLarge(),os::shared_type);
 
         _master=master;

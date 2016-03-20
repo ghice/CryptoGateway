@@ -33,7 +33,7 @@ namespace crypto {
 	user::user(std::string username,std::string saveDir,const unsigned char* key,unsigned int keyLen)
 	{
 		//Basic initializers
-		if(_username.size()>size::NAME_MAX)
+		if(_username.size()>size::NAME_SIZE)
 			throw errorPointer(new stringTooLarge(),os::shared_type);
 		_username=username;
 		_saveDir=saveDir;

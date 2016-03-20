@@ -1,7 +1,7 @@
 /**
  * @file	cryptoConstants.h
  * @author	Jonathan Bedard
- * @date   	3/5/2016
+ * @date   	3/19/2016
  * @brief	Extern definitions of CryptoGateway constants
  * @bug	None
  *
@@ -74,8 +74,8 @@ namespace crypto
 		extern const uint16_t public1024;
 		extern const uint16_t public2048;
 		
-		extern const uint16_t GROUP_MAX;
-		extern const uint16_t NAME_MAX;
+		extern const uint16_t GROUP_SIZE;
+		extern const uint16_t NAME_SIZE;
 		
 		namespace stream
 		{

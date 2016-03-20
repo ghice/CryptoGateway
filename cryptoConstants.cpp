@@ -1,7 +1,7 @@
 /**
  * @file	cryptoConstants.cpp
  * @author	Jonathan Bedard
- * @date   	3/5/2016
+ * @date   	3/19/2016
  * @brief	Implementation of CryptoGateway constants
  * @bug	None
  *
@@ -125,10 +125,10 @@ namespace crypto
 		
 		/** @brief Maximum characters in a group name
 		 */
-		const uint16_t GROUP_MAX=20;
+		const uint16_t GROUP_SIZE=20;
 		/** @brief Maximum characters in a node name
 		 */
-		const uint16_t NAME_MAX=20;
+		const uint16_t NAME_SIZE=20;
 
 		namespace stream
 		{

@@ -27,7 +27,7 @@ namespace crypto {
 		_user=usr;
 
 		_nodeName=usr->username();
-		if(_groupID.size()>size::GROUP_MAX)
+		if(_groupID.size()>size::GROUP_SIZE)
 			throw errorPointer(new stringTooLarge(),os::shared_type);
 		_groupID=groupID;
 
@@ -86,22 +86,22 @@ namespace crypto {
 		uint16_t msgCount=1;
 
 		char* arr;
-		if(size::GROUP_MAX>size::NAME_MAX)
+		if(size::GROUP_SIZE>size::NAME_SIZE)
 		{
-			arr=new char[size::GROUP_MAX+1];
-			memset(arr,0,size::GROUP_MAX+1);
+			arr=new char[size::GROUP_SIZE+1];
+			memset(arr,0,size::GROUP_SIZE+1);
 		}
 		else
 		{
-			arr=new char[size::NAME_MAX+1];
-			memset(arr,0,size::NAME_MAX+1);
+			arr=new char[size::NAME_SIZE+1];
+			memset(arr,0,size::NAME_SIZE+1);
 		}
 		
-		memcpy(arr,msg.data()+msgCount,size::GROUP_MAX);
-		msgCount+=size::GROUP_MAX;
+		memcpy(arr,msg.data()+msgCount,size::GROUP_SIZE);
+		msgCount+=size::GROUP_SIZE;
 		_groupID=std::string(arr);
-		memcpy(arr,msg.data()+msgCount,size::NAME_MAX);
-		msgCount+=size::NAME_MAX;
+		memcpy(arr,msg.data()+msgCount,size::NAME_SIZE);
+		msgCount+=size::NAME_SIZE;
 		_nodeName=std::string(arr);
 		delete [] arr;
 
@@ -131,15 +131,15 @@ namespace crypto {
 		lock.increment();
 
 		uint16_t msgCount=0;
-		os::smart_ptr<message> png(new message(1+size::GROUP_MAX+size::NAME_MAX+5*sizeof(uint16_t)),os::shared_type);
+		os::smart_ptr<message> png(new message(1+size::GROUP_SIZE+size::NAME_SIZE+5*sizeof(uint16_t)),os::shared_type);
 		png->data()[0]=message::PING;
 		msgCount+=1;
 		
 		//Copy in group ID and name
 		memcpy(png->data()+msgCount,_groupID.c_str(),_groupID.size());
-		msgCount+=size::GROUP_MAX;
-		memcpy(png->data()+msgCount,_nodeName.c_str(),_groupID.size());
-		msgCount+=size::NAME_MAX;
+		msgCount+=size::GROUP_SIZE;
+		memcpy(png->data()+msgCount,_nodeName.c_str(),_nodeName.size());
+		msgCount+=size::NAME_SIZE;
 
 		//Prefered record
 		uint16_t temp;
