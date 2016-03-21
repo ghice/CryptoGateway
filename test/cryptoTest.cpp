@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoTest.cpp
  * @author Jonathan Bedard
- * @date   3/6/2016
+ * @date   3/20/2016
  * @brief  CryptoGateway library test constructor
  * @bug No known bugs.
  *
@@ -47,6 +47,7 @@ using namespace test;
         pushSuite(os::smart_ptr<testSuite>(new cryptoEXMLTestSuite(),os::shared_type));
         pushSuite(os::smart_ptr<testSuite>(new keyBankSuite(),os::shared_type));
 		pushSuite(os::smart_ptr<testSuite>(new userSuite(),os::shared_type));
+		pushSuite(os::smart_ptr<testSuite>(new gatewaySuite(),os::shared_type));
     }
 
 #endif

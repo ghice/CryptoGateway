@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   3/17/2016
+ * @date   3/20/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -415,6 +415,97 @@ using namespace crypto;
 		}
 		os::delete_file("TestFolder");
 	}
+	//Gateway settings test
+	void gatewaySettingsUser() throw (os::smart_ptr<std::exception>)
+	{
+		std::string locString = "gatewayTest.cpp, gatewaySettingsUser()";
+		std::string tempPass="password";
+		try
+		{
+			user usr("testUser","TestFolder",(unsigned char*)tempPass.c_str(),tempPass.length());
+			usr.save();
+			usr.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public128)));
+			os::smart_ptr<gatewaySettings> tstgrp=usr.insertSettings("testGroup");
+			os::smart_ptr<gatewaySettings> defgrp=usr.findSettings("default");
+			if(!tstgrp || !defgrp)
+				throw os::smart_ptr<std::exception>(new generalTestException("Failed to intialize gateway settings",locString),os::shared_type);
+
+			usr.save();
+
+			if(usr.numberErrors()>0)
+				throw os::smart_ptr<std::exception>(new generalTestException("Unexpected user error!",locString),os::shared_type);
+			
+
+			//Open a new user
+			user nusr("testUser","TestFolder",(unsigned char*)tempPass.c_str(),tempPass.length());
+			if(nusr.numberErrors()>0)
+				throw os::smart_ptr<std::exception>(new generalTestException("Error when re-loading user data",locString),os::shared_type);
+			os::smart_ptr<gatewaySettings> temp=nusr.findSettings("default");
+			if(!temp)
+				throw os::smart_ptr<std::exception>(new generalTestException("default gateway settings not loaded",locString),os::shared_type);
+			if(*temp!=*defgrp)
+				throw os::smart_ptr<std::exception>(new generalTestException("default gateway settings do not match",locString),os::shared_type);
+			temp=nusr.findSettings("testGroup");
+			if(!temp)
+				throw os::smart_ptr<std::exception>(new generalTestException("testGroup gateway settings not loaded",locString),os::shared_type);
+			if(*temp!=*tstgrp)
+				throw os::smart_ptr<std::exception>(new generalTestException("testGroup gateway settings do not match",locString),os::shared_type);
+		}
+		catch(os::smart_ptr<std::exception> e)
+		{
+			os::delete_file("TestFolder");
+			throw e;
+		}
+		catch (...)
+		{
+			os::delete_file("TestFolder");
+			throw os::smart_ptr<std::exception>(new unknownException(locString),os::shared_type);
+		}
+		os::delete_file("TestFolder");
+	}
+
+/*================================================================
+	Gateway Test
+ ================================================================*/
+
+	//Gateway settings and ping reading
+	void pingMessageTest() throw (os::smart_ptr<std::exception>)
+	{
+		std::string locString = "gatewayTest.cpp, pingMessageTest()";
+
+		user usr("testUser","");
+		usr.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public256)));
+		os::smart_ptr<gatewaySettings> primaryGateway=usr.findSettings("default");
+		if(!primaryGateway)
+			throw os::smart_ptr<std::exception>(new generalTestException("No gateway settings from user",locString),os::shared_type);
+		os::smart_ptr<message> pingMsg=primaryGateway->ping();
+		if(!pingMsg)
+			throw os::smart_ptr<std::exception>(new generalTestException("No ping message created",locString),os::shared_type);
+
+		gatewaySettings compGateway(*pingMsg);
+
+		//Run comparison checks
+		if(primaryGateway->groupID()!=compGateway.groupID())
+			throw os::smart_ptr<std::exception>(new generalTestException("Group IDs don't match",locString),os::shared_type);
+		if(primaryGateway->nodeName()!=compGateway.nodeName())
+			throw os::smart_ptr<std::exception>(new generalTestException("Node names don't match",locString),os::shared_type);
+
+		if(!compGateway.getPublicKey())
+			throw os::smart_ptr<std::exception>(new generalTestException("No public key in message-constructed settings",locString),os::shared_type);
+		if(compGateway.getPrivateKey())
+			throw os::smart_ptr<std::exception>(new generalTestException("Found private key in message-constructed settings",locString),os::shared_type);
+		if(*primaryGateway->getPublicKey()!=*compGateway.getPublicKey())
+			throw os::smart_ptr<std::exception>(new generalTestException("Public keys don't match",locString),os::shared_type);
+	}
+	//Connects to gateways end-to-end
+	void connectGatewayTest() throw (os::smart_ptr<std::exception>)
+	{
+		std::string locString = "gatewayTest.cpp, connectGatewayTest()";
+		
+		user usr("testUser","");
+		usr.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public256)));
+	}
+
 /*================================================================
 	Bind Suites
  ================================================================*/
@@ -437,6 +528,14 @@ using namespace crypto;
 		pushTest("Public Key",&userPublicKeyTest);
 		pushTest("Public Key Iteration",&userPublicKeyIterate);
 		pushTest("Encrypt Public Key",&encryptPublicKeyUser);
+		pushTest("Gateway Settings",&gatewaySettingsUser);
+    }
+	//User test
+	gatewaySuite::gatewaySuite():
+        testSuite("Gateway")
+    {
+        pushTest("Ping",&pingMessageTest);
+		pushTest("Full Connect",&connectGatewayTest);
     }
 
 #endif

@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   3/19/2016
+ * @date   3/20/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -10,6 +10,12 @@
  * settings.  This header file
  * is the culmination of the 
  * CryptoGateway library.
+ *
+ * Note that due to developement constraints,
+ * the gatewaySettings class is being pushed
+ * out in a frame-work form and is intended
+ * to contain a large set of algorithm definitions
+ * as well as an algorithm use agreement protocol.
  *
  */
 
@@ -22,10 +28,13 @@
 
 #include "streamPackage.h"
 #include "publicKeyPackage.h"
-#include "user.h"
 #include "message.h"
 
 namespace crypto {
+
+	///@cond INTERNAL
+	class user;
+	///@endcond
 	
 	/** @brief Holds settings for gateway encryption
 	 *
@@ -37,10 +46,11 @@ namespace crypto {
 	 * whose private key is known or for a node whose
 	 * private key is unknown.
 	 */
-	class gatewaySettings: public keyChangeReceiver
+	class gatewaySettings: public keyChangeReceiver, public os::savable
 	{
 		std::string _groupID;
 		std::string _nodeName;
+		std::string _filePath;
 
 		os::smart_ptr<user> _user;
 		os::smart_ptr<publicKey> _privateKey;
@@ -58,13 +68,20 @@ namespace crypto {
 
 		gatewaySettings(os::smart_ptr<user> usr, std::string groupID, std::string filePath);
 		gatewaySettings(const message& msg);
-
-		void update();
-
 		virtual ~gatewaySettings(){}
 
+		os::smartXMLNode generateSaveTree();
+		void update();
+		void save();
+		void load();
+
+		const std::string& filePath() const {return _filePath;}
 		const std::string& groupID() const {return _groupID;}
 		const std::string& nodeName() const {return _nodeName;}
+
+		inline os::smart_ptr<user> getUser() {return _user;}
+		inline os::smart_ptr<publicKey> getPrivateKey() {return _privateKey;}
+		inline os::smart_ptr<number> getPublicKey() {return _publicKey;}
 
 		inline uint16_t prefferedPublicKeyAlgo() const {return _prefferedPublicKeyAlgo;}
 		inline uint16_t prefferedPublicKeySize() const {return _prefferedPublicKeySize;}
@@ -74,12 +91,12 @@ namespace crypto {
 
 		os::smart_ptr<message> ping();
 
-		inline bool operator==(const gatewaySettings& cmp) const{return _groupID==cmp._groupID;}
-		inline bool operator!=(const gatewaySettings& cmp) const{return _groupID!=cmp._groupID;}
-		inline bool operator<(const gatewaySettings& cmp) const{return _groupID<cmp._groupID;}
-		inline bool operator>(const gatewaySettings& cmp) const{return _groupID>cmp._groupID;}
-		inline bool operator<=(const gatewaySettings& cmp) const{return _groupID<=cmp._groupID;}
-		inline bool operator>=(const gatewaySettings& cmp) const{return _groupID>=cmp._groupID;}
+		bool operator==(const gatewaySettings& cmp) const{return _groupID==cmp._groupID;}
+		bool operator!=(const gatewaySettings& cmp) const{return _groupID!=cmp._groupID;}
+		bool operator<(const gatewaySettings& cmp) const{return _groupID<cmp._groupID;}
+		bool operator>(const gatewaySettings& cmp) const{return _groupID>cmp._groupID;}
+		bool operator<=(const gatewaySettings& cmp) const{return _groupID<=cmp._groupID;}
+		bool operator>=(const gatewaySettings& cmp) const{return _groupID>=cmp._groupID;}
 	};
 
 	class gateway

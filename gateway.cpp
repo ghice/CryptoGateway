@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   3/19/2016
+ * @date   3/20/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -18,22 +18,76 @@
 
 #include "gateway.h"
 #include "cryptoError.h"
+#include "user.h"
 
 namespace crypto {
     
 	//Constructs the settings from user
 	gatewaySettings::gatewaySettings(os::smart_ptr<user> usr, std::string groupID, std::string filePath)
 	{
+		if(!usr)
+			throw errorPointer(new NULLPublicKey(),os::shared_type);
 		_user=usr;
 
 		_nodeName=usr->username();
 		if(_groupID.size()>size::GROUP_SIZE)
 			throw errorPointer(new stringTooLarge(),os::shared_type);
 		_groupID=groupID;
+		_filePath=filePath;
+
+		_privateKey=_user->getDefaultPublicKey();
+		if(!_privateKey)
+			throw errorPointer(new NULLPublicKey(),os::shared_type);
+		_prefferedPublicKeyAlgo=_privateKey->algorithm();
+		_prefferedPublicKeySize=_privateKey->size();
 
 		update();
+		markChanged();
 	}
 	
+	//Generate the XML save tree
+	os::smartXMLNode gatewaySettings::generateSaveTree()
+	{
+		os::smartXMLNode ret(new os::XML_Node("gatewaySettings"),os::shared_type);
+
+		os::smartXMLNode level1=os::smartXMLNode(new os::XML_Node("group"),os::shared_type);
+		level1->setData(_groupID);
+		ret->addElement(level1);
+
+		level1=os::smartXMLNode(new os::XML_Node("name"),os::shared_type);
+		level1->setData(_nodeName);
+		ret->addElement(level1);
+
+		level1=os::smartXMLNode(new os::XML_Node("preferences"),os::shared_type);
+			
+			os::smartXMLNode level2=os::smartXMLNode(new os::XML_Node("publicKey"),os::shared_type);
+				os::smartXMLNode level3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+				level3->setData(std::to_string(_prefferedPublicKeyAlgo));
+				level2->addElement(level3);
+				level3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+				level3->setData(std::to_string(_prefferedPublicKeySize));
+				level2->addElement(level3);
+			level1->addElement(level2);
+
+			level2=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
+				level3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+				level3->setData(std::to_string(_prefferedHashAlgo));
+				level2->addElement(level3);
+				level3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+				level3->setData(std::to_string(_prefferedHashSize));
+				level2->addElement(level3);
+			level1->addElement(level2);
+
+			level2=os::smartXMLNode(new os::XML_Node("stream"),os::shared_type);
+				level3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+				level3->setData(std::to_string(_prefferedStreamAlgo));
+				level2->addElement(level3);
+			level1->addElement(level2);
+
+		ret->addElement(level1);
+
+		return ret;
+	}
 	//Triggered when the public key changes
 	void gatewaySettings::publicKeyChanged(os::smart_ptr<publicKey> pbk)
 	{
@@ -48,23 +102,27 @@ namespace crypto {
 
 		lock.lock();
 
-		os::smart_ptr<publicKey> tpbk=_user->getDefaultPublicKey();
-		if(!tpbk)
+		os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(_prefferedPublicKeyAlgo);
+		os::smart_ptr<publicKey> tpbk;
+		if(pkfrm)
 		{
-			lock.unlock();
-			throw errorPointer(new keyMissing(),os::shared_type);
+			pkfrm=pkfrm->getCopy();
+			pkfrm->setKeySize(_prefferedPublicKeySize);
+			tpbk=_user->findPublicKey(pkfrm);
 		}
-		if(_privateKey!=tpbk)
+		
+		//Only bind if the size is valid
+		if(tpbk)
 		{
-			tpbk->keyChangeSender::pushReceivers(this);
-			if(_privateKey)
-				_privateKey->keyChangeSender::removeReceivers(this);
+			_privateKey=tpbk;
+			_publicKey=_privateKey->getN();
+			_publicKey->reduce();
 		}
-		_privateKey=tpbk;
-		_publicKey=_privateKey->getN();
-
-		_prefferedPublicKeyAlgo=_privateKey->algorithm();
-		_prefferedPublicKeySize=_privateKey->size();
+		else
+		{
+			_prefferedPublicKeyAlgo=_privateKey->algorithm();
+			_prefferedPublicKeySize=_privateKey->size();
+		}
 
 		os::smart_ptr<streamPackageFrame> stmpkg=_user->streamPackage();
 		_prefferedHashAlgo=stmpkg->hashAlgorithm();
@@ -73,7 +131,27 @@ namespace crypto {
 
 		lock.unlock();
 	}
-	
+	//Save to file
+	void gatewaySettings::save()
+	{
+		//Don't save if there isn't a path
+		if(_filePath=="")
+		{
+			finishedSaving();
+			return;
+		}
+		os::smartXMLNode nd=generateSaveTree();
+		os::XML_Output(_filePath,nd);
+		finishedSaving();
+	}
+	//Loads gateway settings from file
+	void gatewaySettings::load()
+	{
+		if(_filePath=="") return;
+
+		update();
+	}
+
 	//Construct the settings from a ping message
 	gatewaySettings::gatewaySettings(const message& msg)
 	{
@@ -122,16 +200,29 @@ namespace crypto {
 		memcpy(&temp,msg.data()+msgCount,sizeof(uint16_t));
 		msgCount+=sizeof(uint16_t);
 		_prefferedStreamAlgo=os::from_comp_mode(temp);
+
+		//Extract key
+		os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(_prefferedPublicKeyAlgo);
+		if(pkfrm)
+		{
+			pkfrm=pkfrm->getCopy();
+			pkfrm->setKeySize(_prefferedPublicKeySize);
+			_publicKey=pkfrm->convert(msg.data()+msgCount,_prefferedPublicKeySize*sizeof(uint32_t));
+		}
+		msgCount+=_prefferedPublicKeySize*sizeof(uint32_t);
 	}
 	//Constructs a ping message
 	os::smart_ptr<message> gatewaySettings::ping()
 	{
-		if(!_privateKey) return NULL;
+		if(!_publicKey) return NULL;
 		
 		lock.increment();
 
 		uint16_t msgCount=0;
-		os::smart_ptr<message> png(new message(1+size::GROUP_SIZE+size::NAME_SIZE+5*sizeof(uint16_t)),os::shared_type);
+		unsigned int keylen;
+		os::smart_ptr<unsigned char> keyDat=_publicKey->getCompCharData(keylen);
+		os::smart_ptr<message> png(new message(1+size::GROUP_SIZE+size::NAME_SIZE+
+			5*sizeof(uint16_t)+keylen),os::shared_type);
 		png->data()[0]=message::PING;
 		msgCount+=1;
 		
@@ -158,6 +249,10 @@ namespace crypto {
 		temp=os::to_comp_mode(_prefferedStreamAlgo);
 		memcpy(png->data()+msgCount,&temp,sizeof(uint16_t));
 		msgCount+=sizeof(uint16_t);
+
+		//Output key
+		memcpy(png->data()+msgCount,keyDat.get(),keylen);
+		msgCount+=keylen;
 
 		//Is technically encrypted, has no message size
 		png->_encryptionDepth=1;

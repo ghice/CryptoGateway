@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	3/19/2016
+ * @date   	3/20/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -16,11 +16,13 @@
 #ifndef USER_CPP
 #define USER_CPP
 
+#include "gateway.h"
 #include "user.h"
 
 #define META_FILE "metaData.xml"
 #define KEY_BANK_FILE "keyBank.xml"
 #define PUBLIC_KEY_FILE "publicKey.bin"
+#define GATEWAY_SETTINGS_FILE "Settings.bin"
 #define BLOCK_SIZE 20
 
 namespace crypto {
@@ -342,13 +344,31 @@ namespace crypto {
 					}
 				}
 			}
+
+			//Build settings (can only do this if public keys are defined
+			if(_publicKeys.size()>0)
+			{
+				xmlList=readTree->findElement("gatewaySettings");
+				if(xmlList->size()!=1)
+				{
+					logError(errorPointer(new fileFormatError(),os::shared_type));
+					return;
+				}
+				os::smartXMLNode gateNode=xmlList->getFirst()->getData();
+				xmlList=gateNode->findElement("node");
+				for(auto it=xmlList->getFirst();it;it=it->getNext())
+				{
+					os::smart_ptr<gatewaySettings> gtws=insertSettings(it->getData()->getData());
+					if(gtws) gtws->load();
+				}
+			}
 		}
 
 		//Load Key bank
 		_keyBank=os::smart_ptr<keyBank>(new avlKeyBank(_saveDir+"/"+_username+"/"+KEY_BANK_FILE,_password,_passwordLength,_streamPackage),os::shared_type);
 		if(_defaultKey)
 			_keyBank->setPublicKey(_defaultKey);
-		bindSavable(os::cast<os::savable,keyBank>(_keyBank));
+		bindSavable(_keyBank.get());
 		_wasConstructed=true;
 	}
 	//Tear down, attempt a save first
@@ -426,6 +446,16 @@ namespace crypto {
 		}
 		lv1->addElement(lv2);
 
+		ret->addElement(lv1);
+
+		//List of gateway settings
+		lv1=os::smartXMLNode(new os::XML_Node("gatewaySettings"),os::shared_type);
+		for(auto it=_settings.getFirst();it;it=it->getNext())
+		{
+			lv2=os::smartXMLNode(new os::XML_Node("node"),os::shared_type);
+			lv2->setData(it->getData()->groupID());
+			lv1->addElement(lv2);
+		}
 		ret->addElement(lv1);
 
         return ret;
@@ -523,7 +553,17 @@ namespace crypto {
 		if(key==NULL) return false;
 		if(!_publicKeys.find(key)) return false;
 		_defaultKey=key;
+
 		if(_defaultKey) _keyBank->setPublicKey(_defaultKey);
+
+		for(auto i=_settings.getFirst();i;i=i->getNext())
+			i->getData()->update();
+		if(_settings.size()==0 && _defaultKey)
+		{
+			insertSettings("default");
+		}
+
+
 		markChanged();
 		return true;
 	}
@@ -534,7 +574,7 @@ namespace crypto {
 		if(!_publicKeys.insert(key)) return false;
 
 		//Bind key to this
-		bindSavable(os::cast<os::savable,publicKey>(key));
+		bindSavable(key.get());
 		key->setEncryptionAlgorithm(_streamPackage);
 		key->setFileName(_saveDir+"/"+_username+"/"+key->algorithmName()+"_"+std::to_string(key->size()*32)+"_"+PUBLIC_KEY_FILE);
 
@@ -555,7 +595,7 @@ namespace crypto {
 		}
 
 		if(!_defaultKey) setDefaultPublicKey(key);
-		bindSavable(os::cast<os::savable,publicKey>(key));
+		bindSavable(key.get());
 		markChanged();
 		return true;
 	}
@@ -569,6 +609,32 @@ namespace crypto {
 		return it->getData();
 	}
 
+	//Find settings group
+	os::smart_ptr<gatewaySettings> user::findSettings(std::string group)
+	{
+		os::smart_ptr<gatewaySettings> temp(new gatewaySettings(this,group,""),os::shared_type);
+		auto hld=_settings.find(temp);
+		if(hld) return hld->getData();
+		return NULL;
+	}
+	//Insert settings group
+	os::smart_ptr<gatewaySettings> user::insertSettings(std::string group)
+	{
+		os::smart_ptr<gatewaySettings> temp(new gatewaySettings(this,group,""),os::shared_type);
+		auto hld=_settings.find(temp);
+		if(hld) return hld->getData();
+
+		if(_saveDir=="")
+			temp = os::smart_ptr<gatewaySettings>(new gatewaySettings(this,group,""),os::shared_type);
+		else
+		{
+			temp = os::smart_ptr<gatewaySettings>(new gatewaySettings(this,group,_saveDir+"/"+_username+"/"+group+GATEWAY_SETTINGS_FILE),os::shared_type);
+			bindSavable(temp.get());
+		}
+		_settings.insert(temp);
+		return temp;
+	}
+	
 	//Searching for key
 	os::smart_ptr<publicKey> user::searchKey(hash hsh, unsigned int& hist,bool& type)
 	{

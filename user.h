@@ -1,7 +1,7 @@
 /**
  * @file	user.h
  * @author	Jonathan Bedard
- * @date   	3/11/2016
+ * @date   	3/20/2016
  * @brief	Definition of the CryptoGateway user
  * @bug	None
  *
@@ -17,13 +17,9 @@
 #include "cryptoLogging.h"
 #include "cryptoError.h"
 #include "keyBank.h"
-
 #include "streamPackage.h"
 #include "publicKeyPackage.h"
-
-///@cond INTERNAL
-class gatewaySettings;
-///@endcond
+#include "gateway.h"
 
 namespace crypto {
   
@@ -78,6 +74,10 @@ namespace crypto {
 		 * is bound to a user.
 		 */
 		os::smart_ptr<publicKey> _defaultKey;
+		/** @brief List of gateway settings
+		 */
+		os::asyncAVLTree<gatewaySettings> _settings;
+
         /** @brief Creates meta-data XML file
          *
          * Constructs and returns the XML tree
@@ -225,6 +225,34 @@ namespace crypto {
 		 * @return crypto::user::_publicKeys.getFirst()
 		 */
 		os::smart_ptr<os::adnode<publicKey> > getLastPublicKey() {return _publicKeys.getLast();}
+
+		/** @brief Find gateway settings
+		 * @param [in] group Name of group of the settings
+		 * @return Pointer to the found gateway settings
+		 */
+		os::smart_ptr<gatewaySettings> findSettings(std::string group="default");
+		/** @brief Insert gateway settings
+		 * @param [in] group Name of group of the settings
+		 * @return Point to the inserted gateway settings
+		 */
+		os::smart_ptr<gatewaySettings> insertSettings(std::string group);
+
+		/** @brief Returns the first gateway settings group
+		 *
+		 * Allows programs to list off the available
+		 * gateway settings bound to this user
+		 *
+		 * @return crypto::user::_settings.getFirst()
+		 */
+		os::smart_ptr<os::adnode<gatewaySettings> > getFirstSettings() {return _settings.getFirst();}
+		/** @brief Returns the last gateway settings group
+		 *
+		 * Allows programs to list off the available
+		 * gateway settings bound to this user
+		 *
+		 * @return crypto::user::_settings.getLast()
+		 */
+		os::smart_ptr<os::adnode<gatewaySettings> > getLastSettings() {return _settings.getLast();}
 
 		/** @brief Searches for key by hash
 		 *
