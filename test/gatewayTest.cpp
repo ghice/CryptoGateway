@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   3/20/2016
+ * @date   4/1/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -502,8 +502,98 @@ using namespace crypto;
 	{
 		std::string locString = "gatewayTest.cpp, connectGatewayTest()";
 		
-		user usr("testUser","");
-		usr.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public256)));
+		user usr1("testUser1","");
+		usr1.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public256)));
+
+		user usr2("testUser2","");
+		usr2.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public256,1)));
+
+		gateway gtw1(&usr1);
+		gateway gtw2(&usr2);
+
+		//Mark 1
+		os::smart_ptr<message> msg1=gtw1.getMessage();
+		os::smart_ptr<message> msg2=gtw2.getMessage();
+		gtw1.processMessage(msg1);
+		gtw2.processMessage(msg2);
+		if(gtw1.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 1 (Mark1)",locString),os::shared_type);
+		if(gtw2.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 2 (Mark1)",locString),os::shared_type);
+		if(gtw1.currentState()!=gateway::SETTINGS_EXCHANGED)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 1 (Mark1)",locString),os::shared_type);
+		if(gtw2.currentState()!=gateway::SETTINGS_EXCHANGED)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 2 (Mark1)",locString),os::shared_type);
+
+		//Mark 2
+		msg1=gtw1.getMessage();
+		msg2=gtw2.getMessage();
+		gtw1.processMessage(msg1);
+		gtw2.processMessage(msg2);
+		if(gtw1.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 1 (Mark2)",locString),os::shared_type);
+		if(gtw2.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 2 (Mark2)",locString),os::shared_type);
+		if(gtw1.currentState()!=gateway::ESTABLISHING_STREAM)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 1 (Mark2)",locString),os::shared_type);
+		if(gtw2.currentState()!=gateway::ESTABLISHING_STREAM)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 2 (Mark2)",locString),os::shared_type);
+
+		//Mark 3
+		msg1=gtw1.getMessage();
+		msg2=gtw2.getMessage();
+		gtw1.processMessage(msg1);
+		gtw2.processMessage(msg2);
+		if(gtw1.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 1 (Mark3)",locString),os::shared_type);
+		if(gtw2.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 2 (Mark3)",locString),os::shared_type);
+		if(gtw1.currentState()!=gateway::STREAM_ESTABLISHED)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 1 (Mark3)",locString),os::shared_type);
+		if(gtw2.currentState()!=gateway::STREAM_ESTABLISHED)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 2 (Mark3)",locString),os::shared_type);
+
+		//Mark 4
+		msg1=gtw1.getMessage();
+		msg2=gtw2.getMessage();
+		gtw1.processMessage(msg1);
+		gtw2.processMessage(msg2);
+		if(gtw1.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 1 (Mark4)",locString),os::shared_type);
+		if(gtw2.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 2 (Mark4)",locString),os::shared_type);
+		if(gtw1.currentState()!=gateway::SIGNING_STATE)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 1 (Mark4)",locString),os::shared_type);
+		if(gtw2.currentState()!=gateway::SIGNING_STATE)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 2 (Mark4)",locString),os::shared_type);
+
+		//Mark 5
+		msg1=gtw1.getMessage();
+		msg2=gtw2.getMessage();
+		gtw1.processMessage(msg1);
+		gtw2.processMessage(msg2);
+		if(gtw1.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 1 (Mark5)",locString),os::shared_type);
+		if(gtw2.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 2 (Mark5)",locString),os::shared_type);
+		if(gtw1.currentState()!=gateway::CONFIRM_OLD)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 1 (Mark5)",locString),os::shared_type);
+		if(gtw2.currentState()!=gateway::CONFIRM_OLD)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 2 (Mark5)",locString),os::shared_type);
+
+		//Mark 6
+		msg1=gtw1.getMessage();
+		msg2=gtw2.getMessage();
+		gtw1.processMessage(msg1);
+		gtw2.processMessage(msg2);
+		if(gtw1.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 1 (Mark6)",locString),os::shared_type);
+		if(gtw2.numberErrors()>0)
+			throw os::smart_ptr<std::exception>(new generalTestException("Error in gateway 2 (Mark6)",locString),os::shared_type);
+		if(gtw1.currentState()!=gateway::ESTABLISHED)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 1 (Mark6)",locString),os::shared_type);
+		if(gtw2.currentState()!=gateway::ESTABLISHED)
+			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected state in gateway 2 (Mark6)",locString),os::shared_type);
 	}
 
 /*================================================================

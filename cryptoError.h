@@ -1,7 +1,7 @@
 /**
  * @file	cryptoError.h
  * @author	Jonathan Bedard
- * @date   	3/19/2016
+ * @date   	4/1/2016
  * @brief	Declaration of cryptographic errors
  * @bug	None
  *
@@ -863,7 +863,7 @@ namespace crypto {
 		 * @param [in] elm Error to be logged
 		 * @return void
 		 */
-		void logError(errorPointer elm);
+		virtual void logError(errorPointer elm);
 	public:
 		/** @brief Error sender constructor
 		 *

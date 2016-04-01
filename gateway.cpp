@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   3/20/2016
+ * @date   4/1/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -161,7 +161,7 @@ namespace crypto {
 				"Attempted to initialize gateway settings with an non-ping message"),os::shared_type);
 
 		//Pull out group ID and node name
-		uint16_t msgCount=1;
+		uint16_t msgCount=2;
 
 		char* arr;
 		if(size::GROUP_SIZE>size::NAME_SIZE)
@@ -221,10 +221,11 @@ namespace crypto {
 		uint16_t msgCount=0;
 		unsigned int keylen;
 		os::smart_ptr<unsigned char> keyDat=_publicKey->getCompCharData(keylen);
-		os::smart_ptr<message> png(new message(1+size::GROUP_SIZE+size::NAME_SIZE+
+		os::smart_ptr<message> png(new message(2+size::GROUP_SIZE+size::NAME_SIZE+
 			5*sizeof(uint16_t)+keylen),os::shared_type);
 		png->data()[0]=message::PING;
-		msgCount+=1;
+		png->data()[1]=gateway::UNKNOWN_BROTHER;
+		msgCount+=2;
 		
 		//Copy in group ID and name
 		memcpy(png->data()+msgCount,_groupID.c_str(),_groupID.size());
@@ -263,19 +264,816 @@ namespace crypto {
 		return png;
 	}
 
+/*---------------------------------------
+	Gateway
+---------------------------------------*/
+
 	//Construct the gateway
-    gateway::gateway()
+    gateway::gateway(os::smart_ptr<user> usr,std::string groupID)
 	{
+		if(!usr)
+			throw errorPointer(new keyMissing(), os::shared_type);
+		selfSettings=usr->insertSettings(groupID);
+		if(!selfSettings)
+			throw errorPointer(new keyMissing(), os::shared_type);
+
+		_currentState=UNKNOWN_BROTHER;
+		_brotherState=UNKNOWN_STATE;
+
+		_lastError=NULL;
+		_lastErrorLevel=BASIC_ERROR_STATE;
+
+		_timeout=DEFAULT_TIMEOUT;
+		_safeTimeout=3*_timeout/4;
+		_errorTimeout=DEFAULT_ERROR_TIMEOUT;
+		_messageReceived=0;
+		_messageSent=0;
+
+		clearStream();
 	}
 	
-	//Returns the key pair used for this gateway
-	os::smart_ptr<publicKey> gateway::keyPair()
+	//Builds the next message based on state
+	os::smart_ptr<message> gateway::getMessage()
 	{
-		if(_keyPair) return _keyPair;
-		return _user->getDefaultPublicKey();
+		os::smart_ptr<message> ret;
+		uint16_t tempCnt1;
+		uint16_t tempCnt2;
+
+		switch(_currentState)
+		{
+		//Process for the unknown state
+		case UNKNOWN_STATE:
+			_currentState=UNKNOWN_BROTHER;
+		//As long as we don't know our brother, send out pings
+		case UNKNOWN_BROTHER:
+		case SETTINGS_EXCHANGED:
+			ret=ping();
+			if(!ret) return NULL;
+
+		//Bind self settings
+			lock.acquire();
+			selfStream=streamPackageTypeBank::singleton()->findStream(selfSettings->prefferedStreamAlgo(),selfSettings->prefferedHashAlgo());
+			selfPKFrame=publicKeyTypeBank::singleton()->findPublicKey(selfSettings->prefferedPublicKeyAlgo());
+			selfPublicKey=selfSettings->getPrivateKey();
+			
+			if(!selfStream || !selfPKFrame)
+			{
+				lock.release();
+				logError(errorPointer(new illegalAlgorithmBind("ILLEGAL ALGO"),os::shared_type));
+				break;
+			}
+			selfStream=selfStream->getCopy();
+			selfPKFrame=selfPKFrame->getCopy();
+			selfStream->setHashSize(selfSettings->prefferedHashSize());
+			selfPKFrame->setKeySize(selfSettings->prefferedPublicKeySize());
+			lock.release();
+
+			break;
+		//Until we are signing, establish the stream
+		case ESTABLISHING_STREAM:
+		case STREAM_ESTABLISHED:
+
+			buildStream();
+			if(!streamMessageOut) return NULL;
+			streamMessageOut->data()[1]=_currentState;
+			ret=streamMessageOut;
+
+			break;
+
+		//Attempt to sign
+		case SIGNING_STATE:
+		case CONFIRM_OLD:
+		{
+			lock.acquire();
+			uint64_t curstamp=os::getTimestamp();
+			uint64_t primaryStamp,secondaryStamp;
+
+			os::smart_ptr<user> self=selfSettings->getUser();
+			if(!brotherPublicKey || !brotherPKFrame || !brotherStream)
+			{
+				lock.release();
+				logError(errorPointer(new customError("Brother Undefined","Cannot build stream when the brother is undefined"),os::shared_type));
+				return NULL;
+			}
+			if(!self || !self->getKeyBank())
+			{
+				lock.release();
+				logError(errorPointer(new customError("Self Not Found","The gateway could not find itself"),os::shared_type));
+				return NULL;
+			}
+
+			//Try and find old keys
+			os::smart_ptr<nodeGroup> bgr=self->getKeyBank()->find(brotherSettings->groupID(),brotherSettings->nodeName());
+			os::smart_ptr<os::smart_ptr<nodeKeyReference> > keyList;
+			os::smart_ptr<unsigned char> hashArray;
+			unsigned int listSize;
+			if(bgr)
+			{
+				keyList=bgr->keysByTimestamp(listSize);
+				if(listSize!=0)
+				{
+					if(listSize>5) listSize=5;
+					hashArray=os::smart_ptr<unsigned char>(new unsigned char[listSize*brotherStream->hashSize()],os::shared_type_array);
+					for(unsigned int i=0;hashArray&&i<listSize;i++)
+					{
+						if(*brotherPublicKey==*keyList[i]->key())
+							hashArray=NULL;
+						else
+						{
+							unsigned int hashLen;
+							auto dat=keyList[i]->key()->getCompCharData(hashLen);
+							hash hsh=brotherStream->hashData(dat.get(),hashLen);
+							memcpy(hashArray.get()+i*brotherStream->hashSize(),hsh.data(),hsh.size());
+						}
+					}
+				}
+			}
+			if(!hashArray) listSize=0;
+
+			//Build output
+			ret=os::smart_ptr<message>(new message(2+16+2*selfPKFrame->keySize()*4+1+listSize*brotherStream->hashSize()),os::shared_type);
+			ret->data()[0]=message::SIGNING_MESSAGE;
+			ret->data()[1]=_currentState;
+			
+			//Timestamps first
+			bool prim,sec;
+			if(selfSigningMessage)
+			{
+				memcpy(&primaryStamp,selfSigningMessage->data()+2,8);
+				primaryStamp=os::from_comp_mode(primaryStamp);
+				memcpy(&secondaryStamp,selfSigningMessage->data()+10,8);
+				secondaryStamp=os::from_comp_mode(secondaryStamp);
+				prim=false;
+				sec=false;
+			}
+			else
+			{
+				primaryStamp=curstamp;
+				secondaryStamp=curstamp;
+				prim=true;
+				sec=true;
+			}
+			if(curstamp>primaryStamp+_safeTimeout)
+			{
+				primaryStamp=curstamp;
+				prim=true;
+			}
+			if(curstamp>secondaryStamp+_safeTimeout)
+			{
+				secondaryStamp=curstamp;
+				sec=true;
+			}
+
+			//Primary hash
+			primaryStamp=os::to_comp_mode(primaryStamp);
+			memcpy(ret->data()+2,&primaryStamp,8);
+			memcpy(outputHashArray.get(),&primaryStamp,8);
+			hash temp=selfStream->hashData(outputHashArray.get(),outputHashLength);
+			if(!selfPrimarySignatureHash || temp!=*selfPrimarySignatureHash) prim=true;
+			if(prim)
+			{
+				selfPrimarySignatureHash=os::smart_ptr<hash>(new hash(temp),os::shared_type);
+				os::smart_ptr<number> num;
+				if(temp.size()>selfPKFrame->keySize()*4) num=selfPKFrame->convert(temp.data(),selfPKFrame->keySize()*4);
+				else num=selfPKFrame->convert(temp.data(),temp.size());
+				num->data()[selfPKFrame->keySize()-1]&=~(1<<31);
+
+				unsigned int hist;
+				bool typ;
+				selfPublicKey->searchKey(selfPreciseKey,hist,typ);
+				num=selfPublicKey->decode(num,hist);
+				os::smart_ptr<unsigned char> tdat=num->getCompCharData(hist);
+				memcpy(ret->data()+2+16,tdat.get(),selfPKFrame->keySize()*4);
+			}
+			
+			//Secondary hash
+			secondaryStamp=os::to_comp_mode(secondaryStamp);
+			memcpy(ret->data()+2+8,&secondaryStamp,8);
+			memcpy(outputHashArray.get(),&secondaryStamp,8);
+			temp=selfStream->hashData(outputHashArray.get(),outputHashLength);
+			if(!selfSecondarySignatureHash || temp!=*selfSecondarySignatureHash) sec=true;
+			if(sec)
+			{
+				selfSecondarySignatureHash=os::smart_ptr<hash>(new hash(temp),os::shared_type);
+			}
+
+
+			//Valid hash list
+			ret->data()[2+16+2*selfPKFrame->keySize()*4]=listSize;
+			if(listSize>0)
+				memcpy(ret->data()+2+16+2*selfPKFrame->keySize()*4+1,hashArray.get(),listSize*brotherStream->hashSize());
+			selfSigningMessage=ret;
+
+			lock.release();
+
+			ret=encrypt(ret);
+			if(!ret) return NULL;
+		}
+			break;
+
+		//Error State
+		case BASIC_ERROR_STATE:
+		case TIMEOUT_ERROR_STATE:
+		case PERMENANT_ERROR_STATE:
+
+			lock.acquire();
+			if(!_lastError)
+			{
+				lock.release();
+				ret=os::smart_ptr<message>(new message(2),os::shared_type);
+				ret->data()[0]=_lastErrorLevel;
+				ret->data()[1]=_currentState;
+				return ret;
+			}
+			ret=os::smart_ptr<message>(new message(6+_lastError->errorTitle().length()+_lastError->errorDescription().length()),os::shared_type);
+			ret->data()[0]=_lastErrorLevel;
+			ret->data()[1]=_currentState;
+			
+			tempCnt1=2;
+			tempCnt2=_lastError->errorTitle().length();
+			os::to_comp_mode(tempCnt2);
+			memcpy(ret->data()+tempCnt1,&tempCnt2,2);
+			tempCnt1+=2;
+			memcpy(ret->data()+tempCnt1,_lastError->errorTitle().c_str(),_lastError->errorTitle().length());
+
+			tempCnt1+=_lastError->errorTitle().length();
+			tempCnt2=_lastError->errorTitle().length();
+			os::to_comp_mode(tempCnt2);
+			memcpy(ret->data()+tempCnt1,&tempCnt2,2);
+			tempCnt1+=2;
+			memcpy(ret->data()+tempCnt1,_lastError->errorDescription().c_str(),_lastError->errorDescription().length());
+			
+			lock.release();
+
+			break;
+
+		//Confirm error state
+		case CONFIRM_ERROR_STATE:
+			ret=os::smart_ptr<message>(new message(2),os::shared_type);
+			ret->data()[0]=message::CONFIRM_ERROR;
+			ret->data()[1]=_currentState;
+
+			break;
+
+		default:
+			break;
+		}
+
+		//No message to return
+		if(!ret) logError(errorPointer(new customError("Message Undefined",
+					"Current system state does not define a message to be returned"),os::shared_type));
+		return ret;
 	}
-	
-	
+	//Process message
+	os::smart_ptr<message> gateway::processMessage(os::smart_ptr<message> msg)
+	{
+		//NULL message, exit
+		if(!msg) return NULL;
+
+		uint8_t messageType=msg->data()[0];
+		bool newMessage=false;
+		uint16_t tempCnt1;
+		uint16_t tempCnt2;
+
+		char* tempChar1;
+		char* tempChar2;
+
+		switch(messageType)
+		{
+		//Process a ping message
+		case message::PING:
+			try
+			{
+				lock.acquire();
+				brotherSettings=os::smart_ptr<gatewaySettings>(new gatewaySettings(*msg),os::shared_type);
+			}
+			catch(errorPointer ep)
+			{
+				lock.release();
+				logError(ep);
+				return NULL;
+			}
+			catch(...)
+			{
+				lock.release();
+				logError(errorPointer(new unknownErrorType(),os::shared_type));
+				return NULL;
+			}
+
+			//Bind state and brother state
+			_brotherState=msg->data()[1];
+			if(_currentState==UNKNOWN_BROTHER || _currentState==SETTINGS_EXCHANGED)
+			{
+				if(_brotherState==SETTINGS_EXCHANGED) _currentState=ESTABLISHING_STREAM;
+				else _currentState=SETTINGS_EXCHANGED;
+			}
+
+		//Bind brother settings
+			brotherStream=streamPackageTypeBank::singleton()->findStream(brotherSettings->prefferedStreamAlgo(),brotherSettings->prefferedHashAlgo());
+			brotherPKFrame=publicKeyTypeBank::singleton()->findPublicKey(brotherSettings->prefferedPublicKeyAlgo());
+			brotherPublicKey=brotherSettings->getPublicKey();
+			if(!brotherStream || !brotherPKFrame)
+			{
+				lock.release();
+				logError(errorPointer(new illegalAlgorithmBind("ILLEGAL ALGO"),os::shared_type));
+				return NULL;
+			}
+			brotherStream=brotherStream->getCopy();
+			brotherPKFrame=brotherPKFrame->getCopy();
+			brotherStream->setHashSize(brotherSettings->prefferedHashSize());
+			brotherPKFrame->setKeySize(brotherSettings->prefferedPublicKeySize());
+			lock.release();
+
+			break;
+
+		//Process a stream message
+		case message::STREAM_KEY:
+			lock.acquire();
+
+			//Bind state and brother state
+			_brotherState=msg->data()[1];
+			if(_currentState==SETTINGS_EXCHANGED ||
+				_currentState==ESTABLISHING_STREAM || _currentState==STREAM_ESTABLISHED ||
+				_currentState==SIGNING_STATE)
+			{
+				if(_brotherState==ESTABLISHING_STREAM) _currentState=STREAM_ESTABLISHED;
+				else if(_brotherState==STREAM_ESTABLISHED) _currentState=SIGNING_STATE;
+				else
+				{
+					lock.release();
+					logError(errorPointer(new customError("Stream Received Error","Brother state could not send a stream key"),os::shared_type));
+					return NULL;
+				}
+			}
+			else
+			{
+				lock.release();
+				logError(errorPointer(new customError("Stream Received Error","Current state cannot receive a stream key"),os::shared_type));
+				return NULL;
+			}
+
+			//Process message
+			if(!streamMessageIn) newMessage=true;
+			else
+			{
+				newMessage=false;
+				for(unsigned int i=2;i<msg->size() && !newMessage;i++)
+				{
+					if(msg->data()[i]!=streamMessageIn->data()[i])
+						newMessage=true;
+				}
+			}
+			if(newMessage)
+			{
+				streamMessageIn=msg;
+				uint16_t keySize=msg->size()-2;
+				uint8_t* strmKey=new uint8_t[keySize];
+				memcpy(strmKey,streamMessageOut->data()+2,msg->size()-2);
+
+				selfPublicKey->readLock();
+				unsigned int hist;
+				bool typ;
+				selfPublicKey->searchKey(selfPreciseKey,hist,typ);
+				selfPublicKey->decode(strmKey,keySize,hist);
+				inputStream=os::smart_ptr<streamDecrypter>(new streamDecrypter(selfStream->buildStream(strmKey,keySize)),os::shared_type);
+				selfPublicKey->readUnlock();
+
+				inputHashLength=keySize+2*size::NAME_SIZE+2*size::GROUP_SIZE+8;
+				inputHashArray=os::smart_ptr<uint8_t>(new uint8_t[inputHashLength],os::shared_type_array);
+				memset(inputHashArray.get(),0,inputHashLength);
+				memcpy(inputHashArray.get()+8,strmKey,keySize);
+				memcpy(inputHashArray.get()+8+keySize,brotherSettings->groupID().c_str(),brotherSettings->groupID().length());
+				memcpy(inputHashArray.get()+8+keySize+size::GROUP_SIZE,brotherSettings->nodeName().c_str(),brotherSettings->nodeName().length());
+				memcpy(inputHashArray.get()+8+keySize+size::NAME_SIZE+size::GROUP_SIZE,selfSettings->groupID().c_str(),selfSettings->groupID().length());
+				memcpy(inputHashArray.get()+8+keySize+size::NAME_SIZE+2*size::GROUP_SIZE,selfSettings->nodeName().c_str(),selfSettings->nodeName().length());
+
+				delete [] strmKey;
+			}
+			lock.release();
+
+			break;
+
+		//Sign a message
+		case message::SIGNING_MESSAGE:
+		{
+			if(_currentState==ESTABLISHED) return NULL;
+			if(_currentState==STREAM_ESTABLISHED || _currentState==SIGNING_STATE || _currentState==CONFIRM_OLD)
+				msg=decrypt(msg);
+			else
+			{
+				logError(errorPointer(new customError("Signing Received Error","Current state cannot receive a signing message"),os::shared_type));
+				return NULL;
+			}
+			if(!msg) return NULL;
+
+			uint64_t tstamp;
+			bool keyInRecord=false;
+
+			lock.acquire();
+			_brotherState=msg->data()[1];
+
+			//Process primary key
+			memcpy(&tstamp,msg->data()+2,8);
+			memcpy(inputHashArray.get(),msg->data()+2,8);
+			tstamp=os::from_comp_mode(tstamp);
+			if(tstamp+_timeout<os::getTimestamp())
+			{
+				lock.release();
+				logError(errorPointer(new customError("Invalid Timestamp","A crypto-graphic timestamp which was out of range was received"),os::shared_type),TIMEOUT_ERROR_STATE);
+				return NULL;
+			}
+			hash tHash=brotherStream->hashData(inputHashArray.get(),inputHashLength);
+			if(!brotherPrimarySignatureHash || tHash!=*brotherPrimarySignatureHash)
+			{
+				os::smart_ptr<number> num1;
+				os::smart_ptr<number> num2=brotherPKFrame->convert(msg->data()+2+16,brotherPKFrame->keySize()*4);
+				num2=brotherPKFrame->encode(num2,brotherPublicKey);
+
+				if(tHash.size()>selfPKFrame->keySize()*4) num1=selfPKFrame->convert(tHash.data(),brotherPKFrame->keySize()*4);
+				else num1=brotherPKFrame->convert(tHash.data(),tHash.size());
+				num1->data()[brotherPKFrame->keySize()-1]&=~(1<<31);
+
+				if(*num1!=*num2)
+				{
+					lock.release();
+					logError(errorPointer(new customError("Signature Failure","The brother failed to sign the hash."),os::shared_type),TIMEOUT_ERROR_STATE);
+					return NULL;
+				}
+				brotherPrimarySignatureHash=os::smart_ptr<hash>(new hash(tHash),os::shared_type);
+			}
+
+			//Find user, check if we already are check a known public key
+			os::smart_ptr<keyBank> bank=selfSettings->getUser()->getKeyBank();
+			if(!bank)
+			{
+				lock.release();
+				logError(errorPointer(new customError("No Key Bank Found","The user does not have a key bank"),os::shared_type),TIMEOUT_ERROR_STATE);
+				return NULL;
+			}
+			os::smart_ptr<nodeGroup> node=bank->find(brotherSettings->groupID(),brotherSettings->nodeName());
+			if(node && node == bank->find(brotherPublicKey,brotherPKFrame->algorithm(),brotherPKFrame->keySize()))
+				keyInRecord=true;
+
+			//Process secondary key
+			memcpy(&tstamp,msg->data()+2+8,8);
+			memcpy(inputHashArray.get(),msg->data()+2+8,8);
+			tstamp=os::from_comp_mode(tstamp);
+			if(tstamp+_timeout<os::getTimestamp())
+			{
+				lock.release();
+				logError(errorPointer(new customError("Invalid Timestamp","A crypto-graphic timestamp which was out of range was received"),os::shared_type),TIMEOUT_ERROR_STATE);
+				return NULL;
+			}
+			tHash=brotherStream->hashData(inputHashArray.get(),inputHashLength);
+			if(!keyInRecord && (!brotherSecondarySignatureHash || tHash!=*brotherSecondarySignatureHash))
+			{
+
+			}
+
+			//This case means the connection is authenticated
+			if((node&&(brotherSecondarySignatureHash || keyInRecord)) || !node)
+			{
+				//Insert the pair (bank takes care of it!)
+				node=bank->addPair(brotherSettings->groupID(),brotherSettings->nodeName(),brotherPublicKey,brotherPKFrame->algorithm(),brotherPKFrame->keySize());
+
+				//Lastly, stream is established
+				if(_brotherState==CONFIRM_OLD || _brotherState==ESTABLISHED) _currentState=ESTABLISHED;
+				else _currentState=CONFIRM_OLD;
+			}
+			//Otherwise, let your brother know you need to match an old key
+			else 
+				_currentState=CONFIRM_OLD;
+
+			lock.release();
+		}
+			break;
+
+		//Error message
+		case message::BASIC_ERROR:
+		case message::TIMEOUT_ERROR:
+		case message::PERMENANT_ERROR:
+			//Attempt to process
+			lock.acquire();
+			if(_brotherState==msg->data()[1])
+			{
+				lock.release();
+				return msg;
+			}
+			_brotherState=msg->data()[1];
+			_currentState=CONFIRM_ERROR_STATE;
+			tempCnt1=2;
+			lock.release();
+
+			memcpy(&tempCnt2,msg->data()+tempCnt1,2);
+			os::from_comp_mode(tempCnt2);
+			if(tempCnt2>msg->size())
+			{
+				logError(errorPointer(new bufferLargeError(),os::shared_type));
+				return NULL;
+			}
+			tempChar1=new char[tempCnt2+1];
+			memset(tempChar1,0,tempCnt2+1);
+			tempCnt1+=2;
+			memcpy(&tempChar1,msg->data()+tempCnt1,tempCnt2);
+
+			tempCnt1+=tempCnt2;
+			memcpy(&tempCnt2,msg->data()+tempCnt1,2);
+			os::from_comp_mode(tempCnt2);
+			if(tempCnt2>msg->size())
+			{
+				delete [] tempChar1;
+				logError(errorPointer(new bufferLargeError(),os::shared_type));
+				return NULL;
+			}
+			tempChar2=new char[tempCnt2+1];
+			memset(tempChar2,0,tempCnt2+1);
+			tempCnt1+=2;
+			memcpy(&tempChar2,msg->data()+tempCnt1,tempCnt2);
+
+			errorSender::logError(errorPointer(new customError("BrotherError: "+std::string(tempChar1),std::string(tempChar2)),os::shared_type));
+
+			delete [] tempChar1;
+			delete [] tempChar2;
+
+			break;
+
+		//Confirm error
+		case message::CONFIRM_ERROR:
+			_brotherState=msg->data()[1];
+
+			//Revert to unknown state
+			if(_currentState!=TIMEOUT_ERROR_STATE && 
+				_currentState!=PERMENANT_ERROR_STATE)
+				_currentState=UNKNOWN_BROTHER;
+
+			break;
+		default:
+			break;
+		}
+		return msg;
+	}
+	//Ping message
+	os::smart_ptr<message> gateway::ping()
+	{
+		selfSettings->getPrivateKey()->readLock();
+		os::smart_ptr<message> ret=selfSettings->ping();
+		if(!ret)
+		{
+			logError(errorPointer(new customError("Ping Message Undefined",
+				"Settings inside the gateway could not generate a ping message"),os::shared_type));
+			return NULL;
+		}
+		ret->data()[1]=_currentState;
+		selfPreciseKey=selfSettings->getPrivateKey()->getN();
+		selfSettings->getPrivateKey()->readUnlock();
+		return ret;
+	}
+
+//Private Functions-----------------------------------------------------------
+
+	//Register error
+	void gateway::logError(errorPointer elm,uint8_t errType)
+	{
+		//Bind error state
+		switch(errType)
+		{
+		case TIMEOUT_ERROR_STATE:
+			_currentState=TIMEOUT_ERROR_STATE;
+		case PERMENANT_ERROR_STATE:
+			_currentState=PERMENANT_ERROR_STATE;
+		default:
+			_currentState=BASIC_ERROR_STATE;
+		}
+
+		clearStream();
+		errorSender::logError(elm);
+	}
+	//Clear stream data
+	void gateway::clearStream()
+	{
+		streamEstTimestamp=0;
+
+		streamMessageIn=NULL;
+		inputStream=NULL;
+
+		streamMessageOut=NULL;
+		outputStream=NULL;
+
+		outputHashArray=NULL;
+		outputHashLength=0;
+		selfPrimarySignatureHash=NULL;
+		selfSecondarySignatureHash=NULL;
+		selfSigningMessage=NULL;
+
+		inputHashArray=NULL;
+		inputHashLength=0;
+		brotherPrimarySignatureHash=NULL;
+		brotherSecondarySignatureHash=NULL;
+		brotherSigningMessage=NULL;
+	}
+	//Build stream data
+	void gateway::buildStream()
+	{
+		if(streamEstTimestamp+_timeout>os::getTimestamp()) return;
+
+		lock.acquire();
+		if(!brotherPublicKey || !brotherPKFrame || !brotherStream)
+		{
+			lock.release();
+			logError(errorPointer(new customError("Brother Undefined","Cannot build stream when the brother is undefined"),os::shared_type));
+			return;
+		}
+		streamEstTimestamp=os::getTimestamp();
+		unsigned int keySize=brotherPKFrame->keySize()*sizeof(uint32_t);
+		os::smart_ptr<uint8_t> strmKey(new uint8_t[keySize],os::shared_type_array);
+		for(unsigned int i=0;i<keySize;i++)
+			strmKey[i]=rand();
+		os::smart_ptr<number> temp=brotherPKFrame->convert(strmKey.get(),keySize);
+		temp->modulo(brotherPublicKey.get(),temp.get());
+		strmKey=temp->getCompCharData(keySize);
+
+		streamMessageOut=os::smart_ptr<message>(new message(keySize+2),os::shared_type);
+		streamMessageOut->data()[0]=message::STREAM_KEY;
+		streamMessageOut->data()[1]=_currentState;
+
+		outputStream=os::smart_ptr<streamEncrypter>(new streamEncrypter(brotherStream->buildStream(strmKey.get(),keySize)),os::shared_type);
+
+		outputHashLength=keySize+2*size::NAME_SIZE+2*size::GROUP_SIZE+8;
+		outputHashArray=os::smart_ptr<uint8_t>(new uint8_t[outputHashLength],os::shared_type_array);
+		memset(outputHashArray.get(),0,outputHashLength);
+		memcpy(outputHashArray.get()+8,strmKey.get(),keySize);
+		memcpy(outputHashArray.get()+8+keySize,selfSettings->groupID().c_str(),selfSettings->groupID().length());
+		memcpy(outputHashArray.get()+8+keySize+size::GROUP_SIZE,selfSettings->nodeName().c_str(),selfSettings->nodeName().length());
+		memcpy(outputHashArray.get()+8+keySize+size::NAME_SIZE+size::GROUP_SIZE,brotherSettings->groupID().c_str(),brotherSettings->groupID().length());
+		memcpy(outputHashArray.get()+8+keySize+size::NAME_SIZE+2*size::GROUP_SIZE,brotherSettings->nodeName().c_str(),brotherSettings->nodeName().length());
+
+		memcpy(streamMessageOut->data()+2,strmKey.get(),keySize);
+		brotherPKFrame->encode(streamMessageOut->data()+2,keySize,brotherPublicKey);
+
+		lock.release();
+	}
+	//Encrypt a message
+	os::smart_ptr<message> gateway::encrypt(os::smart_ptr<message> msg)
+	{
+		lock.acquire();
+		uint8_t msgType=msg->data()[0];
+		if(!outputStream)
+		{
+			lock.release();
+			gateway::logError(errorPointer(new customError("Undefined output stream","Cannot encrypt a message without an output stream"),os::shared_type),BASIC_ERROR_STATE);
+			return NULL;
+		}
+		if(msgType==message::BLOCKED || msgType==message::PING ||
+			msgType==message::STREAM_KEY || msgType==message::BASIC_ERROR ||
+			msgType==message::TIMEOUT_ERROR || msgType==message::PERMENANT_ERROR)
+		{
+			lock.release();
+			gateway::logError(errorPointer(new customError("Encryption error","Message type cannot be encrypted"),os::shared_type),BASIC_ERROR_STATE);
+			return NULL;
+		}
+		unsigned int newSize;
+		unsigned int encrySize;
+		uint8_t* oldData=msg->data();
+		if(msg->encryptionDepth()==0)
+		{
+			newSize=msg->size()+3;
+			encrySize=msg->size()-1;
+
+			msg->_data=new uint8_t[newSize];
+			msg->_encryptionDepth=1;
+			memcpy(msg->data()+4,oldData+1,encrySize);
+		}
+		else
+		{
+			newSize=msg->size()+2;
+			encrySize=msg->size()-2;
+
+			msg->_data=new uint8_t[newSize];
+			msg->_encryptionDepth=msg->encryptionDepth()+1;
+			memcpy(msg->data()+4,oldData+2,encrySize);
+		}
+		msg->data()[0]=oldData[0];
+		msg->data()[1]=msg->encryptionDepth();
+
+		uint16_t encryTag;
+		try
+		{
+			outputStream->sendData(msg->data()+4,encrySize,encryTag);
+		}
+		catch(errorPointer e)
+		{
+			lock.release();
+			gateway::logError(e,BASIC_ERROR_STATE);
+			delete [] oldData;
+			return NULL;
+		}
+		catch(...)
+		{
+			lock.release();
+			gateway::logError(errorPointer(new unknownErrorType(),os::shared_type),BASIC_ERROR_STATE);
+			delete [] oldData;
+			return NULL;
+		}
+		os::to_comp_mode(encryTag);
+		memcpy(msg->data()+2,&encryTag,2);
+
+		msg->_size=newSize;
+		msg->_messageSize=encrySize;
+		delete [] oldData;
+		lock.release();
+		return msg;
+	}
+	//Decrypt a message
+	os::smart_ptr<message> gateway::decrypt(os::smart_ptr<message> msg)
+	{
+		lock.acquire();
+		uint8_t msgType=msg->data()[0];
+		if(!inputStream)
+		{
+			lock.release();
+			gateway::logError(errorPointer(new customError("Undefined input stream","Cannot decrypt a message without an input stream"),os::shared_type),BASIC_ERROR_STATE);
+			return NULL;
+		}
+		if(msgType==message::BLOCKED || msgType==message::PING ||
+			msgType==message::STREAM_KEY || msgType==message::BASIC_ERROR ||
+			msgType==message::TIMEOUT_ERROR || msgType==message::PERMENANT_ERROR)
+		{
+			lock.release();
+			gateway::logError(errorPointer(new customError("Decryption error","Message type cannot be decrypted"),os::shared_type),BASIC_ERROR_STATE);
+			return NULL;
+		}
+		uint16_t eDepth=msg->encryptionDepth();
+		if(eDepth<=0)
+		{
+			lock.release();
+			gateway::logError(errorPointer(new customError("Decryption error","Received message is not encrypted"),os::shared_type),BASIC_ERROR_STATE);
+			return NULL;
+		}
+
+		unsigned int newSize;
+		unsigned int decrySize=msg->size()-4;
+
+		uint8_t* oldData=msg->data();
+		if(eDepth==1)
+		{
+			newSize=msg->size()-3;
+
+			msg->_data=new uint8_t[newSize];
+			memcpy(msg->data()+1,oldData+4,decrySize);
+			msg->_encryptionDepth=0;
+		}
+		else
+		{
+			newSize=msg->size()-2;
+
+			msg->_data=new uint8_t[newSize];
+			memcpy(msg->data()+2,oldData+4,decrySize);
+			msg->_encryptionDepth=eDepth-1;
+			msg->data()[1]=msg->encryptionDepth();
+		}
+		msg->data()[0]=oldData[0];
+		uint16_t decryTag;
+		memcpy(&decryTag,oldData+2,2);
+		os::from_comp_mode(decryTag);
+		try
+		{
+			if(eDepth==1)
+				inputStream->recieveData(msg->data()+1,decrySize,decryTag);
+			else
+				inputStream->recieveData(msg->data()+2,decrySize,decryTag);
+		}
+		catch(errorPointer e)
+		{
+			lock.release();
+			gateway::logError(e,BASIC_ERROR_STATE);
+			delete [] oldData;
+			return NULL;
+		}
+		catch(...)
+		{
+			lock.release();
+			gateway::logError(errorPointer(new unknownErrorType(),os::shared_type),BASIC_ERROR_STATE);
+			delete [] oldData;
+			return NULL;
+		}
+		msg->_messageSize=decrySize;
+		delete [] oldData;
+		lock.release();
+		return msg;
+	}
+	//Resets error flags
+	void gateway::purgeLastError()
+	{
+		lock.acquire();
+		if(brotherSettings) _currentState=SETTINGS_EXCHANGED;
+		else _currentState=UNKNOWN_BROTHER;
+		
+		_lastError=NULL;
+		_lastErrorLevel=UNKNOWN_STATE;
+
+		lock.release();
+	}
+
 }
 
 #endif

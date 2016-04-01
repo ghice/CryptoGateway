@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   3/20/2016
+ * @date   4/1/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -48,6 +48,8 @@ namespace crypto {
 	 */
 	class gatewaySettings: public keyChangeReceiver, public os::savable
 	{
+		/** @brief
+		 */
 		std::string _groupID;
 		std::string _nodeName;
 		std::string _filePath;
@@ -99,17 +101,103 @@ namespace crypto {
 		bool operator>=(const gatewaySettings& cmp) const{return _groupID>=cmp._groupID;}
 	};
 
-	class gateway
+	class gateway: public errorSender
 	{
-		os::smart_ptr<user> _user;
-		std::string _groupID;
-		
-		os::smart_ptr<publicKey> _keyPair;
 	public:
-		gateway();
+		static const uint64_t DEFAULT_TIMEOUT=60;
+		static const uint64_t DEFAULT_ERROR_TIMEOUT=30;
+
+		static const uint8_t UNKNOWN_STATE=0;
+		static const uint8_t UNKNOWN_BROTHER=1;
+		static const uint8_t SETTINGS_EXCHANGED=2;
+		static const uint8_t ESTABLISHING_STREAM=3;
+		static const uint8_t STREAM_ESTABLISHED=4;
+		static const uint8_t SIGNING_STATE=5;
+		static const uint8_t CONFIRM_OLD=6;
+		static const uint8_t ESTABLISHED=7;
+
+		static const uint8_t CONFIRM_ERROR_STATE=252;
+		static const uint8_t BASIC_ERROR_STATE=253;
+		static const uint8_t TIMEOUT_ERROR_STATE=254;
+		static const uint8_t PERMENANT_ERROR_STATE=255;
+	private:
+		os::smart_ptr<gatewaySettings> selfSettings;
+		os::smart_ptr<gatewaySettings> brotherSettings;
+		os::spinLock lock;
+
+		uint8_t _currentState;
+		uint8_t _brotherState;
+
+		errorPointer _lastError;
+		uint8_t _lastErrorLevel;
+
+		uint64_t _timeout;
+		uint64_t _safeTimeout;
+		uint64_t _errorTimeout;
+		uint64_t _messageReceived;
+		uint64_t _messageSent;
+
+		//Public keys and algorithm definitions
+		os::smart_ptr<streamPackageFrame> selfStream;
+		os::smart_ptr<publicKeyPackageFrame> selfPKFrame;
+		os::smart_ptr<publicKey> selfPublicKey;
+		os::smart_ptr<number> selfPreciseKey;
+
+		os::smart_ptr<streamPackageFrame> brotherStream;
+		os::smart_ptr<publicKeyPackageFrame> brotherPKFrame;
+		os::smart_ptr<number> brotherPublicKey;
+
+		//Stream establishing
+		os::smart_ptr<message> streamMessageIn;
+		os::smart_ptr<streamDecrypter> inputStream;
+		
+		uint64_t streamEstTimestamp;
+		os::smart_ptr<message> streamMessageOut;
+		os::smart_ptr<streamEncrypter> outputStream;
+
+		//Signatures
+		os::smart_ptr<uint8_t> outputHashArray;
+		uint16_t outputHashLength;
+		os::smart_ptr<hash> selfPrimarySignatureHash;
+		os::smart_ptr<hash> selfSecondarySignatureHash;
+		os::smart_ptr<message> selfSigningMessage;
+
+		os::smart_ptr<uint8_t> inputHashArray;
+		uint16_t inputHashLength;
+		os::smart_ptr<hash> brotherPrimarySignatureHash;
+		os::smart_ptr<hash> brotherSecondarySignatureHash;
+		os::smart_ptr<message> brotherSigningMessage;
+
+		void clearStream();
+		void buildStream();
+
+		os::smart_ptr<message> encrypt(os::smart_ptr<message> msg);
+		os::smart_ptr<message> decrypt(os::smart_ptr<message> msg);
+
+		void purgeLastError();
+
+	protected:
+		void logError(errorPointer elm,uint8_t errType);
+		void logError(errorPointer elm) {logError(elm,BASIC_ERROR_STATE);}
+	public:
+		gateway(os::smart_ptr<user> usr,std::string groupID="default");
 		virtual ~gateway(){}
 		
-		os::smart_ptr<publicKey> keyPair();
+		os::smart_ptr<message> getMessage();
+		os::smart_ptr<message> ping();
+		os::smart_ptr<message> processMessage(os::smart_ptr<message> msg);
+
+		inline uint8_t currentState() const {return _currentState;}
+		inline uint8_t brotherState() const {return _brotherState;}
+
+		inline bool secure() const {return _currentState==ESTABLISHED;}
+
+
+		uint64_t timeout() const {return _timeout;}
+		uint64_t safeTimeout() const {return _safeTimeout;}
+		uint64_t errorTimeout() const {return _errorTimeout;}
+		uint64_t timeMessageReceived() const {return _messageReceived;}
+		uint64_t timeMessageSent() const {return _messageSent;}
 	};
 
 }
