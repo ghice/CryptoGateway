@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   4/1/2016
+ * @date   4/2/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -175,6 +175,7 @@ namespace crypto {
 
 		os::smart_ptr<message> encrypt(os::smart_ptr<message> msg);
 		os::smart_ptr<message> decrypt(os::smart_ptr<message> msg);
+		os::smart_ptr<message> currentError();
 
 		void purgeLastError();
 

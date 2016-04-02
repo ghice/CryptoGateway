@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   4/1/2016
+ * @date   4/2/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -310,7 +310,12 @@ namespace crypto {
 		case UNKNOWN_BROTHER:
 		case SETTINGS_EXCHANGED:
 			ret=ping();
-			if(!ret) return NULL;
+			if(!ret)
+			{
+				ret=currentError();
+				if(!ret) return NULL;
+				break;
+			}
 
 		//Bind self settings
 			lock.acquire();
@@ -322,6 +327,7 @@ namespace crypto {
 			{
 				lock.release();
 				logError(errorPointer(new illegalAlgorithmBind("ILLEGAL ALGO"),os::shared_type));
+				ret=currentError();
 				break;
 			}
 			selfStream=selfStream->getCopy();
@@ -336,7 +342,11 @@ namespace crypto {
 		case STREAM_ESTABLISHED:
 
 			buildStream();
-			if(!streamMessageOut) return NULL;
+			if(!streamMessageOut)
+			{
+				ret=currentError();
+				break;
+			}
 			streamMessageOut->data()[1]=_currentState;
 			ret=streamMessageOut;
 
@@ -355,13 +365,15 @@ namespace crypto {
 			{
 				lock.release();
 				logError(errorPointer(new customError("Brother Undefined","Cannot build stream when the brother is undefined"),os::shared_type));
-				return NULL;
+				ret=currentError();
+				break;
 			}
 			if(!self || !self->getKeyBank())
 			{
 				lock.release();
 				logError(errorPointer(new customError("Self Not Found","The gateway could not find itself"),os::shared_type));
-				return NULL;
+				ret=currentError();
+				break;
 			}
 
 			//Try and find old keys
@@ -452,7 +464,8 @@ namespace crypto {
 				{
 					lock.release();
 					logError(errorPointer(new customError("Could not Sign","Unexpected error occurred while attempting to sign a hash"),os::shared_type));
-					return NULL;
+					ret=currentError();
+					break;
 				}
 				os::smart_ptr<unsigned char> tdat=num->getCompCharData(hist);
 				memcpy(ret->data()+2+16,tdat.get(),selfPKFrame->keySize()*4);
@@ -479,7 +492,8 @@ namespace crypto {
 			lock.release();
 
 			ret=encrypt(ret);
-			if(!ret) return NULL;
+
+			if(!ret) ret=currentError();
 		}
 			break;
 
@@ -496,35 +510,7 @@ namespace crypto {
 		case TIMEOUT_ERROR_STATE:
 		case PERMENANT_ERROR_STATE:
 
-			lock.acquire();
-			if(!_lastError)
-			{
-				lock.release();
-				ret=os::smart_ptr<message>(new message(2),os::shared_type);
-				ret->data()[0]=_lastErrorLevel;
-				ret->data()[1]=_currentState;
-				return ret;
-			}
-			ret=os::smart_ptr<message>(new message(6+_lastError->errorTitle().length()+_lastError->errorDescription().length()),os::shared_type);
-			ret->data()[0]=_lastErrorLevel;
-			ret->data()[1]=_currentState;
-			
-			tempCnt1=2;
-			tempCnt2=_lastError->errorTitle().length();
-			os::to_comp_mode(tempCnt2);
-			memcpy(ret->data()+tempCnt1,&tempCnt2,2);
-			tempCnt1+=2;
-			memcpy(ret->data()+tempCnt1,_lastError->errorTitle().c_str(),_lastError->errorTitle().length());
-
-			tempCnt1+=_lastError->errorTitle().length();
-			tempCnt2=_lastError->errorTitle().length();
-			os::to_comp_mode(tempCnt2);
-			memcpy(ret->data()+tempCnt1,&tempCnt2,2);
-			tempCnt1+=2;
-			memcpy(ret->data()+tempCnt1,_lastError->errorDescription().c_str(),_lastError->errorDescription().length());
-			
-			lock.release();
-
+			ret=currentError();
 			break;
 
 		//Confirm error state
@@ -540,8 +526,13 @@ namespace crypto {
 		}
 
 		//No message to return
-		if(!ret) logError(errorPointer(new customError("Message Undefined",
+		if(!ret)
+		{
+			logError(errorPointer(new customError("Message Undefined",
 					"Current system state does not define a message to be returned"),os::shared_type));
+			ret=currentError();
+			if(!ret) return NULL;
+		}
 		
 		stampLock.acquire();
 		_messageSent=os::getTimestamp();
@@ -821,7 +812,7 @@ namespace crypto {
 			lock.release();
 
 			memcpy(&tempCnt2,msg->data()+tempCnt1,2);
-			os::from_comp_mode(tempCnt2);
+			tempCnt2=os::from_comp_mode(tempCnt2);
 			if(tempCnt2>msg->size())
 			{
 				logError(errorPointer(new bufferLargeError(),os::shared_type));
@@ -834,7 +825,7 @@ namespace crypto {
 
 			tempCnt1+=tempCnt2;
 			memcpy(&tempCnt2,msg->data()+tempCnt1,2);
-			os::from_comp_mode(tempCnt2);
+			tempCnt2=os::from_comp_mode(tempCnt2);
 			if(tempCnt2>msg->size())
 			{
 				delete [] tempChar1;
@@ -925,6 +916,46 @@ namespace crypto {
 
 
 		stampLock.release();
+	}
+
+	//Returns a message about the current error
+	os::smart_ptr<message> gateway::currentError()
+	{
+		if(_currentState!=BASIC_ERROR_STATE
+			&& _currentState!=TIMEOUT_ERROR_STATE
+			&& _currentState!=PERMENANT_ERROR_STATE)
+			return NULL;
+
+		os::smart_ptr<message> ret;
+		lock.acquire();
+		if(!_lastError)
+		{
+			lock.release();
+			ret=os::smart_ptr<message>(new message(2),os::shared_type);
+			ret->data()[0]=_lastErrorLevel;
+			ret->data()[1]=_currentState;
+			return ret;
+		}
+			ret=os::smart_ptr<message>(new message(6+_lastError->errorTitle().length()+_lastError->errorDescription().length()),os::shared_type);
+			ret->data()[0]=_lastErrorLevel;
+			ret->data()[1]=_currentState;
+			
+		uint16_t tempCnt1=2;
+		uint16_t tempCnt2=_lastError->errorTitle().length();
+		tempCnt2=os::to_comp_mode(tempCnt2);
+		memcpy(ret->data()+tempCnt1,&tempCnt2,2);
+		tempCnt1+=2;
+		memcpy(ret->data()+tempCnt1,_lastError->errorTitle().c_str(),_lastError->errorTitle().length());
+
+		tempCnt1+=_lastError->errorTitle().length();
+		tempCnt2=_lastError->errorTitle().length();
+		tempCnt2=os::to_comp_mode(tempCnt2);
+		memcpy(ret->data()+tempCnt1,&tempCnt2,2);
+		tempCnt1+=2;
+		memcpy(ret->data()+tempCnt1,_lastError->errorDescription().c_str(),_lastError->errorDescription().length());
+			
+		lock.release();
+		return ret;
 	}
 
 //Private Functions-----------------------------------------------------------
@@ -1138,7 +1169,7 @@ namespace crypto {
 		msg->data()[0]=oldData[0];
 		uint16_t decryTag;
 		memcpy(&decryTag,oldData+2,2);
-		os::from_comp_mode(decryTag);
+		decryTag=os::from_comp_mode(decryTag);
 		try
 		{
 			if(eDepth==1)
