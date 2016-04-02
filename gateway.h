@@ -70,7 +70,7 @@ namespace crypto {
 
 		gatewaySettings(os::smart_ptr<user> usr, std::string groupID, std::string filePath);
 		gatewaySettings(const message& msg);
-		virtual ~gatewaySettings(){}
+		virtual ~gatewaySettings();
 
 		os::smartXMLNode generateSaveTree();
 		void update();

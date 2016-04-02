@@ -44,7 +44,10 @@ namespace crypto {
 		update();
 		markChanged();
 	}
-	
+	//Destructor
+	gatewaySettings::~gatewaySettings()
+	{
+	}
 	//Generate the XML save tree
 	os::smartXMLNode gatewaySettings::generateSaveTree()
 	{

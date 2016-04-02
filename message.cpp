@@ -1,7 +1,7 @@
 /**
  * @file   message.cpp
  * @author Jonathan Bedard
- * @date   4/1/2016
+ * @date   4/2/2016
  * @brief  Crypto-Gateway message implementation
  * @bug No known bugs.
  *
@@ -15,9 +15,9 @@
 
 #ifndef MESSAGE_CPP
 #define MESSAGE_CPP
-    
+   
 #include "message.h"
-#include "gateway.h"
+#include "cryptoError.h"
 
 namespace crypto {
 	
