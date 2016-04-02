@@ -124,12 +124,14 @@ namespace crypto {
 		os::smart_ptr<gatewaySettings> selfSettings;
 		os::smart_ptr<gatewaySettings> brotherSettings;
 		os::spinLock lock;
+		os::spinLock stampLock;
 
 		uint8_t _currentState;
 		uint8_t _brotherState;
 
 		errorPointer _lastError;
 		uint8_t _lastErrorLevel;
+		uint64_t _errorTimestamp;
 
 		uint64_t _timeout;
 		uint64_t _safeTimeout;
@@ -186,6 +188,7 @@ namespace crypto {
 		os::smart_ptr<message> getMessage();
 		os::smart_ptr<message> ping();
 		os::smart_ptr<message> processMessage(os::smart_ptr<message> msg);
+		void processTimestamps();
 
 		inline uint8_t currentState() const {return _currentState;}
 		inline uint8_t brotherState() const {return _brotherState;}
@@ -198,6 +201,7 @@ namespace crypto {
 		uint64_t errorTimeout() const {return _errorTimeout;}
 		uint64_t timeMessageReceived() const {return _messageReceived;}
 		uint64_t timeMessageSent() const {return _messageSent;}
+		uint64_t timeLastError() const {return _errorTimestamp;}
 	};
 
 }

@@ -1,7 +1,7 @@
 /**
  * @file   message.h
  * @author Jonathan Bedard
- * @date   4/1/2016
+ * @date   4/2/2016
  * @brief  Crypto-Gateway message
  * @bug No known bugs.
  *
@@ -64,6 +64,7 @@ namespace crypto {
 		static const uint8_t FORWARD=2;
 		static const uint8_t STREAM_KEY=3;
 		static const uint8_t SIGNING_MESSAGE=4;
+		static const uint8_t SECURE_DATA_EXCHANGE=5;
 
 		static const uint8_t CONFIRM_ERROR=252;
 		static const uint8_t BASIC_ERROR=253;

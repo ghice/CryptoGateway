@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoTest.h
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   4/2/2016
  * @brief  CryptoGateway library test header
  * @bug No known bugs.
  *
@@ -22,7 +22,13 @@
 namespace test
 {
     //CryptoGateway Library Test
-    class CryptoGatewayLibraryTest: public libraryTests
+	class CryptoGatewayReducedTest: public libraryTests
+	{
+	public:
+		CryptoGatewayReducedTest();
+		virtual ~CryptoGatewayReducedTest(){}
+	};
+    class CryptoGatewayLibraryTest: public CryptoGatewayReducedTest
     {
     public:
         CryptoGatewayLibraryTest();

@@ -288,6 +288,7 @@ namespace crypto {
 		_errorTimeout=DEFAULT_ERROR_TIMEOUT;
 		_messageReceived=0;
 		_messageSent=0;
+		_errorTimestamp=0;
 
 		clearStream();
 	}
@@ -298,6 +299,7 @@ namespace crypto {
 		os::smart_ptr<message> ret;
 		uint16_t tempCnt1;
 		uint16_t tempCnt2;
+		processTimestamps();
 
 		switch(_currentState)
 		{
@@ -436,12 +438,22 @@ namespace crypto {
 				os::smart_ptr<number> num;
 				if(temp.size()>selfPKFrame->keySize()*4) num=selfPKFrame->convert(temp.data(),selfPKFrame->keySize()*4);
 				else num=selfPKFrame->convert(temp.data(),temp.size());
-				num->data()[selfPKFrame->keySize()-1]&=~(1<<31);
+				num->data()[selfPKFrame->keySize()-1]&=(~(uint32_t)0)>>3;
 
 				unsigned int hist;
 				bool typ;
 				selfPublicKey->searchKey(selfPreciseKey,hist,typ);
-				num=selfPublicKey->decode(num,hist);
+				try
+				{
+					num=selfPublicKey->decode(num,hist);
+				}
+				catch(...){num=NULL;}
+				if(!num)
+				{
+					lock.release();
+					logError(errorPointer(new customError("Could not Sign","Unexpected error occurred while attempting to sign a hash"),os::shared_type));
+					return NULL;
+				}
 				os::smart_ptr<unsigned char> tdat=num->getCompCharData(hist);
 				memcpy(ret->data()+2+16,tdat.get(),selfPKFrame->keySize()*4);
 			}
@@ -469,6 +481,14 @@ namespace crypto {
 			ret=encrypt(ret);
 			if(!ret) return NULL;
 		}
+			break;
+
+		//Secure exchange settings
+		case ESTABLISHED:
+			ret=os::smart_ptr<message>(new message(2+1),os::shared_type);
+			ret->data()[0]=message::SECURE_DATA_EXCHANGE;
+			ret->data()[1]=_currentState;
+			ret->data()[2]=0;
 			break;
 
 		//Error State
@@ -522,6 +542,10 @@ namespace crypto {
 		//No message to return
 		if(!ret) logError(errorPointer(new customError("Message Undefined",
 					"Current system state does not define a message to be returned"),os::shared_type));
+		
+		stampLock.acquire();
+		_messageSent=os::getTimestamp();
+		stampLock.release();
 		return ret;
 	}
 	//Process message
@@ -529,6 +553,12 @@ namespace crypto {
 	{
 		//NULL message, exit
 		if(!msg) return NULL;
+
+		processTimestamps();
+
+		stampLock.acquire();
+		_messageReceived=os::getTimestamp();
+		stampLock.release();
 
 		uint8_t messageType=msg->data()[0];
 		bool newMessage=false;
@@ -542,9 +572,17 @@ namespace crypto {
 		{
 		//Process a ping message
 		case message::PING:
+			lock.acquire();
+			if(_currentState!=UNKNOWN_STATE && _currentState!=UNKNOWN_BROTHER
+				&& _currentState!=SETTINGS_EXCHANGED && _currentState!=CONFIRM_ERROR_STATE)
+			{
+				lock.release();
+				logError(errorPointer(new customError("Ping Received Error","Current state could not send a stream key"),os::shared_type));
+				return NULL;
+			}
+
 			try
 			{
-				lock.acquire();
 				brotherSettings=os::smart_ptr<gatewaySettings>(new gatewaySettings(*msg),os::shared_type);
 			}
 			catch(errorPointer ep)
@@ -676,7 +714,7 @@ namespace crypto {
 			memcpy(&tstamp,msg->data()+2,8);
 			memcpy(inputHashArray.get(),msg->data()+2,8);
 			tstamp=os::from_comp_mode(tstamp);
-			if(tstamp+_timeout<os::getTimestamp())
+			if(tstamp+_timeout<os::getTimestamp() || tstamp>os::getTimestamp()+_timeout)
 			{
 				lock.release();
 				logError(errorPointer(new customError("Invalid Timestamp","A crypto-graphic timestamp which was out of range was received"),os::shared_type),TIMEOUT_ERROR_STATE);
@@ -687,13 +725,17 @@ namespace crypto {
 			{
 				os::smart_ptr<number> num1;
 				os::smart_ptr<number> num2=brotherPKFrame->convert(msg->data()+2+16,brotherPKFrame->keySize()*4);
-				num2=brotherPKFrame->encode(num2,brotherPublicKey);
+				try
+				{
+					num2=brotherPKFrame->encode(num2,brotherPublicKey);
+				}
+				catch(...){num2=NULL;}
 
 				if(tHash.size()>selfPKFrame->keySize()*4) num1=selfPKFrame->convert(tHash.data(),brotherPKFrame->keySize()*4);
 				else num1=brotherPKFrame->convert(tHash.data(),tHash.size());
-				num1->data()[brotherPKFrame->keySize()-1]&=~(1<<31);
+				num1->data()[brotherPKFrame->keySize()-1]&=(~(uint32_t)0)>>3;
 
-				if(*num1!=*num2)
+				if(!num2 || *num1!=*num2)
 				{
 					lock.release();
 					logError(errorPointer(new customError("Signature Failure","The brother failed to sign the hash."),os::shared_type),TIMEOUT_ERROR_STATE);
@@ -718,7 +760,7 @@ namespace crypto {
 			memcpy(&tstamp,msg->data()+2+8,8);
 			memcpy(inputHashArray.get(),msg->data()+2+8,8);
 			tstamp=os::from_comp_mode(tstamp);
-			if(tstamp+_timeout<os::getTimestamp())
+			if(tstamp+_timeout<os::getTimestamp() || tstamp>os::getTimestamp()+_timeout)
 			{
 				lock.release();
 				logError(errorPointer(new customError("Invalid Timestamp","A crypto-graphic timestamp which was out of range was received"),os::shared_type),TIMEOUT_ERROR_STATE);
@@ -746,6 +788,20 @@ namespace crypto {
 
 			lock.release();
 		}
+			break;
+
+		//Settings exchange
+		case message::SECURE_DATA_EXCHANGE:
+			if(_currentState!=ESTABLISHED)
+			{
+				logError(errorPointer(new customError("Invalid State","Cannot receive a data-exchange message when not secured"),os::shared_type),TIMEOUT_ERROR_STATE);
+				return NULL;
+			}
+			msg=decrypt(msg);
+			if(!msg) return NULL;
+
+			//No parsing a settings exchange yet
+
 			break;
 
 		//Error message
@@ -808,6 +864,16 @@ namespace crypto {
 
 			break;
 		default:
+
+			//Normal message case
+			if(_currentState!=ESTABLISHED)
+			{
+				logError(errorPointer(new customError("Invalid State","Cannot receive a data-exchange message when not secured"),os::shared_type),TIMEOUT_ERROR_STATE);
+				return NULL;
+			}
+			msg=decrypt(msg);
+			if(!msg) return NULL;
+
 			break;
 		}
 		return msg;
@@ -828,6 +894,38 @@ namespace crypto {
 		selfSettings->getPrivateKey()->readUnlock();
 		return ret;
 	}
+	//Process timestamp differences
+	void gateway::processTimestamps()
+	{
+		stampLock.acquire();
+
+		//Timeout errors
+		if(_currentState==TIMEOUT_ERROR_STATE)
+		{
+			if(_errorTimestamp+_errorTimeout<os::getTimestamp())
+			{
+				lock.acquire();
+				if(_brotherState==CONFIRM_ERROR_STATE)
+					_currentState=UNKNOWN_BROTHER;
+				else
+					_currentState=BASIC_ERROR_STATE;
+				lock.release();
+			}
+		}
+		//All states that can timeout
+		else if(_currentState!=PERMENANT_ERROR_STATE)
+		{
+			if(_messageReceived+_timeout<os::getTimestamp())
+			{
+				lock.acquire();
+				_currentState=UNKNOWN_BROTHER;
+				lock.release();
+			}
+		}
+
+
+		stampLock.release();
+	}
 
 //Private Functions-----------------------------------------------------------
 
@@ -835,6 +933,7 @@ namespace crypto {
 	void gateway::logError(errorPointer elm,uint8_t errType)
 	{
 		//Bind error state
+		lock.acquire();
 		switch(errType)
 		{
 		case TIMEOUT_ERROR_STATE:
@@ -844,6 +943,11 @@ namespace crypto {
 		default:
 			_currentState=BASIC_ERROR_STATE;
 		}
+		lock.release();
+
+		stampLock.acquire();
+		_errorTimestamp=os::getTimestamp();
+		stampLock.release();
 
 		clearStream();
 		errorSender::logError(elm);

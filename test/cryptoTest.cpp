@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoTest.cpp
  * @author Jonathan Bedard
- * @date   4/1/2016
+ * @date   4/2/2016
  * @brief  CryptoGateway library test constructor
  * @bug No known bugs.
  *
@@ -33,7 +33,7 @@ using namespace test;
  ================================================================*/
 
     //Constructor
-    CryptoGatewayLibraryTest::CryptoGatewayLibraryTest():
+    CryptoGatewayReducedTest::CryptoGatewayReducedTest():
         libraryTests("CryptoGateway")
     {
         pushSuite(os::smart_ptr<testSuite>(new C_BaseTenSuite(),os::shared_type));
@@ -42,13 +42,19 @@ using namespace test;
         pushSuite(os::smart_ptr<testSuite>(new xorTestSuite(),os::shared_type));
 		pushSuite(os::smart_ptr<testSuite>(new RC4HashTestSuite(),os::shared_type));
 		pushSuite(os::smart_ptr<testSuite>(new RC4StreamTestSuite(),os::shared_type));
+		pushSuite(os::smart_ptr<testSuite>(new keyBankSuite(),os::shared_type));
+		
+		pushSuite(os::smart_ptr<testSuite>(new gatewaySuite(),os::shared_type));
+    }
+	//Full test suite
+	CryptoGatewayLibraryTest::CryptoGatewayLibraryTest():
+		CryptoGatewayReducedTest()
+	{
 		pushSuite(os::smart_ptr<testSuite>(new RSASuite(),os::shared_type));
 		pushSuite(os::smart_ptr<testSuite>(new cryptoFileTestSuite(),os::shared_type));
         pushSuite(os::smart_ptr<testSuite>(new cryptoEXMLTestSuite(),os::shared_type));
-        pushSuite(os::smart_ptr<testSuite>(new keyBankSuite(),os::shared_type));
-		pushSuite(os::smart_ptr<testSuite>(new userSuite(),os::shared_type));
-		pushSuite(os::smart_ptr<testSuite>(new gatewaySuite(),os::shared_type));
-    }
+        pushSuite(os::smart_ptr<testSuite>(new userSuite(),os::shared_type));
+	}
 
 #endif
 
