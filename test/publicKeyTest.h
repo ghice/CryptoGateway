@@ -1,7 +1,7 @@
 /**
  * @file   test/publicKeyTest.h
  * @author Jonathan Bedard
- * @date   2/24/2016
+ * @date   4/3/2016
  * @brief  Public Key tests
  * @bug No known bugs.
  *
@@ -138,6 +138,45 @@ namespace test
         }
     };
 
+	//Byte key test
+    template <class pkType>
+    class byteKeyTest:public singleTest
+    {
+        uint16_t publicLen;
+    public:
+        byteKeyTest(uint16_t pl):singleTest("Byte Test: "+std::to_string(pl*32)){publicLen=pl;}
+        virtual ~byteKeyTest(){}
+        
+        void test() throw(os::smart_ptr<std::exception>)
+        {
+			std::string locString = "publicKeyTest.h, byteKeyTest::test()";
+
+            try
+            {
+                os::smart_ptr<pkType> pk1=getStaticKeys<pkType>(publicLen,0);
+			
+				unsigned int len=publicLen*sizeof(uint32_t);
+				os::smart_ptr<unsigned char> char1(new unsigned char[len],os::shared_type);
+				os::smart_ptr<unsigned char> char2(new unsigned char[len],os::shared_type);
+				memset(char1.get(),0,len);
+                for(unsigned i=0;i<len-1;i++)
+                    char1[i]=rand();
+                memcpy(char2.get(),char1.get(),len);
+
+                pk1->encode(char1.get(),len);
+                pk1->publicKey::decode(char1.get(),len);
+                for(unsigned i=0;i<len;i++)
+				{
+					if(char1[i]!=char2[i])
+						throw os::smart_ptr<std::exception>(new generalTestException("Encryption failed",locString),os::shared_type);
+				}
+            }
+            catch(crypto::errorPointer ep){throw os::smart_ptr<std::exception>(new generalTestException(ep->what(),locString),os::shared_type);}
+            catch(os::smart_ptr<std::exception> e){throw e;}
+            catch(...){throw os::smart_ptr<std::exception>(new unknownException(locString),os::shared_type);}
+        }
+    };
+
 	//Public key search test
     template <class pkType,class numberType>
     class publicKeySearchTest:public singleTest
@@ -241,6 +280,12 @@ namespace test
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public512),os::shared_type));
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public1024),os::shared_type));
             pushTest(os::smart_ptr<singleTest>(new basicPublicKeyTest<pkType,numberType>(crypto::size::public2048),os::shared_type));
+
+			pushTest(os::smart_ptr<singleTest>(new byteKeyTest<pkType>(crypto::size::public128),os::shared_type));
+			pushTest(os::smart_ptr<singleTest>(new byteKeyTest<pkType>(crypto::size::public256),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new byteKeyTest<pkType>(crypto::size::public512),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new byteKeyTest<pkType>(crypto::size::public1024),os::shared_type));
+            pushTest(os::smart_ptr<singleTest>(new byteKeyTest<pkType>(crypto::size::public2048),os::shared_type));
 
 			pushTest(os::smart_ptr<singleTest>(new publicKeySearchTest<pkType,numberType>(crypto::size::public128),os::shared_type));
 			pushTest(os::smart_ptr<singleTest>(new publicKeySearchTest<pkType,numberType>(crypto::size::public256),os::shared_type));

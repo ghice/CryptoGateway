@@ -26,7 +26,8 @@ namespace crypto {
 	{
 		message ret(sz);
 		if(rawData[0]==message::BLOCKED || rawData[0]==message::PING ||
-			rawData[0]==message::STREAM_KEY || rawData[0]==message::BASIC_ERROR ||
+			rawData[0]==message::STREAM_KEY || rawData[0]==message::CONFIRM_ERROR ||
+			rawData[0]==message::BASIC_ERROR ||
 			rawData[0]==message::TIMEOUT_ERROR || rawData[0]==message::PERMENANT_ERROR)
 		{
 			ret._messageSize=ret._messageSize-1;

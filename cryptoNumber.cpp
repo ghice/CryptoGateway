@@ -1,7 +1,7 @@
 /**
  * @file   cryptoNumber.cpp
  * @author Jonathan Bedard
- * @date   3/1/2016
+ * @date   4/3/2016
  * @brief  Implements basic number types
  * @bug No known bugs.
  *

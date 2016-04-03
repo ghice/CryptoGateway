@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Confirmed working: 1/16/2016
+//Confirmed working: 4/3/2016
 
 //The implementation stream ciphers
 
@@ -151,23 +151,23 @@ using namespace crypto;
 		bool packet_found = false;
 		do
 		{
-		  en = new streamPacket (cipher.get(), size::stream::PACKETSIZE);
-		  ID_check[last_loc] = (uint16_t) en->getIdentifier();
+			en = new streamPacket (cipher.get(), size::stream::PACKETSIZE);
+			ID_check[last_loc] = (uint16_t) en->getIdentifier();
       
-		  int cnt = 0;
-		  packet_found = true;
-		  while(cnt<size::stream::BACKCHECK && packet_found)
-		  {
-		if(ID_check[last_loc]==0 || 
-		  (last_loc!=cnt && ID_check[cnt] == ID_check[last_loc]))
-		{
-		  packet_found = false;
-		}
-		cnt++;
-		  }
+			int cnt = 0;
+			packet_found = true;
+			while(cnt<size::stream::BACKCHECK && packet_found)
+			{
+				if(ID_check[last_loc]==0 || 
+					(last_loc!=cnt && ID_check[cnt] == ID_check[last_loc]))
+				{
+					packet_found = false;
+				}
+				cnt++;
+			}
       
-		  if(!packet_found)
-		delete(en);
+			if(!packet_found)
+				delete(en);
 		}
 		while(!packet_found);
     

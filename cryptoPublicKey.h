@@ -773,7 +773,7 @@ namespace crypto
 		 * @param [in] publicN Public key to be encoded against, NULL by default
 		 * @return void
 		 */
-		void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const;
+		void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN=NULL) const;
 		/** @brief Data encode against number
 		 * @param [in/out] code Data to be encoded
 		 * @param [in] codeLength Length of code array

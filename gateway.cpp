@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   4/2/2016
+ * @date   4/3/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -112,6 +112,7 @@ namespace crypto {
 			pkfrm=pkfrm->getCopy();
 			pkfrm->setKeySize(_prefferedPublicKeySize);
 			tpbk=_user->findPublicKey(pkfrm);
+			if(tpbk && !tpbk->getN()) tpbk=NULL;
 		}
 		
 		//Only bind if the size is valid
@@ -218,7 +219,6 @@ namespace crypto {
 	os::smart_ptr<message> gatewaySettings::ping()
 	{
 		if(!_publicKey) return NULL;
-		
 		lock.increment();
 
 		uint16_t msgCount=0;
@@ -270,6 +270,14 @@ namespace crypto {
 /*---------------------------------------
 	Gateway
 ---------------------------------------*/
+
+	void logArray(uint8_t* arr,unsigned int len)
+	{
+		std::cout<<std::dec<<len<<std::endl;
+		for(unsigned int i=0;i<len;i++)
+			std::cout<<std::hex<<(int)arr[i];
+		std::cout<<std::endl;
+	}
 
 	//Construct the gateway
     gateway::gateway(os::smart_ptr<user> usr,std::string groupID)
@@ -398,7 +406,7 @@ namespace crypto {
 						else
 						{
 							unsigned int hashLen;
-							auto dat=keyList[i]->key()->getCompCharData(hashLen);
+							os::smart_ptr<unsigned char> dat=keyList[i]->key()->getCompCharData(hashLen);
 							hash hsh=brotherStream->hashData(dat.get(),hashLen);
 							memcpy(hashArray.get()+i*brotherStream->hashSize(),hsh.data(),hsh.size());
 						}
@@ -407,8 +415,38 @@ namespace crypto {
 			}
 			if(!hashArray) listSize=0;
 
+			//Search for old keys based on input hashes
+			uint16_t secondaryKeySize=0;
+			unsigned int chrData;
+			os::smart_ptr<number> oldPK;
+			os::smart_ptr<publicKey> oldPKSignTarg;
+			os::smart_ptr<uint8_t> dat=selfPreciseKey->getCompCharData(chrData);
+			hash cpub=selfStream->hashData(dat.get(),chrData);
+			unsigned int secondaryHistory=~0;
+
+			//At this point, we know our brother does not know our current public key
+			if(eligibleKeys.size()>0 && !eligibleKeys.find(&cpub))
+			{
+				bool type;
+				for(auto htrc=eligibleKeys.getFirst();htrc && !oldPKSignTarg;htrc=htrc->getNext())
+				{
+					oldPKSignTarg=selfSettings->getUser()->searchKey(*htrc->getData(),secondaryHistory,type);
+				}
+				
+				if(oldPKSignTarg) oldPK=oldPKSignTarg->getOldN(secondaryHistory);
+				if(!oldPKSignTarg || !oldPK)
+				{
+					lock.release();
+					logError(errorPointer(new customError("Old Key Not Found","Old keys, as listed by the node's brother, could not be found"),os::shared_type),TIMEOUT_ERROR_STATE);
+					ret=currentError();
+					break;
+				}
+				secondaryKeySize=oldPKSignTarg->size();
+			}
+			
+
 			//Build output
-			ret=os::smart_ptr<message>(new message(2+16+2*selfPKFrame->keySize()*4+1+listSize*brotherStream->hashSize()),os::shared_type);
+			ret=os::smart_ptr<message>(new message(2+16+selfPKFrame->keySize()*4+2+secondaryKeySize*4+1+(1+listSize)*brotherStream->hashSize()),os::shared_type);
 			ret->data()[0]=message::SIGNING_MESSAGE;
 			ret->data()[1]=_currentState;
 			
@@ -466,7 +504,7 @@ namespace crypto {
 				if(!num)
 				{
 					lock.release();
-					logError(errorPointer(new customError("Could not Sign","Unexpected error occurred while attempting to sign a hash"),os::shared_type));
+					logError(errorPointer(new customError("Could not Sign","Unexpected error occurred while attempting to sign a hash"),os::shared_type),TIMEOUT_ERROR_STATE);
 					ret=currentError();
 					break;
 				}
@@ -480,22 +518,50 @@ namespace crypto {
 			memcpy(outputHashArray.get(),&secondaryStamp,8);
 			temp=selfStream->hashData(outputHashArray.get(),outputHashLength);
 			if(!selfSecondarySignatureHash || temp!=*selfSecondarySignatureHash) sec=true;
-			if(sec)
+			if(sec && eligibleKeys.size()<=0)  sec=false;
+			if(sec && secondaryKeySize>0)
 			{
+				dat=oldPK->getCompCharData(chrData);
+				cpub=brotherStream->hashData(dat.get(),chrData);
+
 				selfSecondarySignatureHash=os::smart_ptr<hash>(new hash(temp),os::shared_type);
+				os::smart_ptr<number> num;
+				if(temp.size()>secondaryKeySize*4) num=oldPKSignTarg->copyConvert(temp.data(),secondaryKeySize-1);
+				else num=oldPKSignTarg->copyConvert(temp.data(),temp.size());
+				num->data()[secondaryKeySize-1]&=(~(uint32_t)0)>>3;
+
+				try
+				{
+					num=oldPKSignTarg->decode(num,secondaryHistory);
+				}
+				catch(...){num=NULL;}
+				if(!num)
+				{
+					lock.release();
+					logError(errorPointer(new customError("Could not Sign","Unexpected error occurred while attempting to sign a hash"),os::shared_type),TIMEOUT_ERROR_STATE);
+					ret=currentError();
+					break;
+				}
+
+				memcpy(ret->data()+2+16+selfPKFrame->keySize()*4+2,cpub.data(),cpub.size());
+				os::smart_ptr<unsigned char> tdat=num->getCompCharData(chrData);
+				memcpy(ret->data()+2+16+selfPKFrame->keySize()*4+2+brotherStream->hashSize(),tdat.get(),secondaryKeySize*4);
 			}
 
-
 			//Valid hash list
-			ret->data()[2+16+2*selfPKFrame->keySize()*4]=listSize;
+			ret->data()[2+16+selfPKFrame->keySize()*4+2+secondaryKeySize*4+brotherStream->hashSize()]=listSize;
 			if(listSize>0)
-				memcpy(ret->data()+2+16+2*selfPKFrame->keySize()*4+1,hashArray.get(),listSize*brotherStream->hashSize());
+				memcpy(ret->data()+2+16+selfPKFrame->keySize()*4+2+secondaryKeySize*4+1+brotherStream->hashSize(),hashArray.get(),listSize*brotherStream->hashSize());
+			
+			//Bind secondary key size
+			secondaryKeySize=os::to_comp_mode(secondaryKeySize);
+			memcpy(ret->data()+2+16+selfPKFrame->keySize()*4,&secondaryKeySize,2);
+
 			selfSigningMessage=ret;
 
 			lock.release();
 
 			ret=encrypt(ret);
-
 			if(!ret) ret=currentError();
 		}
 			break;
@@ -506,6 +572,9 @@ namespace crypto {
 			ret->data()[0]=message::SECURE_DATA_EXCHANGE;
 			ret->data()[1]=_currentState;
 			ret->data()[2]=0;
+
+			ret=encrypt(ret);
+			if(!ret) ret=currentError();
 			break;
 
 		//Error State
@@ -541,6 +610,27 @@ namespace crypto {
 		_messageSent=os::getTimestamp();
 		stampLock.release();
 		return ret;
+	}
+	//Send a message through the gateway
+	os::smart_ptr<message> gateway::send(os::smart_ptr<message> msg)
+	{
+		msg=encrypt(msg);
+		if(!msg) msg=currentError();
+
+		//No message to return
+		if(!msg)
+		{
+			logError(errorPointer(new customError("Message Undefined",
+					"Current system state does not define a message to be returned"),os::shared_type));
+			msg=currentError();
+			if(!msg) return NULL;
+		}
+
+		//Timestamp out
+		stampLock.acquire();
+		_messageSent=os::getTimestamp();
+		stampLock.release();
+		return msg;
 	}
 	//Process message
 	os::smart_ptr<message> gateway::processMessage(os::smart_ptr<message> msg)
@@ -660,7 +750,7 @@ namespace crypto {
 				streamMessageIn=msg;
 				uint16_t keySize=msg->size()-2;
 				uint8_t* strmKey=new uint8_t[keySize];
-				memcpy(strmKey,streamMessageOut->data()+2,msg->size()-2);
+				memcpy(strmKey,streamMessageIn->data()+2,msg->size()-2);
 
 				selfPublicKey->readLock();
 				unsigned int hist;
@@ -698,7 +788,7 @@ namespace crypto {
 			}
 			if(!msg) return NULL;
 
-			uint64_t tstamp;
+			uint64_t tstamp=0;
 			bool keyInRecord=false;
 
 			lock.acquire();
@@ -725,7 +815,7 @@ namespace crypto {
 				}
 				catch(...){num2=NULL;}
 
-				if(tHash.size()>selfPKFrame->keySize()*4) num1=selfPKFrame->convert(tHash.data(),brotherPKFrame->keySize()*4);
+				if(tHash.size()>brotherPKFrame->keySize()*4) num1=brotherPKFrame->convert(tHash.data(),brotherPKFrame->keySize()*4);
 				else num1=brotherPKFrame->convert(tHash.data(),tHash.size());
 				num1->data()[brotherPKFrame->keySize()-1]&=(~(uint32_t)0)>>3;
 
@@ -738,12 +828,12 @@ namespace crypto {
 				brotherPrimarySignatureHash=os::smart_ptr<hash>(new hash(tHash),os::shared_type);
 			}
 
-			//Find user, check if we already are check a known public key
+			//Find user, check if we already are checking a known public key
 			os::smart_ptr<keyBank> bank=selfSettings->getUser()->getKeyBank();
 			if(!bank)
 			{
 				lock.release();
-				logError(errorPointer(new customError("No Key Bank Found","The user does not have a key bank"),os::shared_type),TIMEOUT_ERROR_STATE);
+				logError(errorPointer(new customError("No Key Bank Found","The user does not have a key bank"),os::shared_type));
 				return NULL;
 			}
 			os::smart_ptr<nodeGroup> node=bank->find(brotherSettings->groupID(),brotherSettings->nodeName());
@@ -761,11 +851,74 @@ namespace crypto {
 				return NULL;
 			}
 			tHash=brotherStream->hashData(inputHashArray.get(),inputHashLength);
-			if(!keyInRecord && (!brotherSecondarySignatureHash || tHash!=*brotherSecondarySignatureHash))
-			{
+			uint16_t secondaryKeySize;
+			memcpy(&secondaryKeySize,msg->data()+2+16+brotherPKFrame->keySize()*4,2);
+			secondaryKeySize=os::from_comp_mode(secondaryKeySize);
 
+			//Confirmed that we actually need to process the signature
+			if(secondaryKeySize>0 && !keyInRecord && (!brotherSecondarySignatureHash || tHash!=*brotherSecondarySignatureHash))
+			{
+				hash secondKeyHsh=selfStream->hashCopy(msg->data()+2+16+brotherPKFrame->keySize()*4+2);
+
+				//Try and find key
+				unsigned int listSize;
+				os::smart_ptr<os::smart_ptr<nodeKeyReference> > keyList=node->keysByTimestamp(listSize);
+				os::smart_ptr<nodeKeyReference> secKey;
+				for(unsigned int i=0;i<5 && i<listSize && !secKey;i++)
+				{
+					unsigned int datLen=0;
+					auto tdat=keyList[i]->key()->getCompCharData(datLen);
+					hash comp=selfStream->hashData(tdat.get(),datLen);
+					if(comp==secondKeyHsh)
+						secKey=keyList[i];
+				}
+				if(!secKey || secKey->keySize()!=secondaryKeySize)
+				{
+					lock.release();
+					logError(errorPointer(new customError("Key Not Found","The key our brother used to establish identity is not recognized"),os::shared_type),TIMEOUT_ERROR_STATE);
+					return NULL;
+				}
+				os::smart_ptr<publicKeyPackageFrame> secPKFrame= publicKeyTypeBank::singleton()->findPublicKey(secKey->algoID());
+				if(!secPKFrame)
+				{
+					lock.release();
+					logError(errorPointer(new customError("Algorithm Not Found","The key our brother used to establish identity uses an algorithm which is undefined"),os::shared_type),TIMEOUT_ERROR_STATE);
+					return NULL;
+				}
+				secPKFrame=secPKFrame->getCopy();
+				secPKFrame->setKeySize(secKey->keySize());
+
+				//Preform signature
+				os::smart_ptr<number> num1;
+				os::smart_ptr<number> num2=secPKFrame->convert(msg->data()+2+16+brotherPKFrame->keySize()*4+2+selfStream->hashSize(),secPKFrame->keySize()*4);
+				try
+				{
+					num2=secPKFrame->encode(num2,secKey->key());
+				}
+				catch(...){num2=NULL;}
+
+				if(tHash.size()>secPKFrame->keySize()*4) num1=secPKFrame->convert(tHash.data(),secPKFrame->keySize()*4);
+				else num1=secPKFrame->convert(tHash.data(),tHash.size());
+				num1->data()[secPKFrame->keySize()-1]&=(~(uint32_t)0)>>3;
+
+				if(!num2 || *num1!=*num2)
+				{
+					lock.release();
+					logError(errorPointer(new customError("Signature Failure","The brother failed to sign the hash."),os::shared_type),TIMEOUT_ERROR_STATE);
+					return NULL;
+				}
+				brotherSecondarySignatureHash=os::smart_ptr<hash>(new hash(tHash),os::shared_type);
 			}
 
+			//Read in our possible hash targets
+			uint8_t arrLen=msg->data()[2+16+brotherPKFrame->keySize()*4+2+secondaryKeySize*4+selfStream->hashSize()];
+			eligibleKeys=os::unsortedList<hash>();
+			for(unsigned int i=arrLen;i>0;i--)
+			{
+				eligibleKeys.insert(os::smart_ptr<hash>(
+					new hash(selfStream->hashCopy(msg->data()+2+16+brotherPKFrame->keySize()*4+2+secondaryKeySize*4+1+i*selfStream->hashSize())),os::shared_type));
+			}
+			
 			//This case means the connection is authenticated
 			if((node&&(brotherSecondarySignatureHash || keyInRecord)) || !node)
 			{
@@ -1024,10 +1177,10 @@ namespace crypto {
 		streamEstTimestamp=os::getTimestamp();
 		unsigned int keySize=brotherPKFrame->keySize()*sizeof(uint32_t);
 		os::smart_ptr<uint8_t> strmKey(new uint8_t[keySize],os::shared_type_array);
-		for(unsigned int i=0;i<keySize;i++)
+		memset(strmKey.get(),0,keySize);
+		for(unsigned int i=0;i<keySize-1;i++)
 			strmKey[i]=rand();
 		os::smart_ptr<number> temp=brotherPKFrame->convert(strmKey.get(),keySize);
-		temp->modulo(brotherPublicKey.get(),temp.get());
 		strmKey=temp->getCompCharData(keySize);
 
 		streamMessageOut=os::smart_ptr<message>(new message(keySize+2),os::shared_type);
@@ -1050,6 +1203,7 @@ namespace crypto {
 
 		lock.release();
 	}
+	
 	//Encrypt a message
 	os::smart_ptr<message> gateway::encrypt(os::smart_ptr<message> msg)
 	{
@@ -1112,13 +1266,14 @@ namespace crypto {
 			delete [] oldData;
 			return NULL;
 		}
-		os::to_comp_mode(encryTag);
+		encryTag=os::to_comp_mode(encryTag);
 		memcpy(msg->data()+2,&encryTag,2);
 
 		msg->_size=newSize;
 		msg->_messageSize=encrySize;
 		delete [] oldData;
 		lock.release();
+
 		return msg;
 	}
 	//Decrypt a message
@@ -1171,14 +1326,18 @@ namespace crypto {
 		}
 		msg->data()[0]=oldData[0];
 		uint16_t decryTag;
+		uint8_t* outptr;
 		memcpy(&decryTag,oldData+2,2);
 		decryTag=os::from_comp_mode(decryTag);
 		try
 		{
 			if(eDepth==1)
-				inputStream->recieveData(msg->data()+1,decrySize,decryTag);
+				outptr=inputStream->recieveData(msg->data()+1,decrySize,decryTag);
 			else
-				inputStream->recieveData(msg->data()+2,decrySize,decryTag);
+				outptr=inputStream->recieveData(msg->data()+2,decrySize,decryTag);
+
+			if(!outptr)
+				throw errorPointer(new customError("Decryption Failure","Gateway failed to decrypt a packet"),os::shared_type);
 		}
 		catch(errorPointer e)
 		{
@@ -1197,6 +1356,7 @@ namespace crypto {
 		msg->_messageSize=decrySize;
 		delete [] oldData;
 		lock.release();
+
 		return msg;
 	}
 	//Resets error flags
@@ -1212,6 +1372,7 @@ namespace crypto {
 		lock.release();
 	}
 
+	
 }
 
 #endif

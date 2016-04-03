@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   4/2/2016
+ * @date   4/3/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -163,12 +163,14 @@ namespace crypto {
 		os::smart_ptr<hash> selfPrimarySignatureHash;
 		os::smart_ptr<hash> selfSecondarySignatureHash;
 		os::smart_ptr<message> selfSigningMessage;
+		os::unsortedList<hash> eligibleKeys;
 
 		os::smart_ptr<uint8_t> inputHashArray;
 		uint16_t inputHashLength;
 		os::smart_ptr<hash> brotherPrimarySignatureHash;
 		os::smart_ptr<hash> brotherSecondarySignatureHash;
 		os::smart_ptr<message> brotherSigningMessage;
+		
 
 		void clearStream();
 		void buildStream();
@@ -187,6 +189,7 @@ namespace crypto {
 		virtual ~gateway(){}
 		
 		os::smart_ptr<message> getMessage();
+		os::smart_ptr<message> send(os::smart_ptr<message> msg);
 		os::smart_ptr<message> ping();
 		os::smart_ptr<message> processMessage(os::smart_ptr<message> msg);
 		void processTimestamps();
@@ -195,7 +198,6 @@ namespace crypto {
 		inline uint8_t brotherState() const {return _brotherState;}
 
 		inline bool secure() const {return _currentState==ESTABLISHED;}
-
 
 		uint64_t timeout() const {return _timeout;}
 		uint64_t safeTimeout() const {return _safeTimeout;}
