@@ -164,7 +164,7 @@ namespace test
                 memcpy(char2.get(),char1.get(),len);
 
                 pk1->encode(char1.get(),len);
-                pk1->publicKey::decode(char1.get(),len);
+                pk1->crypto::publicKey::decode(char1.get(),len);
                 for(unsigned i=0;i<len;i++)
 				{
 					if(char1[i]!=char2[i])
