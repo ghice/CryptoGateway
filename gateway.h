@@ -48,37 +48,133 @@ namespace crypto {
 	 */
 	class gatewaySettings: public keyChangeReceiver, public os::savable
 	{
-		/** @brief
+		/** @brief Group ID of the node, unique to this settings class
 		 */
 		std::string _groupID;
+		/** @brief Name of the node, defined by the user
+		 */
 		std::string _nodeName;
+		/** @brief Save file path
+		 *
+		 * If the setting was defined by the user and
+		 * not a "ping" message, it will often have a
+		 * save file location.
+		 */
 		std::string _filePath;
 
+		/** @brief Pointer to the user class
+		 */
 		os::smart_ptr<user> _user;
+		/** @brief Pointer to public/private key pair
+		 */
 		os::smart_ptr<publicKey> _privateKey;
+		/** @brief Pointer to the public key
+		 */
 		os::smart_ptr<number> _publicKey;
 
+		/** @brief Public key algorithm ID
+		 */
 		uint16_t _prefferedPublicKeyAlgo;
+		/** @brief Public key size (uint32_t size)
+		 */
 		uint16_t _prefferedPublicKeySize;
+		/** @brief Hash algorithm ID
+		 */
 		uint16_t _prefferedHashAlgo;
+		/** @brief Hash size (in bytes)
+		 */
 		uint16_t _prefferedHashSize;
+		/** @brief Stream algorithm ID
+		 */
 		uint16_t _prefferedStreamAlgo;
 	protected:
+		/** @brief Triggered when the public key is changed
+		 *
+		 * Updates the gateway settings when the user indicates
+		 * a public key has been updated.
+		 *
+		 * @param [in] pbk Updated public/private key pair
+		 * @return void
+		 */
 		void publicKeyChanged(os::smart_ptr<publicKey> pbk);
 	public:
+		/** @brief Read/write mutex
+		 *
+		 * When this class is defined by a user, it is
+		 * possible for the user to change the gateway
+		 * settings during runtime.  Because of this,
+		 * a read/write lock is required.
+		 */
 		os::multiLock lock;
 
-		gatewaySettings(os::smart_ptr<user> usr, std::string groupID, std::string filePath);
+		/** @brief User constructor
+		 *
+		 * Constructs the class from a user.  While this
+		 * constructor can be called ouside the user class,
+		 * it is suggested to use the interface provided in
+		 * crypto::user to create new gateway settings.
+		 *
+		 * @param [in] usr User defining the settings
+		 * @param [in] groupID Group ID of the settings
+		 * @param [in] filePath Save file location (optional)
+		 */
+		gatewaySettings(os::smart_ptr<user> usr, std::string groupID, std::string filePath="");
+		/** @brief Ping message constructor
+		 *
+		 * Constructs the gateway settings from a ping message.
+		 * This is usually used by the gateway to parse ping messages
+		 * it receives.
+		 *
+		 * @param [in] msg Ping message
+		 */
 		gatewaySettings(const message& msg);
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
 		virtual ~gatewaySettings();
 
+		/** @brief Generate XML save stree
+		 * @return XML save tree
+		 */
 		os::smartXMLNode generateSaveTree();
+		/** @brief Ensure preffered algorithms are defined
+		 *
+		 * Uses current information in the class to determine
+		 * if known algorithms define the preffered algorithms
+		 * in this class.  If the preffered algorithms are not
+		 * defined, they are changed to defined algorithms.
+		 *
+		 * @return void
+		 */
 		void update();
+		/** @brief Saves the class to a file
+		 * Saves the settings to an XML file,
+		 * if the file path is defined.
+		 * @return void
+		 */
 		void save();
+		/** @brief Loads the class from a file
+		 * Loads the settings from an XML file,
+		 * if the file path is defined.
+		 * @return void
+		 */
 		void load();
 
+		/** @brief Return reference to the file path
+		 * @return gatewaySettings::_filePath
+		 */
 		const std::string& filePath() const {return _filePath;}
+		/** @brief Return reference to the group ID
+		 * @return gatewaySettings::_groupID
+		 */
 		const std::string& groupID() const {return _groupID;}
+		/** @brief Return reference to the node name
+		 * @return gatewaySettings::_nodeName
+		 */
 		const std::string& nodeName() const {return _nodeName;}
 
 		inline os::smart_ptr<user> getUser() {return _user;}

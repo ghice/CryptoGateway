@@ -271,14 +271,6 @@ namespace crypto {
 	Gateway
 ---------------------------------------*/
 
-	void logArray(uint8_t* arr,unsigned int len)
-	{
-		std::cout<<std::dec<<len<<std::endl;
-		for(unsigned int i=0;i<len;i++)
-			std::cout<<std::hex<<(int)arr[i];
-		std::cout<<std::endl;
-	}
-
 	//Construct the gateway
     gateway::gateway(os::smart_ptr<user> usr,std::string groupID)
 	{
