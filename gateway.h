@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   4/3/2016
+ * @date   4/6/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -177,8 +177,17 @@ namespace crypto {
 		 */
 		const std::string& nodeName() const {return _nodeName;}
 
+		/** @brief Return user, if it is defined
+		 * @return gatewaySettings::_user
+		 */
 		inline os::smart_ptr<user> getUser() {return _user;}
+		/** @brief Return public/private key pair, if it is defined
+		 * @return gatewaySettings::_privateKey
+		 */
 		inline os::smart_ptr<publicKey> getPrivateKey() {return _privateKey;}
+		/** @brief Return public key
+		 * @return gatewaySettings::_publicKey
+		 */
 		inline os::smart_ptr<number> getPublicKey() {return _publicKey;}
 
 		inline uint16_t prefferedPublicKeyAlgo() const {return _prefferedPublicKeyAlgo;}
@@ -187,6 +196,9 @@ namespace crypto {
 		inline uint16_t prefferedHashSize() const {return _prefferedHashSize;}
 		inline uint16_t prefferedStreamAlgo() const {return _prefferedStreamAlgo;}
 
+		/** @brief Construct a ping message
+		 * @return New ping message
+		 */
 		os::smart_ptr<message> ping();
 
 		bool operator==(const gatewaySettings& cmp) const{return _groupID==cmp._groupID;}
