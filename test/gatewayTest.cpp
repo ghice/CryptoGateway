@@ -787,7 +787,58 @@ using namespace crypto;
 		if(msg2->data()[0]!=message::SECURE_DATA_EXCHANGE)
 			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected message in gateway 2 (Mark7)",locString),os::shared_type);
 	}
-
+    //Secure gateway through another gateway
+    void gatewayForwardTest() throw (os::smart_ptr<std::exception>)
+    {
+        std::string locString = "gatewayTest.cpp, messagePassGatewayTest()";
+        
+        user usr1("testUser1","");
+        usr1.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public128)));
+        
+        user usr2("testUser2","");
+        usr2.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public256)));
+        
+        user usr3("testUser3","");
+        usr3.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public128,1)));
+        
+        //A gateways
+        gateway gtw1a(&usr1);
+        gateway gtw2a(&usr2);
+        os::smart_ptr<message> msg1;
+        os::smart_ptr<message> msg2;
+        int cnt=0;
+        while(!(gtw1a.secure()&&gtw2a.secure()) && cnt<10)
+        {
+            msg1=gtw1a.getMessage();
+            msg2=gtw2a.getMessage();
+            gtw1a.processMessage(msg2);
+            gtw2a.processMessage(msg1);
+            cnt++;
+        }
+        
+        //B gateways
+        gateway gtw1b(&usr2);
+        gateway gtw2b(&usr3);
+        cnt=0;
+        while(!(gtw1b.secure()&&gtw2b.secure()) && cnt<10)
+        {
+            msg1=gtw1b.getMessage();
+            msg2=gtw2b.getMessage();
+            gtw1b.processMessage(msg2);
+            gtw2b.processMessage(msg1);
+            cnt++;
+        }
+        
+        //Check if gateways are secured
+        if(!gtw1a.secure())
+            throw os::smart_ptr<std::exception>(new generalTestException("Gateway 1A failed to secure",locString),os::shared_type);
+        if(!gtw2a.secure())
+            throw os::smart_ptr<std::exception>(new generalTestException("Gateway 2A failed to secure",locString),os::shared_type);
+        if(!gtw1b.secure())
+            throw os::smart_ptr<std::exception>(new generalTestException("Gateway 1B failed to secure",locString),os::shared_type);
+        if(!gtw2b.secure())
+            throw os::smart_ptr<std::exception>(new generalTestException("Gateway 2B failed to secure",locString),os::shared_type);
+    }
 
 /*================================================================
 	Bind Suites
@@ -821,6 +872,7 @@ using namespace crypto;
 		pushTest("Full Connect",&connectGatewayTest);
 		pushTest("Message Passing",&messagePassGatewayTest);
 		pushTest("Old Key Signing",&oldKeySigningTest);
+        pushTest("Gateway Forwarding",&gatewayForwardTest);
     }
 
 #endif
