@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   4/3/2016
+ * @date   4/10/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -321,6 +321,7 @@ namespace crypto {
 			}
 
 		//Bind self settings
+            selfSettings->lock.increment();
 			lock.acquire();
 			selfStream=streamPackageTypeBank::singleton()->findStream(selfSettings->prefferedStreamAlgo(),selfSettings->prefferedHashAlgo());
 			selfPKFrame=publicKeyTypeBank::singleton()->findPublicKey(selfSettings->prefferedPublicKeyAlgo());
@@ -329,6 +330,7 @@ namespace crypto {
 			if(!selfStream || !selfPKFrame)
 			{
 				lock.release();
+                selfSettings->lock.decrement();
 				logError(errorPointer(new illegalAlgorithmBind("ILLEGAL ALGO"),os::shared_type));
 				ret=currentError();
 				break;
@@ -338,6 +340,7 @@ namespace crypto {
 			selfStream->setHashSize(selfSettings->prefferedHashSize());
 			selfPKFrame->setKeySize(selfSettings->prefferedPublicKeySize());
 			lock.release();
+            selfSettings->lock.decrement();
 
 			break;
 		//Until we are signing, establish the stream
@@ -758,6 +761,7 @@ namespace crypto {
 				memcpy(inputHashArray.get()+8,strmKey,keySize);
 				memcpy(inputHashArray.get()+8+keySize,brotherSettings->groupID().c_str(),brotherSettings->groupID().length());
 				memcpy(inputHashArray.get()+8+keySize+size::GROUP_SIZE,brotherSettings->nodeName().c_str(),brotherSettings->nodeName().length());
+                
 				memcpy(inputHashArray.get()+8+keySize+size::NAME_SIZE+size::GROUP_SIZE,selfSettings->groupID().c_str(),selfSettings->groupID().length());
 				memcpy(inputHashArray.get()+8+keySize+size::NAME_SIZE+2*size::GROUP_SIZE,selfSettings->nodeName().c_str(),selfSettings->nodeName().length());
 
@@ -1020,10 +1024,13 @@ namespace crypto {
 	//Ping message
 	os::smart_ptr<message> gateway::ping()
 	{
+        selfSettings->lock.increment();
 		selfSettings->getPrivateKey()->readLock();
 		os::smart_ptr<message> ret=selfSettings->ping();
 		if(!ret)
 		{
+            selfSettings->getPrivateKey()->readUnlock();
+            selfSettings->lock.increment();
 			logError(errorPointer(new customError("Ping Message Undefined",
 				"Settings inside the gateway could not generate a ping message"),os::shared_type));
 			return NULL;
@@ -1031,6 +1038,7 @@ namespace crypto {
 		ret->data()[1]=_currentState;
 		selfPreciseKey=selfSettings->getPrivateKey()->getN();
 		selfSettings->getPrivateKey()->readUnlock();
+        selfSettings->lock.decrement();
 		return ret;
 	}
 	//Process timestamp differences
