@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   4/7/2016
+ * @date   4/10/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -629,29 +629,134 @@ namespace crypto {
 		void purgeLastError();
 
 	protected:
+		/** @brief Logs an error, with an error type
+		 *
+		 * Wraps the "logError" funciton as defined by
+		 * the crypto::errorSender class, also sets this
+		 * particular gateway into some error state.
+		 *
+		 * @param [in] elm Error description
+		 * @param [in] errType Error level to determine timeout
+		 *
+		 * @return void
+		 */
 		void logError(errorPointer elm,uint8_t errType);
+		/** @brief Logs an error, with type basic
+		 *
+		 * Sets this particular gateway into a default error
+		 * state by calling "logError" with a type.
+		 *
+		 * @param [in] elm Eror description
+		 * @return void
+		 */
 		void logError(errorPointer elm) {logError(elm,BASIC_ERROR_STATE);}
 	public:
+		/** @brief Gateway constructor
+		 *
+		 * Constructs a gateway from a user and
+		 * a group ID.  This initializes all gateway
+		 * variables and binds the user settings to this
+		 * gateway.
+		 *
+		 * @param [in] usr User sending information through this gateway
+		 * @param [in] groupID Defines group ID, "default" by default
+		 */
 		gateway(os::smart_ptr<user> usr,std::string groupID="default");
+		/** @brief Virtual destructor
+         *
+         * Destructor must be virtual, if an object
+         * of this type is deleted, the destructor
+         * of the type which inherits this class should
+         * be called.
+         */
 		virtual ~gateway(){}
 		
+		/** @brief Returns next message from the gateway
+		 *
+		 * The function only returns the next message
+		 * from the gateway's perspective.  Gateway
+		 * management messages are returned by this
+		 * function.
+		 *
+		 * @return Next management message
+		 */
 		os::smart_ptr<message> getMessage();
+		/** @brief Send message through the gateway
+		 *
+		 * Takes a message and encrypts it with the
+		 * gateway, assuming the secure stream has
+		 * been established.  Returns an encrypted
+		 * version of the message sent through the gateway.
+		 *
+		 * @param [in] msg Message to be encrypted
+		 * @return Encrypted message
+		 */
 		os::smart_ptr<message> send(os::smart_ptr<message> msg);
+		/** @brief Ping message
+		 *
+		 * Returns the ping message as defined
+		 * by the gatewaySettings in this gateway.
+		 *
+		 * @return Ping message for this user
+		 */
 		os::smart_ptr<message> ping();
+		/** @brief Process incoming message
+		 *
+		 * Decrypts and processes an incoming message.
+		 * Note that messages must be coming from the
+		 * brother gateway of this gateway.
+		 *
+		 * @param [in] msg Message to be processed
+		 * @return Decrypted message
+		 */
 		os::smart_ptr<message> processMessage(os::smart_ptr<message> msg);
+		/** @brief Cycle time-stamp data
+		 *
+		 * Compares registered time-stamps with the
+		 * current time to determine if any state
+		 * changes need to be made.
+		 *
+		 * @return void
+		 */
 		void processTimestamps();
 
+		/** @brief This gateway's status
+		 * @return gateway::_currentState
+		 */
 		inline uint8_t currentState() const {return _currentState;}
+		/** @brief Brother gateway status
+		 * @return gateway::_brotherState
+		 */
 		inline uint8_t brotherState() const {return _brotherState;}
-
+		/** @brief Gateway security established
+		 * @return true if established, else, false
+		 */
 		inline bool secure() const {return _currentState==ESTABLISHED;}
 
-		uint64_t timeout() const {return _timeout;}
-		uint64_t safeTimeout() const {return _safeTimeout;}
-		uint64_t errorTimeout() const {return _errorTimeout;}
-		uint64_t timeMessageReceived() const {return _messageReceived;}
-		uint64_t timeMessageSent() const {return _messageSent;}
-		uint64_t timeLastError() const {return _errorTimestamp;}
+		/** @brief Current receiver-side timeout value
+		 * @return gateway::_timeout
+		 */
+		inline uint64_t timeout() const {return _timeout;}
+		/** @brief Current sender-side timeout value
+		 * @return gateway::_safeTimeout
+		 */
+		inline uint64_t safeTimeout() const {return _safeTimeout;}
+		/** @brief Current error timeout value
+		 * @return gateway::_errorTimeout
+		 */
+		inline uint64_t errorTimeout() const {return _errorTimeout;}
+		/** @brief Time-stamp of the last received message
+		 * @return gateway::_messageReceived
+		 */
+		inline uint64_t timeMessageReceived() const {return _messageReceived;}
+		/** @brief Time-stamp of the last sent message
+		 * @return gateway::_messageSent
+		 */
+		inline uint64_t timeMessageSent() const {return _messageSent;}
+		/** @brief Time-stamp of the last error
+		 * @return gateway::_errorTimestamp
+		 */
+		inline uint64_t timeLastError() const {return _errorTimestamp;}
 	};
 
 }
