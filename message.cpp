@@ -1,7 +1,7 @@
 /**
  * @file   message.cpp
  * @author Jonathan Bedard
- * @date   4/2/2016
+ * @date   4/16/2016
  * @brief  Crypto-Gateway message implementation
  * @bug No known bugs.
  *
@@ -19,12 +19,14 @@
 #include "message.h"
 #include "cryptoError.h"
 
+#define MAX_EXM 500
 namespace crypto {
 	
 	//Build an encrypted message from raw data
 	message message::encryptedMessage(uint8_t* rawData,uint16_t sz)
 	{
 		message ret(sz);
+		memcpy(ret.data(),rawData,sz);
 		if(rawData[0]==message::BLOCKED || rawData[0]==message::PING ||
 			rawData[0]==message::STREAM_KEY || rawData[0]==message::CONFIRM_ERROR ||
 			rawData[0]==message::BASIC_ERROR ||
@@ -63,6 +65,47 @@ namespace crypto {
 		_size=msg._size;
 		_messageSize=msg._messageSize;
 		_encryptionDepth=msg._encryptionDepth;
+	}
+	//Add string to to the message
+	bool message::pushString(std::string s)
+	{
+		if(encrypted()) return false;
+
+		//Bound checks
+		if(s.length()>255)
+		{
+			cryptoerr<<"String length greater than allowed!  Returning true to exit logic"<<std::endl;
+			return true;
+		}
+		if(_size+s.length()+1>MAX_EXM)
+			return false;
+		int old_len = _size;
+
+		uint8_t* tdat=_data;
+		tdat=new uint8_t[_size+s.length()+1];
+
+		memcpy(tdat,_data,_size);
+		memcpy(tdat+_size,s.c_str(),s.length());
+
+		tdat[_size+s.length()]=s.length();
+		delete [] _data;
+		_data=tdat;
+		_size=_size+s.length()+1;
+		_messageSize=_messageSize+s.length()+1;
+		return true;
+	}
+	//Remove string from message
+	std::string message::popString()
+	{
+		if(encrypted()) return "";
+
+		int strLen=_data[_size-1];
+		_data[_size-1]=0;
+		if(strLen+1>_size) return "";
+
+		_size=_size-(strLen+1);
+		_messageSize=_messageSize-(strLen+1);
+		return std::string((char*)_data+_size);
 	}
 }
 

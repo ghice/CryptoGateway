@@ -1,7 +1,7 @@
 /**
  * @file	CryptoGateway.h
  * @author	Jonathan Bedard
- * @date   	3/9/2016
+ * @date   	4/16/2016
  * @brief	Global include file
  * @bug	None
  *
@@ -23,14 +23,7 @@ namespace crypto
 }
 
 #include "cryptoLogging.h"
-#include "file_mechanics.h"
-#include "interior_message.h"
-#include "large_number.h"
-#include "public_key.h"
-#include "streamCipher.h"
 #include "RC4_Hash.h"
-
-#include "security_gateway.h"
 
 #include "binaryEncryption.h"
 #include "XMLEncryption.h"

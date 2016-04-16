@@ -1,7 +1,7 @@
 /**
  * @file   message.h
  * @author Jonathan Bedard
- * @date   4/6/2016
+ * @date   4/16/2016
  * @brief  Crypto-Gateway message
  * @bug No known bugs.
  *
@@ -140,6 +140,14 @@ namespace crypto {
 		 * @return True if encrypted, else, false
 		 */
 		inline bool encrypted() const {return _encryptionDepth;}
+		/** @brief Add string to this message
+		 * @return True if successful
+		 */
+		bool pushString(std::string s);
+		/** @brief Remove string from this message
+		 * @return Next string to remove
+		 */
+		std::string popString();
 		
 		/** @brief Blocked message tag
 		 *

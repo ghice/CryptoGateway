@@ -1,7 +1,7 @@
 /**
  * @file	user.h
  * @author	Jonathan Bedard
- * @date   	3/20/2016
+ * @date   	4/14/2016
  * @brief	Definition of the CryptoGateway user
  * @bug	None
  *
@@ -196,6 +196,10 @@ namespace crypto {
 		 * @return crypto::user::_passwordLength
 		 */
 		unsigned int passwordLength() const {return _passwordLength;}
+		/** @brief Access save directory
+		 * @return crypto::user::_saveDir + username
+		 */
+		std::string directory() const {return _saveDir+"/"+_username;}
 		/** @brief Access streaming package
 		 * @return crypto::user::_streamPackage
 		 */

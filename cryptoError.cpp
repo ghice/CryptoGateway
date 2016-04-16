@@ -1,7 +1,7 @@
 /**
  * @file	cryptoError.cpp
  * @author	Jonathan Bedard
- * @date   	2/22/2016
+ * @date   	4/16/2016
  * @brief	Implementation of error sender and listener
  * @bug	None
  *
@@ -98,7 +98,13 @@ namespace crypto {
 	errorPointer errorSender::popError()
 	{
 		listenerLock.acquire();
-		errorPointer ptr=errorLog.getLast()->getData();
+		auto tem=errorLog.getLast();
+		if(!tem)
+		{
+			listenerLock.release();
+			return NULL;
+		}
+		errorPointer ptr=tem->getData();
 		errorLog.findDelete(ptr);
 		listenerLock.release();
 		return ptr;

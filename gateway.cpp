@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   4/10/2016
+ * @date   4/15/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -288,7 +288,8 @@ namespace crypto {
 
 		_timeout=DEFAULT_TIMEOUT;
 		_safeTimeout=3*_timeout/4;
-		_errorTimeout=DEFAULT_ERROR_TIMEOUT;
+		//_errorTimeout=DEFAULT_ERROR_TIMEOUT;
+		_errorTimeout=10;
 		_messageReceived=0;
 		_messageSent=0;
 		_errorTimestamp=0;
@@ -552,8 +553,7 @@ namespace crypto {
 			secondaryKeySize=os::to_comp_mode(secondaryKeySize);
 			memcpy(ret->data()+2+16+selfPKFrame->keySize()*4,&secondaryKeySize,2);
 
-			selfSigningMessage=ret;
-
+			selfSigningMessage=os::smart_ptr<message>(new message(*ret),os::shared_type);
 			lock.release();
 
 			ret=encrypt(ret);
@@ -656,7 +656,7 @@ namespace crypto {
 				&& _currentState!=SETTINGS_EXCHANGED && _currentState!=CONFIRM_ERROR_STATE)
 			{
 				lock.release();
-				logError(errorPointer(new customError("Ping Received Error","Current state could not send a stream key"),os::shared_type));
+				logError(errorPointer(new customError("Ping Received Error","Current state could not receive a stream key"),os::shared_type));
 				return NULL;
 			}
 
@@ -679,7 +679,7 @@ namespace crypto {
 
 			//Bind state and brother state
 			_brotherState=msg->data()[1];
-			if(_currentState==UNKNOWN_BROTHER || _currentState==SETTINGS_EXCHANGED)
+			if(_currentState==UNKNOWN_BROTHER || _currentState==SETTINGS_EXCHANGED || _currentState==CONFIRM_ERROR_STATE)
 			{
 				if(_brotherState==SETTINGS_EXCHANGED) _currentState=ESTABLISHING_STREAM;
 				else _currentState=SETTINGS_EXCHANGED;
@@ -774,7 +774,8 @@ namespace crypto {
 		//Sign a message
 		case message::SIGNING_MESSAGE:
 		{
-			if(_currentState==ESTABLISHED) return NULL;
+			if(_currentState==ESTABLISHED)
+				return NULL;
 			if(_currentState==STREAM_ESTABLISHED || _currentState==SIGNING_STATE || _currentState==CONFIRM_OLD)
 				msg=decrypt(msg);
 			else
@@ -935,14 +936,25 @@ namespace crypto {
 
 		//Settings exchange
 		case message::SECURE_DATA_EXCHANGE:
-			if(_currentState!=ESTABLISHED)
+			if(_currentState!=ESTABLISHED && _currentState!=CONFIRM_OLD)
 			{
 				logError(errorPointer(new customError("Invalid State","Cannot receive a data-exchange message when not secured"),os::shared_type),TIMEOUT_ERROR_STATE);
 				return NULL;
 			}
+
 			msg=decrypt(msg);
 			if(!msg) return NULL;
 
+			_brotherState=msg->data()[1];
+			if(_brotherState!=ESTABLISHED)
+			{
+				logError(errorPointer(new customError("Invalid Brother State","Cannot send a data-exchange message when not secured"),os::shared_type),TIMEOUT_ERROR_STATE);
+				return NULL;
+			}
+			if(_currentState==CONFIRM_OLD)
+				_currentState=ESTABLISHED;
+			
+			
 			//No parsing a settings exchange yet
 
 			break;
@@ -962,6 +974,7 @@ namespace crypto {
 			_currentState=CONFIRM_ERROR_STATE;
 			tempCnt1=2;
 			lock.release();
+			if(msg->size()==2) return msg;
 
 			memcpy(&tempCnt2,msg->data()+tempCnt1,2);
 			tempCnt2=os::from_comp_mode(tempCnt2);
@@ -973,7 +986,7 @@ namespace crypto {
 			tempChar1=new char[tempCnt2+1];
 			memset(tempChar1,0,tempCnt2+1);
 			tempCnt1+=2;
-			memcpy(&tempChar1,msg->data()+tempCnt1,tempCnt2);
+			memcpy(tempChar1,msg->data()+tempCnt1,tempCnt2);
 
 			tempCnt1+=tempCnt2;
 			memcpy(&tempCnt2,msg->data()+tempCnt1,2);
@@ -987,8 +1000,7 @@ namespace crypto {
 			tempChar2=new char[tempCnt2+1];
 			memset(tempChar2,0,tempCnt2+1);
 			tempCnt1+=2;
-			memcpy(&tempChar2,msg->data()+tempCnt1,tempCnt2);
-
+			memcpy(tempChar2,msg->data()+tempCnt1,tempCnt2);
 			errorSender::logError(errorPointer(new customError("BrotherError: "+std::string(tempChar1),std::string(tempChar2)),os::shared_type));
 
 			delete [] tempChar1;
@@ -1092,9 +1104,9 @@ namespace crypto {
 			ret->data()[1]=_currentState;
 			return ret;
 		}
-			ret=os::smart_ptr<message>(new message(6+_lastError->errorTitle().length()+_lastError->errorDescription().length()),os::shared_type);
-			ret->data()[0]=_lastErrorLevel;
-			ret->data()[1]=_currentState;
+		ret=os::smart_ptr<message>(new message(6+_lastError->errorTitle().length()+_lastError->errorDescription().length()),os::shared_type);
+		ret->data()[0]=_lastErrorLevel;
+		ret->data()[1]=_currentState;
 			
 		uint16_t tempCnt1=2;
 		uint16_t tempCnt2=_lastError->errorTitle().length();
@@ -1113,6 +1125,15 @@ namespace crypto {
 		lock.release();
 		return ret;
 	}
+	//Returns brother data
+	os::smart_ptr<nodeGroup> gateway::brotherNode()
+	{
+		os::smart_ptr<nodeGroup> ret;
+		if(!secure()) return NULL;
+		if(!brotherSettings) return NULL;
+		ret=selfSettings->getUser()->getKeyBank()->find(brotherSettings->groupID(),brotherSettings->nodeName());
+		return ret;
+	}
 
 //Private Functions-----------------------------------------------------------
 
@@ -1124,12 +1145,24 @@ namespace crypto {
 		switch(errType)
 		{
 		case TIMEOUT_ERROR_STATE:
-			_currentState=TIMEOUT_ERROR_STATE;
+			if(_currentState!=PERMENANT_ERROR_STATE)
+			{
+				_lastError=elm;
+				_currentState=TIMEOUT_ERROR_STATE;
+			}
+			break;
 		case PERMENANT_ERROR_STATE:
 			_currentState=PERMENANT_ERROR_STATE;
+			_lastError=elm;
+			break;
 		default:
-			_currentState=BASIC_ERROR_STATE;
+			if(_currentState!=PERMENANT_ERROR_STATE && _currentState!=TIMEOUT_ERROR_STATE)
+			{
+				_lastError=elm;
+				_currentState=BASIC_ERROR_STATE;
+			}
 		}
+		
 		lock.release();
 
 		stampLock.acquire();
@@ -1160,7 +1193,6 @@ namespace crypto {
 		inputHashLength=0;
 		brotherPrimarySignatureHash=NULL;
 		brotherSecondarySignatureHash=NULL;
-		brotherSigningMessage=NULL;
 	}
 	//Build stream data
 	void gateway::buildStream()
@@ -1354,6 +1386,7 @@ namespace crypto {
 			return NULL;
 		}
 		msg->_messageSize=decrySize;
+		msg->_size=newSize;
 		delete [] oldData;
 		lock.release();
 

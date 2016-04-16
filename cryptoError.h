@@ -16,7 +16,6 @@
 #define CRYPTO_ERROR_H
  
 #include "streamPackage.h"
-#include "file_mechanics.h"
 #include "cryptoLogging.h"
 #include "osMechanics.h"
 

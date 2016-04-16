@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   4/10/2016
+ * @date   4/15/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -440,7 +440,7 @@ namespace crypto {
 		 * for receiving messages.
 		 */
 		uint64_t _timeout;
-		/** brief Number of seconds till partial timeout
+		/** @brief Number of seconds till partial timeout
 		 *
 		 * This value is used as the timeout value
 		 * when sending messages and is less than
@@ -448,17 +448,17 @@ namespace crypto {
 		 * more permissive than sending.
 		 */
 		uint64_t _safeTimeout;
-		/** brief Number of seconds for error timeout
+		/** @brief Number of seconds for error timeout
 		 *
 		 * When dealing with a timeout error, this
 		 * defines how many seconds to wait before
 		 * allowing a connection again.
 		 */
 		uint64_t _errorTimeout;
-		/** brief Time-stamp of last message received
+		/** @brief Time-stamp of last message received
 		 */
 		uint64_t _messageReceived;
-		/** brief Time-stamp of last message sent
+		/** @brief Time-stamp of last message sent
 		 */
 		uint64_t _messageSent;
 
@@ -571,15 +571,6 @@ namespace crypto {
 		 * with a historical public key.
 		 */
 		os::smart_ptr<hash> brotherSecondarySignatureHash;
-		/** @brief Signing message: in
-		 *
-		 * This is a record of the message which
-		 * was used to sign the current and
-		 * historical public keys by the brother
-		 * gateway in order to minimize the
-		 * number of public key operations preformed.
-		 */
-		os::smart_ptr<message> brotherSigningMessage;
 		
 		/** @brief Resets stream tracking
 		 *
@@ -671,6 +662,14 @@ namespace crypto {
          */
 		virtual ~gateway(){}
 		
+		/** @brief Return the node group of the brother
+		 *
+		 * Uses the current key bank to find the node
+		 * associated with this brother.
+		 *
+		 * @return brother node
+		 */
+		os::smart_ptr<nodeGroup> brotherNode();
 		/** @brief Returns next message from the gateway
 		 *
 		 * The function only returns the next message
@@ -719,6 +718,14 @@ namespace crypto {
 		 * @return void
 		 */
 		void processTimestamps();
+		/** @brief Access brother settings
+		 * @return Pointer to brother settings
+		 */
+		os::smart_ptr<gatewaySettings> getBrotherSettings() {return brotherSettings;}
+		/** @brief Access self settings
+		 * @return Pointer to self settings
+		 */
+		os::smart_ptr<gatewaySettings> getSelfSettings() {return selfSettings;}
 
 		/** @brief This gateway's status
 		 * @return gateway::_currentState
