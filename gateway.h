@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   4/15/2016
+ * @date   4/17/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -280,7 +280,7 @@ namespace crypto {
 		static const uint64_t DEFAULT_TIMEOUT=60;
 		/** @brief Default error timeout in seconds
 		 */
-		static const uint64_t DEFAULT_ERROR_TIMEOUT=30;
+		static const uint64_t DEFAULT_ERROR_TIMEOUT=10;
 
 		/** @brief Unknown state value
 		 *

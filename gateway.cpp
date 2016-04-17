@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   4/15/2016
+ * @date   4/17/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -288,8 +288,7 @@ namespace crypto {
 
 		_timeout=DEFAULT_TIMEOUT;
 		_safeTimeout=3*_timeout/4;
-		//_errorTimeout=DEFAULT_ERROR_TIMEOUT;
-		_errorTimeout=10;
+		_errorTimeout=DEFAULT_ERROR_TIMEOUT;
 		_messageReceived=0;
 		_messageSent=0;
 		_errorTimestamp=0;
@@ -487,7 +486,7 @@ namespace crypto {
 				os::smart_ptr<number> num;
 				if(temp.size()>selfPKFrame->keySize()*4) num=selfPKFrame->convert(temp.data(),selfPKFrame->keySize()*4);
 				else num=selfPKFrame->convert(temp.data(),temp.size());
-				num->data()[selfPKFrame->keySize()-1]&=(~(uint32_t)0)>>3;
+				num->data()[selfPKFrame->keySize()-1]&=(~(uint32_t)0)>>6;
 
 				unsigned int hist;
 				bool typ;
@@ -496,11 +495,13 @@ namespace crypto {
 				{
 					num=selfPublicKey->decode(num,hist);
 				}
-				catch(...){num=NULL;}
+				catch(...){
+                    num=NULL;
+                }
 				if(!num)
 				{
 					lock.release();
-					logError(errorPointer(new customError("Could not Sign","Unexpected error occurred while attempting to sign a hash"),os::shared_type),TIMEOUT_ERROR_STATE);
+					logError(errorPointer(new customError("Could not Sign, Primary","Unexpected error occurred while attempting to sign a hash"),os::shared_type),TIMEOUT_ERROR_STATE);
 					ret=currentError();
 					break;
 				}
@@ -524,17 +525,19 @@ namespace crypto {
 				os::smart_ptr<number> num;
 				if(temp.size()>secondaryKeySize*4) num=oldPKSignTarg->copyConvert(temp.data(),secondaryKeySize-1);
 				else num=oldPKSignTarg->copyConvert(temp.data(),temp.size());
-				num->data()[secondaryKeySize-1]&=(~(uint32_t)0)>>3;
+				num->data()[secondaryKeySize-1]&=(~(uint32_t)0)>>6;
 
 				try
 				{
 					num=oldPKSignTarg->decode(num,secondaryHistory);
 				}
-				catch(...){num=NULL;}
+                catch(...){
+                    num=NULL;
+                }
 				if(!num)
 				{
 					lock.release();
-					logError(errorPointer(new customError("Could not Sign","Unexpected error occurred while attempting to sign a hash"),os::shared_type),TIMEOUT_ERROR_STATE);
+					logError(errorPointer(new customError("Could not Sign, Secondary","Unexpected error occurred while attempting to sign a hash"),os::shared_type),TIMEOUT_ERROR_STATE);
 					ret=currentError();
 					break;
 				}
@@ -582,6 +585,7 @@ namespace crypto {
 
 		//Confirm error state
 		case CONFIRM_ERROR_STATE:
+            clearStream();
 			ret=os::smart_ptr<message>(new message(2),os::shared_type);
 			ret->data()[0]=message::CONFIRM_ERROR;
 			ret->data()[1]=_currentState;
@@ -814,12 +818,12 @@ namespace crypto {
 
 				if(tHash.size()>brotherPKFrame->keySize()*4) num1=brotherPKFrame->convert(tHash.data(),brotherPKFrame->keySize()*4);
 				else num1=brotherPKFrame->convert(tHash.data(),tHash.size());
-				num1->data()[brotherPKFrame->keySize()-1]&=(~(uint32_t)0)>>3;
+				num1->data()[brotherPKFrame->keySize()-1]&=(~(uint32_t)0)>>6;
 
 				if(!num2 || *num1!=*num2)
 				{
 					lock.release();
-					logError(errorPointer(new customError("Signature Failure","The brother failed to sign the hash."),os::shared_type),TIMEOUT_ERROR_STATE);
+                    logError(errorPointer(new customError("Signature Failure, Primary","The brother failed to sign the hash."),os::shared_type),TIMEOUT_ERROR_STATE);
 					return NULL;
 				}
 				brotherPrimarySignatureHash=os::smart_ptr<hash>(new hash(tHash),os::shared_type);
@@ -896,12 +900,12 @@ namespace crypto {
 
 				if(tHash.size()>secPKFrame->keySize()*4) num1=secPKFrame->convert(tHash.data(),secPKFrame->keySize()*4);
 				else num1=secPKFrame->convert(tHash.data(),tHash.size());
-				num1->data()[secPKFrame->keySize()-1]&=(~(uint32_t)0)>>3;
+				num1->data()[secPKFrame->keySize()-1]&=(~(uint32_t)0)>>6;
 
 				if(!num2 || *num1!=*num2)
 				{
 					lock.release();
-					logError(errorPointer(new customError("Signature Failure","The brother failed to sign the hash."),os::shared_type),TIMEOUT_ERROR_STATE);
+                    logError(errorPointer(new customError("Signature Failure Secondary","The brother failed to sign the hash."),os::shared_type),TIMEOUT_ERROR_STATE);
 					return NULL;
 				}
 				brotherSecondarySignatureHash=os::smart_ptr<hash>(new hash(tHash),os::shared_type);
@@ -938,7 +942,7 @@ namespace crypto {
 		case message::SECURE_DATA_EXCHANGE:
 			if(_currentState!=ESTABLISHED && _currentState!=CONFIRM_OLD)
 			{
-				logError(errorPointer(new customError("Invalid State","Cannot receive a data-exchange message when not secured"),os::shared_type),TIMEOUT_ERROR_STATE);
+				logError(errorPointer(new customError("Invalid State","Cannot receive a data-exchange message when not secured"),os::shared_type));
 				return NULL;
 			}
 
@@ -948,7 +952,7 @@ namespace crypto {
 			_brotherState=msg->data()[1];
 			if(_brotherState!=ESTABLISHED)
 			{
-				logError(errorPointer(new customError("Invalid Brother State","Cannot send a data-exchange message when not secured"),os::shared_type),TIMEOUT_ERROR_STATE);
+				logError(errorPointer(new customError("Invalid Brother State","Cannot send a data-exchange message when not secured"),os::shared_type));
 				return NULL;
 			}
 			if(_currentState==CONFIRM_OLD)
@@ -1023,7 +1027,7 @@ namespace crypto {
 			//Normal message case
 			if(_currentState!=ESTABLISHED)
 			{
-				logError(errorPointer(new customError("Invalid State","Cannot receive a data-exchange message when not secured"),os::shared_type),TIMEOUT_ERROR_STATE);
+				logError(errorPointer(new customError("Invalid State","Cannot receive a data-exchange message when not secured"),os::shared_type));
 				return NULL;
 			}
 			msg=decrypt(msg);
