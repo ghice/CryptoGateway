@@ -1,7 +1,7 @@
 /**
  * @file   test/publicKeyTest.h
  * @author Jonathan Bedard
- * @date   4/3/2016
+ * @date   4/18/2016
  * @brief  Public Key tests
  * @bug No known bugs.
  *
@@ -103,7 +103,7 @@ namespace test
     {
         uint16_t publicLen;
     public:
-        basicPublicKeyTest(uint16_t pl):singleTest("Basic Test: "+std::to_string(pl*32)){publicLen=pl;}
+        basicPublicKeyTest(uint16_t pl):singleTest("Basic Test: "+std::to_string((long long unsigned int)pl*32)){publicLen=pl;}
         virtual ~basicPublicKeyTest(){}
         
         void test() throw(os::smart_ptr<std::exception>)
@@ -144,7 +144,7 @@ namespace test
     {
         uint16_t publicLen;
     public:
-        byteKeyTest(uint16_t pl):singleTest("Byte Test: "+std::to_string(pl*32)){publicLen=pl;}
+        byteKeyTest(uint16_t pl):singleTest("Byte Test: "+std::to_string((long long unsigned int)pl*32)){publicLen=pl;}
         virtual ~byteKeyTest(){}
         
         void test() throw(os::smart_ptr<std::exception>)
@@ -183,7 +183,7 @@ namespace test
     {
         uint16_t publicLen;
     public:
-        publicKeySearchTest(uint16_t pl):singleTest("Search Test: "+std::to_string(pl*32)){publicLen=pl;}
+        publicKeySearchTest(uint16_t pl):singleTest("Search Test: "+std::to_string((long long unsigned int)pl*32)){publicLen=pl;}
         virtual ~publicKeySearchTest(){}
         
         void test() throw(os::smart_ptr<std::exception>)

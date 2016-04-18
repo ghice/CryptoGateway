@@ -1,7 +1,7 @@
 /**
  * @file   test/hashTest.h
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   4/18/2016
  * @brief  Header for hash testing
  * @bug No known bugs.
  *
@@ -31,7 +31,7 @@ namespace test {
         uint16_t _hashSize;
     public:
         hashTest(std::string tn,std::string hashName, uint16_t hashSize):
-            singleTest(tn+": "+hashName+" "+std::to_string(hashSize*8)+" bit")
+            singleTest(tn+": "+hashName+" "+std::to_string((long long unsigned int)hashSize*8)+" bit")
         {
             _hashName=hashName;
             _hashSize=hashSize;

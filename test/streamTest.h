@@ -1,7 +1,7 @@
 /**
  * @file   test/streamTest.h
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   4/18/2016
  * @brief  Header for stream testing
  * @bug No known bugs.
  *
@@ -94,12 +94,12 @@ namespace test {
 		int _iteration;
 	public:
 		streamBlockTest(std::string streamName, int iteration,uint8_t* seed, int seedLen):
-			streamTest<streamType>("Stream Block ("+std::to_string(iteration)+")",streamName,seed,seedLen){_iteration=iteration;}
+			streamTest<streamType>("Stream Block ("+std::to_string((long long unsigned int)iteration)+")",streamName,seed,seedLen){_iteration=iteration;}
 		virtual ~streamBlockTest(){}
 
 		void test() throw(os::smart_ptr<std::exception>)
         {
-            std::string locString = "streamTest.h, streamBlockTest::test(), iteration "+std::to_string(_iteration);
+            std::string locString = "streamTest.h, streamBlockTest::test(), iteration "+std::to_string((long long unsigned int)_iteration);
 
 			//Init an encoder and decoder
             crypto::streamEncrypter strEn(streamTest<streamType>::_cipher);

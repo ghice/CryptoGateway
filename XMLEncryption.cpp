@@ -1,5 +1,5 @@
 //Primary author: Jonathan Bedard
-//Certified working 3/6/2016
+//Certified working 4/18/2016
 
 #ifndef XML_ENCRYPTION_CPP
 #define XML_ENCRYPTION_CPP
@@ -138,7 +138,7 @@ namespace crypto {
 		memcpy(&data,headerData,2);
 		data=os::from_comp_mode(data);
 		if(data>=args.size())
-			throw errorPointer(new customError("ID Index out-of-bound","Expected index less than "+std::to_string(args.size())+" but found index "+std::to_string(data)),os::shared_type);
+			throw errorPointer(new customError("ID Index out-of-bound","Expected index less than "+std::to_string((long long unsigned int)args.size())+" but found index "+std::to_string((long long unsigned int)data)),os::shared_type);
 		os::smartXMLNode ret(new os::XML_Node(args[data]),os::shared_type);
 
 		//Number of children
@@ -236,7 +236,7 @@ namespace crypto {
 			trc2->setData(spf->hashAlgorithmName());
 			trc1->addElement(trc2);
 			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
-			trc2->setData(std::to_string(spf->hashSize()*8));
+			trc2->setData(std::to_string((long long unsigned int)spf->hashSize()*8));
 			trc1->addElement(trc2);
 			encryHead->addElement(trc1);
         
@@ -265,7 +265,7 @@ namespace crypto {
 		catch(errorPointer e)
 		{throw e;}
 		catch(int e)
-		{throw errorPointer(new customError("Indexed error","Error of type "+std::to_string(e)),os::shared_type);}
+		{throw errorPointer(new customError("Indexed error","Error of type "+std::to_string((long long int)e)),os::shared_type);}
 		catch(...) {throw errorPointer(new unknownErrorType(),os::shared_type);}
         
         return true;
@@ -301,10 +301,10 @@ namespace crypto {
 			trc2->setData(pbk->algorithmName());
 			trc1->addElement(trc2);
 			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
-			trc2->setData(std::to_string(pbk->size()*32));
+			trc2->setData(std::to_string((long long unsigned int)pbk->size()*32));
 			trc1->addElement(trc2);
 			trc2=os::smartXMLNode(new os::XML_Node("type"),os::shared_type);
-			trc2->setData(std::to_string(lockType));
+			trc2->setData(std::to_string((long long unsigned int)lockType));
 			trc1->addElement(trc2);
 			encryHead->addElement(trc1);
         
@@ -321,7 +321,7 @@ namespace crypto {
 			trc2->setData(spf->hashAlgorithmName());
 			trc1->addElement(trc2);
 			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
-			trc2->setData(std::to_string(spf->hashSize()*8));
+			trc2->setData(std::to_string((long long unsigned int)spf->hashSize()*8));
 			trc1->addElement(trc2);
 			encryHead->addElement(trc1);
 
@@ -433,7 +433,7 @@ namespace crypto {
 		catch(int e)
 		{
 			pbk->readUnlock();
-			throw errorPointer(new customError("Indexed error","Error of type "+std::to_string(e)),os::shared_type);
+			throw errorPointer(new customError("Indexed error","Error of type "+std::to_string((long long int)e)),os::shared_type);
 		}
 		catch(...) {
 			pbk->readUnlock();
@@ -454,7 +454,7 @@ namespace crypto {
 			std::ofstream fileout(path,std::ios::binary);
 			if(!fileout.good()) throw errorPointer(new fileOpenError(),os::shared_type);
 			os::smart_ptr<publicKeyPackageFrame> pkframe=publicKeyTypeBank::singleton()->findPublicKey(pkAlgo);
-			if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string(pkAlgo)),os::shared_type);
+			if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string((long long unsigned int)pkAlgo)),os::shared_type);
 			pkframe=pkframe->getCopy();
 			pkframe->setKeySize(pkSize);
 
@@ -471,10 +471,10 @@ namespace crypto {
 			trc2->setData(pkframe->algorithmName());
 			trc1->addElement(trc2);
 			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
-			trc2->setData(std::to_string(pkframe->keySize()*32));
+			trc2->setData(std::to_string((long long unsigned int)pkframe->keySize()*32));
 			trc1->addElement(trc2);
 			trc2=os::smartXMLNode(new os::XML_Node("type"),os::shared_type);
-			trc2->setData(std::to_string(file::PRIVATE_UNLOCK));
+			trc2->setData(std::to_string((long long unsigned int)file::PRIVATE_UNLOCK));
 			trc1->addElement(trc2);
 			encryHead->addElement(trc1);
         
@@ -491,7 +491,7 @@ namespace crypto {
 			trc2->setData(spf->hashAlgorithmName());
 			trc1->addElement(trc2);
 			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
-			trc2->setData(std::to_string(spf->hashSize()*8));
+			trc2->setData(std::to_string((long long unsigned int)spf->hashSize()*8));
 			trc1->addElement(trc2);
 			encryHead->addElement(trc1);
 
@@ -545,7 +545,7 @@ namespace crypto {
 		catch(errorPointer e)
 		{throw e;}
 		catch(int e)
-		{throw errorPointer(new customError("Indexed error","Error of type "+std::to_string(e)),os::shared_type);}
+		{throw errorPointer(new customError("Indexed error","Error of type "+std::to_string((long long int)e)),os::shared_type);}
 		catch(...) {throw errorPointer(new unknownErrorType(),os::shared_type);}
         
         return true;
@@ -671,7 +671,7 @@ namespace crypto {
 		catch(errorPointer e)
 		{throw e;}
 		catch(int e)
-		{throw errorPointer(new customError("Indexed error","Error of type "+std::to_string(e)),os::shared_type);}
+		{throw errorPointer(new customError("Indexed error","Error of type "+std::to_string((long long int)e)),os::shared_type);}
 		catch(...) {throw errorPointer(new unknownErrorType(),os::shared_type);}
 
         return ret;
@@ -800,7 +800,7 @@ namespace crypto {
 					if(pbk->algorithm()!=pkframe->algorithm())
 						throw errorPointer(new illegalAlgorithmBind(pbk->algorithmName()+" vs "+pkframe->algorithmName()),os::shared_type);
 					if(pbk->size()!=pkframe->keySize())
-						throw errorPointer(new illegalAlgorithmBind(std::to_string(pbk->size()*32)+" vs "+std::to_string(pkframe->keySize()*32)),os::shared_type);
+						throw errorPointer(new illegalAlgorithmBind(std::to_string((long long unsigned int)pbk->size()*32)+" vs "+std::to_string((long long unsigned int)pkframe->keySize()*32)),os::shared_type);
 
 					//Public key hash
 					fnd=trc1->findElement("publicKeyHash")->getFirst();
@@ -929,7 +929,7 @@ namespace crypto {
 		catch(errorPointer e1)
 		{throw e1;}
 		catch(int e2)
-		{throw errorPointer(new customError("Indexed error","Error of type "+std::to_string(e2)),os::shared_type);}
+		{throw errorPointer(new customError("Indexed error","Error of type "+std::to_string((long long int)e2)),os::shared_type);}
 		catch(...) {throw errorPointer(new unknownErrorType(),os::shared_type);}
         
         return ret;

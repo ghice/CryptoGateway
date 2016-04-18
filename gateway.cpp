@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   4/17/2016
+ * @date   4/18/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -65,25 +65,25 @@ namespace crypto {
 			
 			os::smartXMLNode level2=os::smartXMLNode(new os::XML_Node("publicKey"),os::shared_type);
 				os::smartXMLNode level3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
-				level3->setData(std::to_string(_prefferedPublicKeyAlgo));
+				level3->setData(std::to_string((long long unsigned int)_prefferedPublicKeyAlgo));
 				level2->addElement(level3);
 				level3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
-				level3->setData(std::to_string(_prefferedPublicKeySize));
+				level3->setData(std::to_string((long long unsigned int)_prefferedPublicKeySize));
 				level2->addElement(level3);
 			level1->addElement(level2);
 
 			level2=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
 				level3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
-				level3->setData(std::to_string(_prefferedHashAlgo));
+				level3->setData(std::to_string((long long unsigned int)_prefferedHashAlgo));
 				level2->addElement(level3);
 				level3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
-				level3->setData(std::to_string(_prefferedHashSize));
+				level3->setData(std::to_string((long long unsigned int)_prefferedHashSize));
 				level2->addElement(level3);
 			level1->addElement(level2);
 
 			level2=os::smartXMLNode(new os::XML_Node("stream"),os::shared_type);
 				level3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
-				level3->setData(std::to_string(_prefferedStreamAlgo));
+				level3->setData(std::to_string((long long unsigned int)_prefferedStreamAlgo));
 				level2->addElement(level3);
 			level1->addElement(level2);
 

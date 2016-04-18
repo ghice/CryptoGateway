@@ -1,7 +1,7 @@
 /**
  * @file   test/hashTest.cpp
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   4/18/2016
  * @brief  Implementation for hash tests
  * @bug No known bugs.
  *
@@ -44,7 +44,7 @@ using namespace test;
     }
     //xor Test suite
     xorTestSuite::xorTestSuite():
-        hashSuite("XOR")
+        hashSuite<crypto::xorHash>("XOR")
     {
         pushTest("XOR Algorithm",&basicXORTest);
     }
@@ -72,7 +72,7 @@ using namespace test;
     }
     //xor Test suite
     RC4HashTestSuite::RC4HashTestSuite():
-        hashSuite("RC-4 Hash")
+        hashSuite<crypto::rc4Hash>("RC-4 Hash")
     {
         pushTest("RC-4 Algorithm",&basicRC4Test);
     }

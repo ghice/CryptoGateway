@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoNumberTest.cpp
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   4/18/2016
  * @brief  Testing crypto::number and crypto::integer
  * @bug No known bugs.
  *
@@ -217,7 +217,7 @@ using namespace crypto;
         
         //Overflow
         if(num[2]!=0)
-            throw os::smart_ptr<std::exception>(new generalTestException("Overflow failed: "+std::to_string(num[2]),locString),shared_type);
+            throw os::smart_ptr<std::exception>(new generalTestException("Overflow failed: "+std::to_string((long long unsigned int)num[2]),locString),shared_type);
         
         //Write access
         num[0]=3;
@@ -359,7 +359,7 @@ using namespace crypto;
         //Reduce (1)
         num.reduce();
         if(num.size()!=1)
-            throw os::smart_ptr<std::exception>(new generalTestException("Reduce 1 failed, size "+std::to_string(num.size())+" value "+num.toString(),locString),shared_type);
+            throw os::smart_ptr<std::exception>(new generalTestException("Reduce 1 failed, size "+std::to_string((long long unsigned int)num.size())+" value "+num.toString(),locString),shared_type);
         if(num[0]!=0)
         throw os::smart_ptr<std::exception>(new generalTestException("Reduce 1 values wrong",locString),shared_type);
         

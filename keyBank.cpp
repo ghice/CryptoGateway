@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.cpp
  * @author Jonathan Bedard
- * @date   3/19/2016
+ * @date   4/18/2016
  * @brief  Implimentation for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -327,7 +327,7 @@ namespace crypto {
             
             //Timestamp
             temp=os::smartXMLNode(new os::XML_Node("timestamp"),os::shared_type);
-            temp->setData(std::to_string(i->getData()->timestamp()));
+            temp->setData(std::to_string((long long unsigned int)i->getData()->timestamp()));
             nlev->addElement(temp);
             
             tlevel->addElement(nlev);
@@ -344,12 +344,12 @@ namespace crypto {
             //Key
             os::smartXMLNode temp(new os::XML_Node("key"),os::shared_type);
             for(unsigned t=0;t<i->getData()->keySize();t++)
-                temp->getDataList().push_back(std::to_string((*i->getData()->key())[t]));
+                temp->getDataList().push_back(std::to_string((long long unsigned int)(*i->getData()->key())[t]));
             klev->addElement(temp);
             
             //Key size
             temp=os::smartXMLNode(new os::XML_Node("keySize"),os::shared_type);
-            temp->setData(std::to_string(i->getData()->keySize()*32));
+            temp->setData(std::to_string((long long unsigned int)i->getData()->keySize()*32));
             klev->addElement(temp);
             
             //Algorithm
@@ -361,7 +361,7 @@ namespace crypto {
             
             //Timestamp
             temp=os::smartXMLNode(new os::XML_Node("timestamp"),os::shared_type);
-            temp->setData(std::to_string(i->getData()->timestamp()));
+            temp->setData(std::to_string((long long unsigned int)i->getData()->timestamp()));
             klev->addElement(temp);
         }
         ret->addElement(tlevel);

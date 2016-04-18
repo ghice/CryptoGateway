@@ -1,7 +1,7 @@
 /**
  * @file	binaryEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	3/11/2016
+ * @date   	4/18/2016
  * @brief	Implementation of binary encryption files
  * @bug	None
  *
@@ -256,7 +256,7 @@ namespace crypto {
 			if(!pubKey) throw errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type);
 			if(!_streamAlgorithm) throw errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type);
 			os::smart_ptr<publicKeyPackageFrame> pkframe=publicKeyTypeBank::singleton()->findPublicKey(pkAlgo);
-			if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string(pkAlgo)),os::shared_type);
+			if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string((long long unsigned int)pkAlgo)),os::shared_type);
 			pkframe=pkframe->getCopy();
 			pkframe->setKeySize(pkSize);
 
@@ -517,7 +517,7 @@ namespace crypto {
 
 			//Bind algorithm
 			_streamAlgorithm=streamPackageTypeBank::singleton()->findStream(streamAlgoVal,hashAlgoVal);
-			if(!_streamAlgorithm) throw errorPointer(new illegalAlgorithmBind("Stream ID: "+std::to_string(streamAlgoVal)+", Hash ID: "+std::to_string(hashAlgoVal)),os::shared_type);
+			if(!_streamAlgorithm) throw errorPointer(new illegalAlgorithmBind("Stream ID: "+std::to_string((long long unsigned int)streamAlgoVal)+", Hash ID: "+std::to_string((long long unsigned int)hashAlgoVal)),os::shared_type);
 			_streamAlgorithm=_streamAlgorithm->getCopy();
 			_streamAlgorithm->setHashSize(hashSizeVal);
 
@@ -572,7 +572,7 @@ namespace crypto {
 					_bytesLeft-=publicSizeVal*4;
 
 					os::smart_ptr<publicKeyPackageFrame> pkframe=publicKeyTypeBank::singleton()->findPublicKey(publicAlgoVal);
-					if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string(publicAlgoVal)),os::shared_type);
+					if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string((long long unsigned int)publicAlgoVal)),os::shared_type);
 					pkframe=pkframe->getCopy();
 					pkframe->setKeySize(publicSizeVal);
 					os::smart_ptr<number> tempNum=pkframe->convert(buffer,publicSizeVal*4);

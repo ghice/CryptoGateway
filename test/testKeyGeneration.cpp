@@ -1,7 +1,7 @@
 /**
  * @file   test/testKeyGeneration.h
  * @author Jonathan Bedard
- * @date   2/20/2016
+ * @date   4/18/2016
  * @brief  Implementation of test key binding
  * @bug No known bugs.
  *
@@ -93,7 +93,7 @@ namespace test
 				}
 			}
 			else
-				throw os::smart_ptr<std::exception>(new generalTestException("Illegal public key size: "+std::to_string(keySize*32),"testKeyGeneration.h, void findKeys(...)"),os::shared_type);
+				throw os::smart_ptr<std::exception>(new generalTestException("Illegal public key size: "+std::to_string((long long unsigned int)keySize*32),"testKeyGeneration.h, void findKeys(...)"),os::shared_type);
 		}
 		else throw os::smart_ptr<std::exception>(new generalTestException("Requested algorithm is not a public key algorithm","testKeyGeneration.h, void findKeys(...)"),os::shared_type);
 	}

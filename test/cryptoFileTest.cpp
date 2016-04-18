@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.cpp
  * @author Jonathan Bedard
- * @date   3/6/2016
+ * @date   4/18/2016
  * @brief  Implementation for cryptographic file testing
  * @bug No known bugs.
  *
@@ -50,7 +50,7 @@ using namespace test;
 
 	//Binary file test
 	binaryFileSaveTest::binaryFileSaveTest(os::smart_ptr<streamPackageFrame> spf):
-		singleTest(spf->streamAlgorithmName()+", "+spf->hashAlgorithmName()+"("+std::to_string(spf->hashSize()*8)+"): Binary File")
+		singleTest(spf->streamAlgorithmName()+", "+spf->hashAlgorithmName()+"("+std::to_string((long long unsigned int)spf->hashSize()*8)+"): Binary File")
 	{
 		streamPackage=spf;
 	}
@@ -102,7 +102,7 @@ using namespace test;
 	
 	//Public key binary file tests
 	publicKeyFileSaveTest::publicKeyFileSaveTest(os::smart_ptr<crypto::publicKey> pk):
-		singleTest(pk->algorithmName()+" "+std::to_string(32*pk->size())+" bit: Binary File")
+		singleTest(pk->algorithmName()+" "+std::to_string((long long unsigned int)32*pk->size())+" bit: Binary File")
 	{
 		pubkey=pk;
 	}
@@ -390,7 +390,7 @@ using namespace test;
 
     //EXML file save, raw password
     exmlFileSaveTest::exmlFileSaveTest(os::smart_ptr<crypto::streamPackageFrame> spf):
-        singleTest(spf->streamAlgorithmName()+", "+spf->hashAlgorithmName()+"("+std::to_string(spf->hashSize()*8)+"): EXML File")
+        singleTest(spf->streamAlgorithmName()+", "+spf->hashAlgorithmName()+"("+std::to_string((long long unsigned int)spf->hashSize()*8)+"): EXML File")
     {
         streamPackage=spf;
     }
@@ -432,7 +432,7 @@ using namespace test;
 
     //EXML file save, public key
     exmlPublicKeySaveTest::exmlPublicKeySaveTest(os::smart_ptr<crypto::publicKey> pbk):
-        singleTest(pbk->algorithmName()+" "+std::to_string(32*pbk->size())+" bit: EXML File")
+        singleTest(pbk->algorithmName()+" "+std::to_string((long long unsigned int)32*pbk->size())+" bit: EXML File")
     {
         pubkey=pbk;
     }

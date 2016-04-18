@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	3/20/2016
+ * @date   	4/18/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -394,7 +394,7 @@ namespace crypto {
 		lv3->setData(_streamPackage->hashAlgorithmName());
 		lv2->addElement(lv3);
 		lv3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
-		lv3->setData(std::to_string(_streamPackage->hashSize()*8));
+		lv3->setData(std::to_string((long long unsigned int)_streamPackage->hashSize()*8));
 		lv2->addElement(lv3);
 
         lv1->addElement(lv2);
@@ -428,7 +428,7 @@ namespace crypto {
 		lv2->addElement(lv3);
 		lv3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
 		if(_defaultKey==NULL) lv3->setData("NULL");
-		else lv3->setData(std::to_string(_defaultKey->size()*32));
+		else lv3->setData(std::to_string((long long unsigned int)_defaultKey->size()*32));
 		lv2->addElement(lv3);
 
 		lv1->addElement(lv2);
@@ -440,7 +440,7 @@ namespace crypto {
 			lv4->setData(it->getData()->algorithmName());
 			lv3->addElement(lv4);
 			lv4=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
-			lv4->setData(std::to_string(it->getData()->size()*32));
+			lv4->setData(std::to_string((long long unsigned int)it->getData()->size()*32));
 			lv3->addElement(lv4);
 			lv2->addElement(lv3);
 		}
@@ -576,7 +576,7 @@ namespace crypto {
 		//Bind key to this
 		bindSavable(key.get());
 		key->setEncryptionAlgorithm(_streamPackage);
-		key->setFileName(_saveDir+"/"+_username+"/"+key->algorithmName()+"_"+std::to_string(key->size()*32)+"_"+PUBLIC_KEY_FILE);
+		key->setFileName(_saveDir+"/"+_username+"/"+key->algorithmName()+"_"+std::to_string((long long unsigned int)key->size()*32)+"_"+PUBLIC_KEY_FILE);
 
 		//Set passwords (if appropriate)
 		if(_password!=NULL && _passwordLength>0)
