@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   4/3/2016
+ * @date   4/20/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
