@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	4/18/2016
+ * @date   	4/19/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -365,9 +365,9 @@ namespace crypto {
 		}
 
 		//Load Key bank
-		_keyBank=os::smart_ptr<keyBank>(new avlKeyBank(_saveDir+"/"+_username+"/"+KEY_BANK_FILE,_password,_passwordLength,_streamPackage),os::shared_type);
-		if(_defaultKey)
-			_keyBank->setPublicKey(_defaultKey);
+		if(_defaultKey) _keyBank=os::smart_ptr<keyBank>(new avlKeyBank(_saveDir+"/"+_username+"/"+KEY_BANK_FILE,_defaultKey,_streamPackage),os::shared_type);
+		else _keyBank=os::smart_ptr<keyBank>(new avlKeyBank(_saveDir+"/"+_username+"/"+KEY_BANK_FILE,_password,_passwordLength,_streamPackage),os::shared_type);
+
 		bindSavable(_keyBank.get());
 		_wasConstructed=true;
 	}

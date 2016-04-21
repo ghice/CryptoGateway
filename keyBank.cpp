@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.cpp
  * @author Jonathan Bedard
- * @date   4/18/2016
+ * @date   4/19/2016
  * @brief  Implimentation for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -560,6 +560,11 @@ namespace crypto {
     {
         load();
     }
+	avlKeyBank::avlKeyBank(std::string savePath,os::smart_ptr<publicKey> pubKey,os::smart_ptr<streamPackageFrame> strmPck):
+		keyBank(savePath,pubKey,strmPck)
+	{
+		load();
+	}
     //Load file
     void avlKeyBank::load()
     {
@@ -583,10 +588,12 @@ namespace crypto {
 			//Symetric key attempt
 			try
 			{
+				//Have a public key
+				if(_pubKey && !_pubKey->generating()) headNode=EXML_Input(savePath(),_pubKey);
 				//Have a symetric key
 				if(!headNode && _symKey!=NULL&&_keyLen>0) headNode=EXML_Input(savePath(),_symKey,_keyLen);
 				//No encryption
-				else if(!headNode) headNode=os::XML_Input(savePath());
+				if(!headNode) headNode=os::XML_Input(savePath());
 			}
 			catch (errorPointer e)
 			{

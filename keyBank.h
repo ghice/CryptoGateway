@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.h
  * @author Jonathan Bedard
- * @date   3/19/2016
+ * @date   4/19/2016
  * @brief  Header for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -717,6 +717,16 @@ namespace crypto {
 		 * @param [in] strmPck Definition of algorithms used
          */
         avlKeyBank(std::string savePath="",const unsigned char* key=NULL,unsigned int keyLen=0,os::smart_ptr<streamPackageFrame> strmPck=NULL);
+		/** @brief Construct with save path and public key
+		 *
+         * Intializes the key bank and
+         * loads the the bank from a file.
+		 *
+         * @param [in] savePath Path to save file
+		 * @param [in] pubKey Public key
+		 * @param [in] strmPck Definition of algorithms used
+         */
+        avlKeyBank(std::string savePath,os::smart_ptr<publicKey> pubKey,os::smart_ptr<streamPackageFrame> strmPck=NULL);
         /** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object
