@@ -347,7 +347,6 @@ namespace crypto {
 		//Until we are signing, establish the stream
 		case ESTABLISHING_STREAM:
 		case STREAM_ESTABLISHED:
-
 			buildStream();
 			if(!streamMessageOut)
 			{
