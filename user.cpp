@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	4/19/2016
+ * @date   	4/26/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -658,6 +658,400 @@ namespace crypto {
 		}
 		return NULL;
 	}
+
+/*-----------------------------------
+	Raw message passing
+  -----------------------------------*/
+
+	//Unsigned ID message
+	unsigned char* user::unsignedIDMessage(unsigned int& len, std::string groupID,std::string nodeName)
+	{
+		len=0;
+		os::smart_ptr<nodeGroup> nd=_keyBank->find(groupID,nodeName);
+		os::smart_ptr<nodeKeyReference> targKey;
+		os::smart_ptr<publicKey> pbk=getDefaultPublicKey();
+		os::smart_ptr<streamPackageFrame> stmpk=streamPackage();
+		if(!pbk) return NULL;
+		if(!stmpk) return NULL;
+		if(!findSettings(groupID)) return NULL;
+
+		//Everything needs the basic header
+		len=1+size::GROUP_SIZE+size::NAME_SIZE+5+2*pbk->size()*4;
+		if(nd)
+		{
+			auto cap=nd->getFirstKey();
+			if(cap) targKey=cap->getData();
+			if(targKey)
+				len+=stmpk->hashSize()+targKey->keySize()*4;
+		}
+		
+		//Build return array
+		unsigned char* ret=new unsigned char[len];
+		memset(ret,0,len);
+		if(targKey) ret[0]=0x80;
+
+		//Place in the group ID first
+		unsigned int trc=1;
+		memcpy(ret+trc,groupID.c_str(),groupID.length());
+		trc+=size::GROUP_SIZE;
+
+		//Bind algorithm data
+		ret[trc]=pbk->algorithm();
+		ret[trc+1]=pbk->size();
+		ret[trc+2]=stmpk->hashAlgorithm();
+		ret[trc+3]=stmpk->hashSize();
+		ret[trc+4]=stmpk->streamAlgorithm();
+		trc+=5;
+
+		//Prepare for encryption data (if targeted)
+		os::smart_ptr<streamCipher> cipher;
+		int cipherStart;
+		unsigned int tempLen;
+		if(targKey)
+		{
+			auto arr=targKey->key()->getCompCharData(tempLen);
+			hash hsh=stmpk->hashData(arr.get(),tempLen);
+			memcpy(ret+trc,hsh.data(),hsh.size());
+			trc+=stmpk->hashSize();
+
+			for(int i=0;i<targKey->keySize()*4;i++)
+				ret[trc+i]=rand();
+			ret[trc+targKey->keySize()*4-1]=rand()&0x0F;
+			cipher=stmpk->buildStream(ret+trc,targKey->keySize()*4);
+			trc+=targKey->keySize()*4;
+			cipherStart=trc;
+		}
+
+		//Place in name
+		memcpy(ret+trc,_username.c_str(),_username.length());
+		trc+=size::NAME_SIZE;
+
+		//Place in key
+		auto arr=pbk->getN()->getCompCharData(tempLen);
+		memcpy(ret+trc,arr.get(),tempLen);
+		trc+=tempLen;
+
+		//Hash all data
+		hash hsh=stmpk->hashData(ret+1,len-1-pbk->size()*4);
+		os::smart_ptr<number> num1;
+		if(hsh.size()>pbk->size()*4) num1=pbk->copyConvert(hsh.data(),pbk->size()*4);
+		else num1=pbk->copyConvert(hsh.data(),hsh.size());
+		num1->data()[pbk->size()-1]&=(~(uint32_t)0)>>6;
+		try{num1=pbk->decode(num1);}
+		catch(...)
+		{
+			len=0;
+			delete [] ret;
+			return NULL;
+		}
+		arr=num1->getCompCharData(tempLen);
+		memcpy(ret+trc,arr.get(),tempLen);
+
+		//Now encrypt
+		if(cipher && targKey)
+		{
+			for(int i=cipherStart;i<len;i++)
+				ret[i]=cipher->getNext()^ret[i];
+
+			os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(targKey->algoID());
+			if(!pkfrm)
+			{
+				len=0;
+				delete [] ret;
+				return NULL;
+			}
+			pkfrm=pkfrm->getCopy();
+			pkfrm->setKeySize(targKey->keySize());
+			pkfrm->encode(ret+cipherStart-targKey->keySize()*4,targKey->keySize()*4,targKey->key());
+		}
+
+		return ret;
+	}
+	//Process an ID message
+	bool user::processIDMessage(unsigned char* mess, unsigned int len)
+	{
+		//Check message header
+		if(!isIDMessage(mess[0])) return false;
+		if(len<1+size::GROUP_SIZE+size::NAME_SIZE+5) return false;
+		if(!mess) return false;
+		unsigned int trc=1;
+
+		//Pull group ID
+		os::smart_ptr<publicKeyPackageFrame> pbk;
+		os::smart_ptr<streamPackageFrame> stmpk;
+		std::string groupID;
+		if(trc+size::GROUP_SIZE>=len) return false;
+		char* tID=new char[size::GROUP_SIZE+1];
+		memset(tID,0,size::GROUP_SIZE+1);
+		memcpy(tID,mess+trc,size::GROUP_SIZE);
+		groupID=std::string(tID);
+		delete [] tID;
+		trc+=size::GROUP_SIZE;
+		if(!findSettings(groupID)) return false;
+
+		//Pull algorithm
+		if(trc+5>=len) return false;
+		uint16_t pbkID=mess[trc];
+		uint16_t pbkSize=mess[trc+1];
+		uint16_t hshAlgo=mess[trc+2];
+		uint16_t hshSize=mess[trc+3];
+		uint16_t strmAlgo=mess[trc+4];
+
+		pbk=publicKeyTypeBank::singleton()->findPublicKey(pbkID);
+		stmpk=streamPackageTypeBank::singleton()->findStream(strmAlgo,hshAlgo);
+		if(!pbk) return NULL;
+		if(!stmpk) return NULL;
+		pbk=pbk->getCopy();
+		stmpk=stmpk->getCopy();
+		pbk->setKeySize(pbkSize);
+		stmpk->setHashSize(hshSize);
+		trc+=5;
+
+		//Check for key
+		if(isEncrypted(mess[0]))
+		{
+			if(trc+stmpk->hashSize()>=len) return false;
+			hash hsh=stmpk->hashCopy(mess+trc);
+			trc+=stmpk->hashSize();
+
+			unsigned int hist;
+			bool type;
+			os::smart_ptr<publicKey> myKey=searchKey(hsh,hist,type);
+			if(!myKey) return false;
+			if(trc+myKey->size()*4>=len) return false;
+			myKey->decode(mess+trc,myKey->size()*4,hist);
+
+			os::smart_ptr<streamCipher> cipher=stmpk->buildStream(mess+trc,myKey->size()*4);
+			trc+=myKey->size()*4;
+			for(int i=trc;i<len;i++)
+				mess[i]=mess[i]^cipher->getNext();
+		}
+
+		//Pull name
+		if(trc+size::NAME_SIZE>=len) return false;
+		std::string nodeName;
+		tID=new char[size::NAME_SIZE+1];
+		memset(tID,0,size::NAME_SIZE+1);
+		memcpy(tID,mess+trc,size::NAME_SIZE);
+		nodeName=std::string(tID);
+		delete [] tID;
+		trc+=size::NAME_SIZE;
+
+		//Process key
+		if(trc+pbkSize*4>=len) return false;
+		os::smart_ptr<nodeGroup> nd=_keyBank->find(groupID,nodeName);
+		os::smart_ptr<number> broKey=pbk->convert(mess+trc,pbkSize*4);
+		trc+=pbkSize*4;
+
+		//Check data hash
+		if(trc+pbk->keySize()*4>len) return false;
+		os::smart_ptr<number> num2=pbk->convert(mess+trc,pbk->keySize()*4);
+		hash hsh=stmpk->hashData(mess+1,len-1-pbk->keySize()*4);
+		os::smart_ptr<number> num1;
+		if(hsh.size()>pbk->keySize()*4) num1=pbk->convert(hsh.data(),pbk->keySize()*4);
+		else num1=pbk->convert(hsh.data(),hsh.size());
+		num1->data()[pbk->keySize()-1]&=(~(uint32_t)0)>>6;
+
+		try{num2=pbk->encode(num2,broKey);}
+		catch(...) {return false;}
+		if(*num1 != *num2) return false;
+
+		if(nd)
+		{
+			if(nd!=_keyBank->find(broKey,pbkID,pbkSize))
+				return false;
+		}
+		else
+			_keyBank->addPair(groupID,nodeName,broKey,pbkID,pbkSize);
+
+		return true;
+	}
+	//Encrypt a message
+	unsigned char* user::encryptMessage(unsigned int& finishedLen, const unsigned char* mess, unsigned int len, std::string groupID,std::string nodeName)
+	{
+		finishedLen=0;
+		os::smart_ptr<nodeGroup> nd=_keyBank->find(groupID,nodeName);
+		os::smart_ptr<nodeKeyReference> targKey;
+		os::smart_ptr<streamPackageFrame> stmpk=streamPackage();
+		os::smart_ptr<publicKey> pbk=getDefaultPublicKey();
+
+		if(!nd) return NULL;
+		if(!stmpk) return NULL;
+		if(!pbk) return NULL;
+		auto cap=nd->getFirstKey();
+		if(cap) targKey=cap->getData();
+		if(!targKey) return NULL;
+
+		finishedLen=pbk->size()*4+len+6+targKey->keySize()*4;
+		unsigned char* ret=new unsigned char[finishedLen];
+		ret[0]=0x01|0x80;
+		unsigned int trc=1;
+
+		ret[trc]=pbk->algorithm();
+		ret[trc+1]=pbk->size();
+		ret[trc+2]=stmpk->hashAlgorithm();
+		ret[trc+3]=stmpk->hashSize();
+		ret[trc+4]=stmpk->streamAlgorithm();
+		trc+=5;
+
+		//Prepare for encryption data (if targeted)
+		os::smart_ptr<streamCipher> cipher;
+		int cipherStart;
+		unsigned int tempLen;
+
+		for(int i=0;i<targKey->keySize()*4;i++)
+			ret[trc+i]=rand();
+		ret[trc+targKey->keySize()*4-1]=rand()&0x0F;
+		cipher=stmpk->buildStream(ret+trc,targKey->keySize()*4);
+		trc+=targKey->keySize()*4;
+		cipherStart=trc;
+
+		//Bind data
+		memcpy(ret+trc,mess,len);
+		trc+=len;
+
+		//Hash all data
+		hash hsh=stmpk->hashData(ret+1,finishedLen-1-pbk->size()*4);
+		os::smart_ptr<number> num1;
+		if(hsh.size()>pbk->size()*4) num1=pbk->copyConvert(hsh.data(),pbk->size()*4);
+		else num1=pbk->copyConvert(hsh.data(),hsh.size());
+		num1->data()[pbk->size()-1]&=(~(uint32_t)0)>>6;
+		try{num1=pbk->decode(num1);}
+		catch(...)
+		{
+			finishedLen=0;
+			delete [] ret;
+			return NULL;
+		}
+		auto arr=num1->getCompCharData(tempLen);
+		memcpy(ret+trc,arr.get(),tempLen);
+
+		//Now encrypt
+		for(int i=cipherStart;i<finishedLen;i++)
+			ret[i]=cipher->getNext()^ret[i];
+
+		os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(targKey->algoID());
+		if(!pkfrm)
+		{
+			finishedLen=0;
+			delete [] ret;
+			return NULL;
+		}
+		pkfrm=pkfrm->getCopy();
+		pkfrm->setKeySize(targKey->keySize());
+		try
+		{
+			pkfrm->encode(ret+cipherStart-targKey->keySize()*4,targKey->keySize()*4,targKey->key());
+		} catch(...)
+		{
+			finishedLen=0;
+			delete [] ret;
+			return NULL;
+		}
+		
+		return ret;
+	}
+	//Decrypt a message
+	unsigned char* user::decryptMessage(unsigned int& finishedLen, const unsigned char* mess, unsigned int len, std::string groupID,std::string nodeName)
+	{
+		//Check message header
+		os::smart_ptr<publicKeyPackageFrame> pbkfrm;
+		os::smart_ptr<streamPackageFrame> stmpk;
+		os::smart_ptr<nodeGroup> nd=_keyBank->find(groupID,nodeName);
+		os::smart_ptr<nodeKeyReference> targKey;
+		os::smart_ptr<publicKey> pbk=getDefaultPublicKey();
+		finishedLen=0;
+
+		if(!isDataMessage(mess[0]) || len<=1)
+			return NULL;
+		if(!isEncrypted(mess[0]))
+		{
+			finishedLen=len-1;
+			unsigned char* targ=new unsigned char[finishedLen];
+			memcpy(targ,mess+1,finishedLen);
+			return targ;
+		}
+		if(len<6) return NULL;
+
+		unsigned int trc=1;
+		uint16_t pbkID=mess[trc];
+		uint16_t pbkSize=mess[trc+1];
+		uint16_t hshAlgo=mess[trc+2];
+		uint16_t hshSize=mess[trc+3];
+		uint16_t strmAlgo=mess[trc+4];
+
+		pbkfrm=publicKeyTypeBank::singleton()->findPublicKey(pbkID);
+		stmpk=streamPackageTypeBank::singleton()->findStream(strmAlgo,hshAlgo);
+		
+		if(!pbkfrm) return NULL;
+		if(!pbk) return NULL;
+		if(!stmpk) return NULL;
+		if(!nd) return NULL;
+		auto cap=nd->getFirstKey();
+		if(cap) targKey=cap->getData();
+		if(!targKey) return NULL;
+
+		pbkfrm=pbkfrm->getCopy();
+		stmpk=stmpk->getCopy();
+		pbkfrm->setKeySize(pbkSize);
+		stmpk->setHashSize(hshSize);
+		trc+=5;
+
+		//Temp message
+		if(len<pbk->size()+6+targKey->keySize()) return NULL;
+		unsigned char* temp=new unsigned char[len];
+		memcpy(temp,mess,len);
+		try
+		{
+			pbk->decode(temp+trc,pbk->size()*4);
+		}catch(...)
+		{
+			delete [] temp;
+			return NULL;
+		}
+
+		//Now decrypt
+		os::smart_ptr<streamCipher> cipher=stmpk->buildStream(temp+trc,targKey->keySize()*4);
+		trc+=pbk->size()*4;
+		for(int i=trc;i<len;i++)
+			temp[i]=cipher->getNext()^temp[i];
+
+		//Pull message
+		if(len<(pbk->size()+6+targKey->keySize()))
+		{
+			delete [] temp;
+			return NULL;
+		}
+		finishedLen=len-(pbk->size()*4+6+targKey->keySize()*4);
+		unsigned char* ret=new unsigned char[finishedLen];
+		memcpy(ret,temp+trc,finishedLen);
+		trc+=finishedLen;
+
+		//Check data hash
+		hash hsh=stmpk->hashData(temp+1,len-1-pbkfrm->keySize()*4);
+		os::smart_ptr<number> num1;
+		if(hsh.size()>pbkfrm->keySize()*4) num1=pbkfrm->convert(hsh.data(),pbkfrm->keySize()*4);
+		else num1=pbkfrm->convert(hsh.data(),hsh.size());
+		num1->data()[pbk->size()-1]&=(~(uint32_t)0)>>6;
+
+		os::smart_ptr<number> num2=pbkfrm->convert(temp+trc,pbkfrm->keySize()*4);
+		try{num2=pbkfrm->encode(num2,targKey->key());}
+		catch(...)
+		{
+			finishedLen=0;
+			delete [] ret;
+			return NULL;
+		}
+		if(*num1!=*num2)
+		{
+			finishedLen=0;
+			delete [] ret;
+			return NULL;
+		}
+
+		return ret;
+	}
+
 }
 
 #endif

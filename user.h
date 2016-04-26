@@ -1,7 +1,7 @@
 /**
  * @file	user.h
  * @author	Jonathan Bedard
- * @date   	4/14/2016
+ * @date   	4/26/2016
  * @brief	Definition of the CryptoGateway user
  * @bug	None
  *
@@ -181,6 +181,83 @@ namespace crypto {
 		 * @return Public key matching intrinsics
 		 */
 		os::smart_ptr<publicKey> findPublicKey(os::smart_ptr<publicKeyPackageFrame> pkfrm);
+
+	//Raw Message Passing------------------------------------------------
+
+		/** @brief Check if a message is an ID message
+		 *
+		 * Checks the first byte of a message to see if it
+		 * is an ID message.
+		 *
+		 * @return True if an ID message, else, false
+		 */
+		static bool isIDMessage(unsigned char m){return (0x0F & m)==0;}
+		/** @brief Check if a message is a data message
+		 *
+		 * Checks the first byte of a message to see if it
+		 * is a data message.
+		 *
+		 * @return True if a data message, else, false
+		 */
+		static bool isDataMessage(unsigned char m){return (0x0F & m)==1;}
+		/** @brief Check if a message is encrypted
+		 *
+		 * Checks the first byte of a message to see if it
+		 * is encrypted
+		 *
+		 * @return True if encrypted, else, false
+		 */
+		static bool isEncrypted(unsigned char m){return (0x80 & m);}
+		/** @brief Produces an unsigned ID message
+		 *
+		 * Generates an identification message to be sent to
+		 * a node.  If the target node is specified, this
+		 * function will encrypt the target message for
+		 * that target node.
+		 *
+		 * @param [out] len Length of returned array
+		 * @param [in] groupID Group this user is part of
+		 * @param [in] nodeName Name of target node
+		 * @return Unsigned ID message
+		 */
+		unsigned char* unsignedIDMessage(unsigned int& len, std::string groupID="default",std::string nodeName="");
+		/** @brief Process ID message
+		 *
+		 * Processes any ID message.  Note that this function can process
+		 * both targeted and non-targeted ID messages.
+		 *
+		 * @param [in] mess Incoming message
+		 * @param [in] len Length of incoming message
+		 * @return True if valid ID message, else, false
+		 */
+		bool processIDMessage(unsigned char* mess, unsigned int len);
+		/** @brief Encrypt an out-going message
+		 *
+		 * Takes an array of data and encrypts it with the
+		 * default public-key of the target user.  Takes a group
+		 * ID and node name to target the message.
+		 *
+		 * @param [out] finishedLen Length of the finished message
+		 * @param [in] mess Message to be encrypted
+		 * @param [in] len Length of message to be encrypted
+		 * @param [in] groupID String of the target group
+		 * @param [in] nodeName String of the name of the target node
+		 * @return Encrypted message pointer
+		 */
+		unsigned char* encryptMessage(unsigned int& finishedLen, const unsigned char* mess, unsigned int len, std::string groupID,std::string nodeName);
+		/** @brief Decrypt a message
+		 *
+		 * Takes an array of data representing an encrypted message targeted for this user.
+		 * The message is decrypted and returned.
+		 *
+		 * @param [out] finishedLen Length of the finished message
+		 * @param [in] mess Message to be decrypted
+		 * @param [in] len Length of the message to be decrypted
+		 * @param [in] groupID Group ID of message source
+		 * @param [in] nodeName Name of message source
+		 * @return Decrypted message
+		 */
+		unsigned char* decryptMessage(unsigned int& finishedLen, const unsigned char* mess, unsigned int len, std::string groupID,std::string nodeName);
 
 	//Access-------------------------------------------------------------
 

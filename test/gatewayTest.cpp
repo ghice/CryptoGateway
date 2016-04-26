@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   4/3/2016
+ * @date   4/26/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -839,6 +839,112 @@ using namespace crypto;
         if(!gtw2b.secure())
             throw os::smart_ptr<std::exception>(new generalTestException("Gateway 2B failed to secure",locString),os::shared_type);
     }
+	//Raw user message passing
+	void rawGatewayMessage() throw (os::smart_ptr<std::exception>)
+	{
+		std::string locString = "gatewayTest.cpp, rawGatewayMessage()";
+
+		user usr1("testUser1","");
+		usr1.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public128)));
+        
+        user usr2("testUser2","");
+        usr2.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public128)));
+
+		unsigned int len1;
+		unsigned int len2;
+		unsigned char* mes1;
+		unsigned char* mes2;
+
+		//Basic exchange
+		mes1=usr1.unsignedIDMessage(len1);
+		if(!mes1)
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to generate (user 1)",locString),os::shared_type);
+		mes2=usr2.unsignedIDMessage(len2);
+		if(!mes2)
+		{
+			delete [] mes1;
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to generate (user 2)",locString),os::shared_type);
+		}
+
+		if(!usr1.processIDMessage(mes2,len2))
+		{
+			delete [] mes1;
+			delete [] mes2;
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to process (user 1)",locString),os::shared_type);
+		}
+		if(!usr2.processIDMessage(mes1,len1))
+		{
+			delete [] mes1;
+			delete [] mes2;
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to process (user 2)",locString),os::shared_type);
+		}
+		delete [] mes1;
+		delete [] mes2;
+
+		//Secondary exchange
+		mes1=usr1.unsignedIDMessage(len1,"default","testUser2");
+		if(!mes1)
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to generate (user 1)",locString),os::shared_type);
+		mes2=usr2.unsignedIDMessage(len2,"default","testUser1");
+		if(!mes2)
+		{
+			delete [] mes1;
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to generate (user 2)",locString),os::shared_type);
+		}
+
+		if(!usr1.processIDMessage(mes2,len2))
+		{
+			delete [] mes1;
+			delete [] mes2;
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to process (user 1)",locString),os::shared_type);
+		}
+		if(!usr2.processIDMessage(mes1,len1))
+		{
+			delete [] mes1;
+			delete [] mes2;
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to process (user 2)",locString),os::shared_type);
+		}
+		delete [] mes1;
+		delete [] mes2;
+
+		//Basic message exchange
+		unsigned char* processed_mes1;
+		unsigned char* processed_mes2;
+		mes1=usr1.encryptMessage(len1,(const unsigned char*)"message1",9,"default","testUser2");
+		if(!mes1)
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to generate (user 1)",locString),os::shared_type);
+		mes2=usr2.encryptMessage(len2,(const unsigned char*)"message2",9,"default","testUser1");
+		if(!mes2)
+		{
+			delete [] mes1;
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to generate (user 2)",locString),os::shared_type);
+		}
+		processed_mes2=usr1.decryptMessage(len2,mes2,len2,"default","testUser2");
+		processed_mes1=usr2.decryptMessage(len1,mes1,len1,"default","testUser1");
+		delete [] mes1;
+		delete [] mes2;
+
+		if(processed_mes2==NULL || processed_mes1==NULL)
+		{
+			if(processed_mes1) delete [] processed_mes1;
+			if(processed_mes2) delete [] processed_mes2;
+			throw os::smart_ptr<std::exception>(new generalTestException("Failed to process message",locString),os::shared_type);
+		}
+		if(std::string((char*)processed_mes1)!="message1")
+		{
+			delete [] processed_mes1;
+			delete [] processed_mes2;
+			throw os::smart_ptr<std::exception>(new generalTestException("Message 1 data mis-match",locString),os::shared_type);
+		}
+		if(std::string((char*)processed_mes2)!="message2")
+		{
+			delete [] processed_mes1;
+			delete [] processed_mes2;
+			throw os::smart_ptr<std::exception>(new generalTestException("Message 2 data mis-match",locString),os::shared_type);
+		}
+		delete [] processed_mes1;
+		delete [] processed_mes2;
+	}
 
 /*================================================================
 	Bind Suites
@@ -873,6 +979,7 @@ using namespace crypto;
 		pushTest("Message Passing",&messagePassGatewayTest);
 		pushTest("Old Key Signing",&oldKeySigningTest);
         pushTest("Gateway Forwarding",&gatewayForwardTest);
+		pushTest("Raw Gateway Message",&rawGatewayMessage);
     }
 
 #endif
