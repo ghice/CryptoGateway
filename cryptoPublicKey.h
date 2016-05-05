@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   3/19/2016
+ * @date   5/5/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -189,6 +189,16 @@ namespace crypto
 		 * @return void
 		 */
 		inline void writeUnlock() {keyLock.unlock();}
+	public:
+		/** @brief Increments the read-lock
+		 * @return void
+		 */
+		inline void readLock() {keyLock.increment();}
+		/** @brief Decrements the read-lock
+		 * @return void
+		 */
+		inline void readUnlock() {keyLock.decrement();}
+	protected:
 		/** @brief Compare this with another public key
 		 *
 		 * Compares based on the algorithm ID and size of
@@ -355,15 +365,6 @@ namespace crypto
 		 * @return crypto::publicKey::_size
 		 */
         uint16_t size() const {return _size;}
-
-		/** @brief Increment read lock
-		 * @return void
-		 */
-		inline void readLock() {keyLock.increment();}
-		/** @brief Decrement read lock
-		 * @return void
-		 */
-		inline void readUnlock() {keyLock.decrement();}
         
         /** @brief Sets history size
 		 *

@@ -577,6 +577,7 @@ namespace crypto {
 		bindSavable(key.get());
 		key->setEncryptionAlgorithm(_streamPackage);
 		key->setFileName(_saveDir+"/"+_username+"/"+key->algorithmName()+"_"+std::to_string((long long unsigned int)key->size()*32)+"_"+PUBLIC_KEY_FILE);
+		key->markChanged();
 
 		//Set passwords (if appropriate)
 		if(_password!=NULL && _passwordLength>0)
