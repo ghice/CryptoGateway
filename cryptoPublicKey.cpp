@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   4/20/2016
+ * @date   5/5/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -1005,13 +1005,13 @@ using namespace crypto;
     //Checks to see if we are even generating
     bool publicRSA::generating()
     {
-        writeLock();
+		readLock();
         if(keyGen)
         {
-            writeUnlock();
+            readUnlock();
             return true;
         }
-        writeUnlock();
+		readUnlock();
         return false;
     }
 
