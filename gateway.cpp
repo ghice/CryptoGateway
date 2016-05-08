@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   4/20/2016
+ * @date   5/8/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -472,6 +472,15 @@ namespace crypto {
 			{
 				secondaryStamp=curstamp;
 				sec=true;
+			}
+
+			//Catch weird edge case
+			if(!outputHashArray)
+			{
+				lock.release();
+				logError(errorPointer(new customError("Init Error","Stream failed to build before hashing data"),os::shared_type));
+				ret=currentError();
+				break;
 			}
 
 			//Primary hash
