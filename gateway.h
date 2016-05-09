@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   4/17/2016
+ * @date   5/9/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *

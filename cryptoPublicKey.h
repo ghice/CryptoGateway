@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   5/5/2016
+ * @date   5/9/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -56,6 +56,21 @@ namespace crypto
          * be called.
          */
 		virtual ~keyChangeReceiver(){}
+		/** @brief Equality test
+		 */
+		virtual bool operator==(const keyChangeReceiver& l) const{return this==&l;}
+		/** @brief Greater than test
+		 */
+		virtual bool operator>(const keyChangeReceiver& l) const{return this>&l;}
+		/** @brief Less than test
+		 */
+		virtual bool operator<(const keyChangeReceiver& l) const{return this<&l;}
+		/** @brief Greater than/equal to test
+		 */
+		virtual bool operator>=(const keyChangeReceiver& l) const{return this>=&l;}
+		/** @brief Less than/equal to test
+		 */
+		virtual bool operator<=(const keyChangeReceiver& l) const{return this<=&l;}
 	};
 
 	/** @brief Interface inherited by publicKey
@@ -86,6 +101,22 @@ namespace crypto
          * be called.
          */
 		virtual ~keyChangeSender(){}
+		
+		/** @brief Equality test
+		 */
+		virtual bool operator==(const keyChangeSender& l) const{return this==&l;}
+		/** @brief Greater than test
+		 */
+		virtual bool operator>(const keyChangeSender& l) const{return this>&l;}
+		/** @brief Less than test
+		 */
+		virtual bool operator<(const keyChangeSender& l) const{return this<&l;}
+		/** @brief Greater than/equal to test
+		 */
+		virtual bool operator>=(const keyChangeSender& l) const{return this>=&l;}
+		/** @brief Less than/equal to test
+		 */
+		virtual bool operator<=(const keyChangeSender& l) const{return this<=&l;}
 	};
 
 	/** @brief Base public-key class
