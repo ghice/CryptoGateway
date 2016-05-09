@@ -38,7 +38,7 @@ namespace crypto {
 		_privateKey=_user->getDefaultPublicKey();
 		if(!_privateKey)
 			throw errorPointer(new NULLPublicKey(),os::shared_type);
-		_privateKey->os::eventSender<keyChangeReceiver>::pushReceivers(this);
+		//_privateKey->os::eventSender<keyChangeReceiver>::pushReceivers(this);
 		_prefferedPublicKeyAlgo=_privateKey->algorithm();
 		_prefferedPublicKeySize=_privateKey->size();
 
