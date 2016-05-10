@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   5/8/2016
+ * @date   5/9/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -38,7 +38,7 @@ namespace crypto {
 		_privateKey=_user->getDefaultPublicKey();
 		if(!_privateKey)
 			throw errorPointer(new NULLPublicKey(),os::shared_type);
-		//_privateKey->os::eventSender<keyChangeReceiver>::pushReceivers(this);
+		_privateKey->os::eventSender<keyChangeReceiver>::pushReceivers(this);
 		_prefferedPublicKeyAlgo=_privateKey->algorithm();
 		_prefferedPublicKeySize=_privateKey->size();
 
