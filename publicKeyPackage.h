@@ -1,5 +1,14 @@
-//Primary author: Jonathan Bedard
-//Certified working 2/21/2016
+/**
+ * @file	publicKeyPackage.h
+ * @author	Jonathan Bedard
+ * @date   	5/19/2016
+ * @brief	Declaration of public key bank
+ * @bug	None
+ *
+ * Declares a bank of public keys as well as
+ * supporting classes.  Acts as a meta-object
+ * construct for public-key algorithms.
+ **/
 
 #ifndef PUBLIC_KEY_PACKAGE_H
 #define PUBLIC_KEY_PACKAGE_H

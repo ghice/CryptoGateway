@@ -1,5 +1,13 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 1/16/2016
+/**
+ * @file	XMLEncryption.h
+ * @author	Jonathan Bedard
+ * @date   	5/19/2016
+ * @brief	Defines basic stream ciphers
+ * @bug	None
+ *
+ * Defines some basic stream ciphers and stream
+ * cipher tools for basic encryption.
+ **/
 
 #ifndef STREAM_CIPHER_H
 #define STREAM_CIPHER_H

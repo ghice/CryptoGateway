@@ -1,7 +1,16 @@
-//Primary author: Jonathan Bedard
-//Confirmed working: 4/3/2016
+/**
+ * @file	XMLEncryption.cpp
+ * @author	Jonathan Bedard
+ * @date   	5/19/2016
+ * @brief	Implementation of RC-4
+ * @bug	None
+ *
+ * Implements the RC-4 stream cipher and
+ * more generally, a framework for all stream
+ * ciphers to use.
+ **/
 
-//The implementation stream ciphers
+ ///@cond INTERNAL
 
 #ifndef STREAM_CIPHER_CPP
 #define STREAM_CIPHER_CPP
@@ -300,3 +309,5 @@ using namespace crypto;
 	}
 
 #endif
+
+///@endcond

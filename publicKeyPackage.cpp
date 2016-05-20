@@ -1,5 +1,16 @@
-//Primary author: Jonathan Bedard
-//Certified working 1/24/2016
+/**
+ * @file	publicKeyPackage.cpp
+ * @author	Jonathan Bedard
+ * @date   	5/19/2016
+ * @brief	Implementation of public key bank
+ * @bug	None
+ *
+ * Implements a bank of public key types to
+ * be accessed at run-time.  Essentially acts
+ * as a meta-object access bank.
+ **/
+
+ ///@cond INTERNAL
 
 #ifndef PUBLIC_KEY_PACKAGE_CPP
 #define PUBLIC_KEY_PACKAGE_CPP
@@ -64,3 +75,4 @@ namespace crypto {
 }
 
 #endif
+///@endcond

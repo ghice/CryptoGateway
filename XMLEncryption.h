@@ -1,5 +1,13 @@
-//Primary author: Jonathan Bedard
-//Certified working 3/6/2016
+/**
+ * @file	XMLEncryption.h
+ * @author	Jonathan Bedard
+ * @date   	5/19/2016
+ * @brief	Provides structure to encrypt an XML save file
+ * @bug	None
+ *
+ * Provides functions to save and load XML trees in
+ * encrypted files.
+ **/
 
 #ifndef XML_ENCRYPTION_H
 #define XML_ENCRYPTION_H

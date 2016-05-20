@@ -1,5 +1,16 @@
-//Primary author: Jonathan Bedard
-//Certified working 3/4/2016
+/**
+ * @file	streamPackage.cpp
+ * @author	Jonathan Bedard
+ * @date   	5/19/2016
+ * @brief	Implementation of streaming bank
+ * @bug	None
+ *
+ * Implements a a bank of stream ciphers and hash algorithms to
+ * be accessed at run-time.  Essentially acts
+ * as a meta-object access bank.
+ **/
+
+ ///@cond INTERNAL
 
 #ifndef STREAM_PACKAGE_CPP
 #define STREAM_PACKAGE_CPP
@@ -86,3 +97,4 @@ namespace crypto {
 }
 
 #endif
+///@endcond

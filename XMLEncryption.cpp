@@ -1,6 +1,17 @@
-//Primary author: Jonathan Bedard
-//Certified working 4/18/2016
+/**
+ * @file	XMLEncryption.cpp
+ * @author	Jonathan Bedard
+ * @date   	5/19/2016
+ * @brief	Implements encrypted XML functions
+ * @bug	None
+ *
+ * Implements functions to save and load XML trees
+ * in files locked with both a password and with
+ * public keys.
+ **/
 
+ ///@cond INTERNAL
+ 
 #ifndef XML_ENCRYPTION_CPP
 #define XML_ENCRYPTION_CPP
 
@@ -951,3 +962,5 @@ namespace crypto {
 }
 
 #endif
+
+///@endcond

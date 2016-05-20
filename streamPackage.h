@@ -1,5 +1,14 @@
-//Primary author: Jonathan Bedard
-//Certified working 1/24/2016
+/**
+ * @file	streamPackage.h
+ * @author	Jonathan Bedard
+ * @date   	5/19/2016
+ * @brief	Declaration of streaming bank
+ * @bug	None
+ *
+ * Declares a bank of stream ciphers and hash algorithms
+ * along with  supporting classes.  Acts as a meta-object
+ * construct for public-key algorithms.
+ **/
 
 #ifndef STREAM_PACKAGE_H
 #define STREAM_PACKAGE_H
