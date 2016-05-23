@@ -1,5 +1,5 @@
 /**
- * @file   osLogger.h
+ * @file   cryptoLogging.h
  * @Author Jonathan Bedard
  * @date   2/23/2016
  * @brief  Logging for crypto namespace
