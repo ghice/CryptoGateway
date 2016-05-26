@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   5/5/2016
+ * @date   5/26/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -247,7 +247,7 @@ using namespace crypto;
         uint32_t* dumpArray=new uint32_t[len/4+1];
         memset(dumpArray,0,4*(len/4+1));
         memcpy(dumpArray,arr,len);
-        for(unsigned int i=0;i<len/4+1;i++)
+        for(unsigned int i=0;i<len/4+1;++i)
             dumpArray[i]=os::from_comp_mode(dumpArray[i]);
         os::smart_ptr<number> ret=publicKey::copyConvert(dumpArray,len/4+1,size);
         delete [] dumpArray;
@@ -334,7 +334,7 @@ using namespace crypto;
 
 		readLock();
 		auto trc=oldN.getFirst();
-		for(unsigned int i=0;i<history&&trc;i++)
+		for(unsigned int i=0;i<history&&trc;++i)
 		{
 			trc=trc->getNext();
 		}
@@ -351,7 +351,7 @@ using namespace crypto;
 
 		readLock();
 		auto trc=oldD.getFirst();
-		for(unsigned int i=0;i<history&&trc;i++)
+		for(unsigned int i=0;i<history&&trc;++i)
 		{
 			trc=trc->getNext();
 		}
@@ -368,7 +368,7 @@ using namespace crypto;
 
 		readLock();
 		auto trc=_timestamps.getFirst();
-		for(unsigned int i=0;i<history&&trc;i++)
+		for(unsigned int i=0;i<history&&trc;++i)
 		{
 			trc=trc->getNext();
 		}
@@ -835,7 +835,7 @@ using namespace crypto;
         uint32_t* dumpArray=new uint32_t[len/4+1];
         memset(dumpArray,0,4*(len/4+1));
         memcpy(dumpArray,arr,len);
-        for(unsigned int i=0;i<len/4+1;i++)
+        for(unsigned int i=0;i<len/4+1;++i)
             dumpArray[i]=os::from_comp_mode(dumpArray[i]);
         os::smart_ptr<number> ret=publicRSA::copyConvert(dumpArray,len/4+1,size);
         delete [] dumpArray;
@@ -937,7 +937,7 @@ using namespace crypto;
 	integer RSAKeyGenerator::generatePrime()
 	{
 		integer ret(2*master->size());
-		for(unsigned int i=0;i<master->size()/2;i++)
+		for(unsigned int i=0;i<master->size()/2;++i)
 			ret[i]=((uint32_t) rand())^(((uint32_t)rand())<<16);
 		ret[0]=ret[0]|1;
 		ret[master->size()/2-1]^=1<<31;

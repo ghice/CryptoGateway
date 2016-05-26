@@ -1,7 +1,7 @@
 /**
  * @file	publicKeyPackage.cpp
  * @author	Jonathan Bedard
- * @date   	5/19/2016
+ * @date   	5/26/2016
  * @brief	Implementation of public key bank
  * @bug	None
  *
@@ -65,7 +65,7 @@ namespace crypto {
     //Given a stream name and a hash name, find the package
     const os::smart_ptr<publicKeyPackageFrame> publicKeyTypeBank::findPublicKey(const std::string& pkName) const
     {
-        for(unsigned int i=0;i<packageVector.size();i++)
+        for(unsigned int i=0;i<packageVector.size();++i)
         {
             if(packageVector[i] && pkName==packageVector[i]->algorithmName())
                 return packageVector[i];

@@ -1,7 +1,7 @@
 /**
  * @file	XMLEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	5/19/2016
+ * @date   	5/26/2016
  * @brief	Implements encrypted XML functions
  * @bug	None
  *
@@ -62,7 +62,7 @@ namespace crypto {
 		uint16_t data=args.size()+1;
 
 		//Index
-		for(unsigned int i=0;i<args.size()&&data>args.size();i++)
+		for(unsigned int i=0;i<args.size()&&data>args.size();++i)
 		{
 			if(args[i]==head->getID())
 				data=i;
@@ -89,7 +89,7 @@ namespace crypto {
 			memcpy(headerData+4,&data,2);
 		}
 
-		for(unsigned int i=0;i<6;i++)
+		for(unsigned int i=0;i<6;++i)
 			headerData[i]=headerData[i]^strm->getNext();
 		ofs.write((char*)headerData,6);
 
@@ -116,7 +116,7 @@ namespace crypto {
 			}
 			else
 			{
-				for(unsigned int i=0;i<head->getDataList().size();i++)
+				for(unsigned int i=0;i<head->getDataList().size();++i)
 				{
 					dataptr=os::smart_ptr<unsigned char>(new unsigned char[head->getDataList()[i].size()+2],os::shared_type_array);
 					data=head->getDataList()[i].size();
@@ -141,7 +141,7 @@ namespace crypto {
 
 		ifs.read((char*)headerData,6);
 		//Decrypt
-		for(unsigned int i=0;i<6;i++)
+		for(unsigned int i=0;i<6;++i)
 			headerData[i]=headerData[i]^strm->getNext();
 		uint16_t data;
 
@@ -157,7 +157,7 @@ namespace crypto {
 		data=os::from_comp_mode(data);
 		if(data>0)
 		{
-			for(unsigned int i=0;i<data;i++)
+			for(unsigned int i=0;i<data;++i)
 			{
 				if(!ifs.good())
 					throw errorPointer(new actionOnFileError(),os::shared_type);
@@ -170,7 +170,7 @@ namespace crypto {
 		memcpy(&data,headerData+4,2);
 		data=os::from_comp_mode(data);
 		std::vector<std::string> pData;
-		for(unsigned int i=0;i<data;i++)
+		for(unsigned int i=0;i<data;++i)
 		{
 			if(!ifs.good())
 				throw errorPointer(new actionOnFileError(),os::shared_type);
@@ -193,7 +193,7 @@ namespace crypto {
 		if(pData.size()==1) ret->setData(pData[0]);
 		else
 		{
-			for(unsigned int i=0;i<pData.size();i++)
+			for(unsigned int i=0;i<pData.size();++i)
 				ret->getDataList().push_back(pData[i]);
 		}
 
@@ -262,7 +262,7 @@ namespace crypto {
 			//Data list
 			std::vector<std::string> argList=generateArgumentList(head);
 			trc1=os::smartXMLNode(new os::XML_Node("argList"),os::shared_type);
-			for(unsigned int i=0;i<argList.size();i++)
+			for(unsigned int i=0;i<argList.size();++i)
 				trc1->getDataList().push_back(argList[i]);
 			encryHead->addElement(trc1);
 
@@ -344,11 +344,11 @@ namespace crypto {
 			os::smart_ptr<unsigned char> randkey;
 			randkey=os::smart_ptr<unsigned char>(new unsigned char[kySize],os::shared_type_array);
 			memset(randkey.get(),0,kySize);
-			for(unsigned int i=0;i<(pbk->size()-1)*4;i++)
+			for(unsigned int i=0;i<(pbk->size()-1)*4;++i)
 				randkey[i]=rand();
 			if(lockType==file::DOUBLE_LOCK)
 			{
-				for(unsigned int i=0;i<(pbk->size()-1)*4;i++)
+				for(unsigned int i=0;i<(pbk->size()-1)*4;++i)
 					randkey[i+pbk->size()*4]=rand();
 			}
 			os::smart_ptr<number> num1=pbk->copyConvert(randkey.get(),pbk->size()*4);
@@ -425,7 +425,7 @@ namespace crypto {
 			//Data list
 			std::vector<std::string> argList=generateArgumentList(head);
 			trc1=os::smartXMLNode(new os::XML_Node("argList"),os::shared_type);
-			for(unsigned int i=0;i<argList.size();i++)
+			for(unsigned int i=0;i<argList.size();++i)
 				trc1->getDataList().push_back(argList[i]);
 			encryHead->addElement(trc1);
         
@@ -510,7 +510,7 @@ namespace crypto {
 			srand(time(NULL));
 			os::smart_ptr<unsigned char> randkey=os::smart_ptr<unsigned char>(new unsigned char[pkframe->keySize()*4],os::shared_type_array);
 			memset(randkey.get(),0,pkframe->keySize()*4);
-			for(unsigned int i=0;i<(pkframe->keySize()-1)*4;i++)
+			for(unsigned int i=0;i<(pkframe->keySize()-1)*4;++i)
 				randkey[i]=rand();
 			os::smart_ptr<number> num=pkframe->convert(randkey.get(),pkframe->keySize()*4);
 			num->reduce();
@@ -542,7 +542,7 @@ namespace crypto {
 			//Data list
 			std::vector<std::string> argList=generateArgumentList(head);
 			trc1=os::smartXMLNode(new os::XML_Node("argList"),os::shared_type);
-			for(unsigned int i=0;i<argList.size();i++)
+			for(unsigned int i=0;i<argList.size();++i)
 				trc1->getDataList().push_back(argList[i]);
 			encryHead->addElement(trc1);
         

@@ -110,41 +110,41 @@ namespace test {
 			uint8_t arr2[256];
 
 			//Check 1 forward
-			for(int i=0;i<256;i++)
+			for(int i=0;i<256;++i)
 				arr1[i]=rand();
 			memcpy(arr2,arr1,256);
 			strEn.sendData(arr1,256,markVal);
 			strDe.recieveData(arr1,256,markVal);
 
 			//Check for differences
-			for(int i=0;i<256;i++)
+			for(int i=0;i<256;++i)
 			{
 				if(arr1[i]!=arr2[i]) throw os::smart_ptr<std::exception>(new generalTestException("Initial simple check failed",locString),os::shared_type);
 			}
 
 			//Check 1 forward (again)
-			for(int i=0;i<256;i++)
+			for(int i=0;i<256;++i)
 				arr1[i]=rand();
 			memcpy(arr2,arr1,256);
 			strEn.sendData(arr1,256,markVal);
 			strDe.recieveData(arr1,256,markVal);
 
 			//Check for differences
-			for(int i=0;i<256;i++)
+			for(int i=0;i<256;++i)
 			{
 				if(arr1[i]!=arr2[i]) throw os::smart_ptr<std::exception>(new generalTestException("Secondary simple check failed",locString),os::shared_type);
 			}
 
 			//Check 2 forward
 			strEn.sendData(arr1,256,markVal);
-			for(int i=0;i<256;i++)
+			for(int i=0;i<256;++i)
 				arr1[i]=rand();
 			memcpy(arr2,arr1,256);
 			strEn.sendData(arr1,256,markVal);
 			strDe.recieveData(arr1,256,markVal);
 
 			//Check for differences
-			for(int i=0;i<256;i++)
+			for(int i=0;i<256;++i)
 			{
 				if(arr1[i]!=arr2[i]) throw os::smart_ptr<std::exception>(new generalTestException("2 forward check failed",locString),os::shared_type);
 			}
@@ -153,14 +153,14 @@ namespace test {
 			strEn.sendData(arr1,256,markVal);
 			strEn.sendData(arr1,256,markVal);
 			strEn.sendData(arr1,256,markVal);
-			for(int i=0;i<256;i++)
+			for(int i=0;i<256;++i)
 				arr1[i]=rand();
 			memcpy(arr2,arr1,256);
 			strEn.sendData(arr1,256,markVal);
 			strDe.recieveData(arr1,256,markVal);
 
 			//Check for differences
-			for(int i=0;i<256;i++)
+			for(int i=0;i<256;++i)
 			{
 				if(arr1[i]!=arr2[i]) throw os::smart_ptr<std::exception>(new generalTestException("4 forward check failed",locString),os::shared_type);
 			}
@@ -179,7 +179,7 @@ namespace test {
 
 			//Cycle block test 5 times
 			uint8_t arr[16];
-			for(int i=1;i<6;i++)
+			for(int i=1;i<6;++i)
 			{
 				for(int c=0;c<16;c++) arr[c]=rand();
 				pushTest(os::smart_ptr<singleTest>(new streamBlockTest<streamType>(streamName,i,arr,16),os::shared_type));

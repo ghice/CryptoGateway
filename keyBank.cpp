@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.cpp
  * @author Jonathan Bedard
- * @date   4/19/2016
+ * @date   5/26/2016
  * @brief  Implimentation for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -108,7 +108,7 @@ namespace crypto {
 				if(!pkfrm) throw errorPointer(new fileFormatError(),os::shared_type);
 				pkfrm->setKeySize(ks);
 				uint32_t* keyArr=new uint32_t[ks];
-				for(unsigned int arrcnt=0;arrcnt<ks;arrcnt++)
+				for(unsigned int arrcnt=0;arrcnt<ks;++arrcnt)
 					std::stringstream(hld->getDataList()[arrcnt])>>keyArr[arrcnt];
 				os::smart_ptr<number> key=pkfrm->convert(keyArr,ks);
 				delete [] keyArr;
@@ -268,7 +268,7 @@ namespace crypto {
 		for(auto i=keyList.getFirst();i;i=i->getNext())
 		{
 			sortedKeys[cnt]=i->getData();
-			cnt++;
+			++cnt;
 		}
 		os::pointerQuicksort(sortedKeys,cnt,&compareKeysByTimestamp);
 	}
@@ -280,7 +280,7 @@ namespace crypto {
 		for(auto i=nameList.getFirst();i;i=i->getNext())
 		{
 			sortedNames[cnt]=i->getData();
-			cnt++;
+			++cnt;
 		}
 		os::pointerQuicksort(sortedNames,cnt,&compareNamesByTimestamp);
 	}

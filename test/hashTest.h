@@ -45,7 +45,7 @@ namespace test {
     {
         unsigned char data[1024];
         
-        for(int i=0;i<1024;i++)
+        for(int i=0;i<1024;++i)
             data[i]=(unsigned char)rand();
         
         return crypto::hashData<hashClass>(hashType,data,512);
@@ -65,7 +65,7 @@ namespace test {
             std::string locString = "hashTest.h, hashConstructorTest::test()";
             
             //Attempts the random hash 20 times
-            for(int i=0;i<20;i++)
+            for(int i=0;i<20;++i)
             {
                 hashClass hsh1=randomHash<hashClass>(hashTest<hashClass>::_hashSize);
                 hashClass hsh2(hsh1);
@@ -129,7 +129,7 @@ namespace test {
             std::string locString = "hashTest.h, hashEqualityOperatorTest::test()";
             
             //Attempts the random hash 20 times
-            for(int i=0;i<20;i++)
+            for(int i=0;i<20;++i)
             {
                 hashClass hsh1=randomHash<hashClass>(hashTest<hashClass>::_hashSize);
                 hashClass hsh2=randomHash<hashClass>(hashTest<hashClass>::_hashSize);
@@ -183,7 +183,7 @@ namespace test {
             hashClass hsh1=crypto::hashData<hashClass>(hashTest<hashClass>::_hashSize,NULL,0);
             
             std::string targ;
-            for(uint16_t i=0;i<hsh1.size()*2;i++)
+            for(uint16_t i=0;i<hsh1.size()*2;++i)
             {
                 targ+='0';
             }
@@ -195,7 +195,7 @@ namespace test {
                 throw os::smart_ptr<std::exception>(new generalTestException("To string (1) failed",locString),os::shared_type);
             
             //Convert to string and back
-            for(int i=0;i<20;i++)
+            for(int i=0;i<20;++i)
             {
                 hashClass hsh1=randomHash<hashClass>(hashTest<hashClass>::_hashSize);
                 hashClass hsh2;
@@ -217,7 +217,7 @@ namespace test {
             testSuite(hashName)
         {
             uint16_t hSize;
-            for(int i=0;i<4;i++)
+            for(int i=0;i<4;++i)
             {
                 if(i==0) hSize=crypto::size::hash64;
                 else if(i==1) hSize=crypto::size::hash128;

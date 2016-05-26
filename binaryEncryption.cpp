@@ -1,7 +1,7 @@
 /**
  * @file	binaryEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	4/18/2016
+ * @date   	5/26/2016
  * @brief	Implementation of binary encryption files
  * @bug	None
  *
@@ -207,11 +207,11 @@ namespace crypto {
 			randkey=os::smart_ptr<unsigned char>(new unsigned char[arrayLen],os::shared_type_array);
 			
 			memset(randkey.get(),0,arrayLen);
-			for(unsigned int i=0;i<(publicKeyLock->size()-1)*4;i++)
+			for(unsigned int i=0;i<(publicKeyLock->size()-1)*4;++i)
 				randkey[i]=rand();
 			if(_publicLockType==file::DOUBLE_LOCK)
 			{
-				for(unsigned int i=0;i<(publicKeyLock->size()-1)*4;i++)
+				for(unsigned int i=0;i<(publicKeyLock->size()-1)*4;++i)
 					randkey[i+publicKeyLock->size()*4]=rand();
 			}
 			hsh=_streamAlgorithm->hashData(randkey.get(),arrayLen);
@@ -295,7 +295,7 @@ namespace crypto {
 			srand(time(NULL));
 			randkey=os::smart_ptr<unsigned char>(new unsigned char[pkframe->keySize()*4],os::shared_type_array);
 			memset(randkey.get(),0,pkframe->keySize()*4);
-			for(unsigned int i=0;i<(pkframe->keySize()-1)*4;i++)
+			for(unsigned int i=0;i<(pkframe->keySize()-1)*4;++i)
 				randkey[i]=rand();
 			hsh=_streamAlgorithm->hashData(randkey.get(),pkframe->keySize()*4);
 
@@ -355,7 +355,7 @@ namespace crypto {
 			return;
 		}
 		unsigned char* arr=new unsigned char[dataLen];
-		for(unsigned int i=0;i<dataLen;i++)
+		for(unsigned int i=0;i<dataLen;++i)
 			arr[i]=data[i]^currentCipher->getNext();
 		output.write((char*)arr,dataLen);
 		delete [] arr;
@@ -667,7 +667,7 @@ namespace crypto {
 		input.read((char*) data,dataLen);
 
 		//Decrypt data
-		for(unsigned int i=0;i<readTarg;i++)
+		for(unsigned int i=0;i<readTarg;++i)
 			data[i]=data[i]^currentCipher->getNext();
 		_bytesLeft-=readTarg;
 		if(_bytesLeft<=0||!input.good())

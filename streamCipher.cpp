@@ -1,7 +1,7 @@
 /**
  * @file	XMLEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	5/19/2016
+ * @date   	5/26/2016
  * @brief	Implementation of RC-4
  * @bug	None
  *
@@ -53,7 +53,7 @@ using namespace crypto;
 		while(cnt<size)
 		{
 		  packetArray[cnt] = source->getNext();
-		  cnt++;
+		  ++cnt;
 		}
 	}
 	//Destructor
@@ -71,7 +71,7 @@ using namespace crypto;
 		while(cnt<len)
 		{
 			pt[cnt] = pt[cnt] ^ packetArray[cnt%size];
-			cnt++;
+			++cnt;
 		}
 
 		return pt;
@@ -91,7 +91,7 @@ using namespace crypto;
 		while(i<size::RC4_MAX)
 		{
 			SArray[i] = i;
-			i++;
+			++i;
 		}
 
 		//Set the initial permutaion
@@ -104,7 +104,7 @@ using namespace crypto;
 			u = SArray[i];
 			SArray[i] = SArray[j];
 			SArray[j] = u;
-			i++;
+			++i;
 		}
 
 		i = 0;
@@ -142,7 +142,7 @@ using namespace crypto;
 		while(cnt<size::stream::BACKCHECK)
 		{
 		  ID_check[cnt] = 0;
-		  cnt++;
+		  ++cnt;
 		}
 	}
 	//Destructor
@@ -172,7 +172,7 @@ using namespace crypto;
 				{
 					packet_found = false;
 				}
-				cnt++;
+				++cnt;
 			}
       
 			if(!packet_found)
@@ -204,7 +204,7 @@ using namespace crypto;
 		while(cnt<size::stream::DECRYSIZE)
 		{
 			packetArray[cnt] = NULL;
-			cnt++;
+			++cnt;
 		}
 		cnt=0;
 
@@ -231,7 +231,7 @@ using namespace crypto;
 				if(!good_packet) delete(packetArray[cnt]);
 			}
 			while(!good_packet);
-			cnt++;
+			++cnt;
 		}
 	}
 	//Destructor
@@ -241,7 +241,7 @@ using namespace crypto;
 		while(cnt<size::stream::DECRYSIZE)
 		{
 			if(packetArray[cnt]!=NULL)delete(packetArray[cnt]);
-			cnt++;
+			++cnt;
 		}
 		delete(packetArray);
 		cipher=NULL;
@@ -257,7 +257,7 @@ using namespace crypto;
 		while(cnt<size::stream::DECRYSIZE && !found)
 		{
 			if(packetArray[(cnt+last_value+size::stream::DECRYSIZE-size::stream::BACKCHECK)%size::stream::DECRYSIZE]->getIdentifier()==flag) found = true;
-			if(!found) cnt++;
+			if(!found) ++cnt;
 		}
 		
 		//Check if we have found the packet
@@ -297,11 +297,11 @@ using namespace crypto;
 					if(packetArray[(mid_value+size::stream::DECRYSIZE-size::stream::LAGCATCH+cnt+1)%size::stream::DECRYSIZE]->getIdentifier()==
 						packetArray[(mid_value+size::stream::DECRYSIZE-size::stream::LAGCATCH+cnt+1-local_cnt)%size::stream::DECRYSIZE]->getIdentifier())
 						good_packet = false;
-					local_cnt++;
+					++local_cnt;
 				}
 			}
 			while(!good_packet);
-			cnt++;
+			++cnt;
 		}
 		mid_value = last_value;
 		

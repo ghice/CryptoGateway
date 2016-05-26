@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   4/26/2016
+ * @date   5/26/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -349,7 +349,7 @@ using namespace crypto;
 				if(cnt==1 && trc->getData()->size()!=crypto::size::public256)
 					throw os::smart_ptr<std::exception>(new generalTestException("List order error (1)",locString),os::shared_type);
 				trc=trc->getNext();
-				cnt++;
+				++cnt;
 			}
 			
 		}
@@ -636,7 +636,7 @@ using namespace crypto;
 			msg2=gtw2.getMessage();
 			gtw1.processMessage(msg2);
 			gtw2.processMessage(msg1);
-			cnt++;
+			++cnt;
 		}
 
 		//Check if gateways are secured
@@ -813,7 +813,7 @@ using namespace crypto;
             msg2=gtw2a.getMessage();
             gtw1a.processMessage(msg2);
             gtw2a.processMessage(msg1);
-            cnt++;
+            ++cnt;
         }
         
         //B gateways
@@ -826,7 +826,7 @@ using namespace crypto;
             msg2=gtw2b.getMessage();
             gtw1b.processMessage(msg2);
             gtw2b.processMessage(msg1);
-            cnt++;
+            ++cnt;
         }
         
         //Check if gateways are secured

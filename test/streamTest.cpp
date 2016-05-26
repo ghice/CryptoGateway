@@ -1,7 +1,7 @@
 /**
  * @file   test/streamTest.cpp
  * @author Jonathan Bedard
- * @date   4/18/2016
+ * @date   4/26/2016
  * @brief  Implementation for stream tests
  * @bug No known bugs.
  *
@@ -41,7 +41,7 @@ using namespace test;
 		comp[16]=94;	comp[17]=62;	comp[18]=73;	comp[19]=183;
 
 
-		for(int i=0;i<20;i++)
+		for(int i=0;i<20;++i)
 		{
 			//testout<<(int)algo.getNext()<<std::endl;
 			if(comp[i]!=algo.getNext())

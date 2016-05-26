@@ -145,7 +145,7 @@ using namespace crypto;
 		arr_len=targ_size*4;
 		os::smart_ptr<unsigned char> ret(new unsigned char[arr_len],os::shared_type_array);
 		memset(ret.get(), 0, arr_len);
-		for(unsigned int i=0;i<targ_size;i++)
+		for(unsigned int i=0;i<targ_size;++i)
 		{
 			uint32_t swtc=os::to_comp_mode(_data[i]);
 			memcpy(ret.get()+i*4,&swtc,4);
@@ -160,7 +160,7 @@ using namespace crypto;
     std::string number::toString() const
     {
         std::string ret="";
-        for(int i=0;i<_size;i++)
+        for(int i=0;i<_size;++i)
         {
             ret=toHex(_data[i])+ret;
             if(i+1<_size)
@@ -178,7 +178,7 @@ using namespace crypto;
         int groupLen=0;
         
         //Try and determine length
-        for(int i=0;i<str.length();i++)
+        for(int i=0;i<str.length();++i)
         {
             //Its a hex character
             if(isHexCharacter(str[i]))
@@ -273,17 +273,17 @@ using namespace crypto;
             ret.expand(op._size);
         
         uint16_t i;
-        for(i=0;i<_size && i<op._size;i++)
+        for(i=0;i<_size && i<op._size;++i)
             ret._data[i]=_data[i]|op._data[i];
         while(i<_size)
         {
             ret._data[i]=_data[i];
-            i++;
+            ++i;
         }
         while(i<op._size)
         {
             ret._data[i]=op._data[i];
-            i++;
+            ++i;
         }
         
         return ret;
@@ -293,7 +293,7 @@ using namespace crypto;
     {
         if(_size<op._size)
             expand(op._size);
-        for(uint16_t i=0;i<_size && i<op._size;i++)
+        for(uint16_t i=0;i<_size && i<op._size;++i)
             _data[i]|=op._data[i];
         return *this;
     }
@@ -305,7 +305,7 @@ using namespace crypto;
             ret.expand(op._size);
         
         uint16_t i;
-        for(i=0;i<_size && i<op._size;i++)
+        for(i=0;i<_size && i<op._size;++i)
             ret._data[i]=_data[i]&op._data[i];
         
         return ret;
@@ -316,12 +316,12 @@ using namespace crypto;
         if(_size<op._size)
             expand(op._size);
         uint16_t i;
-        for(i=0;i<_size && i<op._size;i++)
+        for(i=0;i<_size && i<op._size;++i)
             _data[i]&=op._data[i];
         while(i<_size)
         {
             _data[i]=0;
-            i++;
+            ++i;
         }
         return *this;
     }
@@ -333,17 +333,17 @@ using namespace crypto;
             ret.expand(op._size);
         
         uint16_t i;
-        for(i=0;i<_size && i<op._size;i++)
+        for(i=0;i<_size && i<op._size;++i)
             ret._data[i]=_data[i]^op._data[i];
         while(i<_size)
         {
             ret._data[i]=_data[i];
-            i++;
+            ++i;
         }
         while(i<op._size)
         {
             ret._data[i]=op._data[i];
-            i++;
+            ++i;
         }
         
         return ret;
@@ -353,7 +353,7 @@ using namespace crypto;
     {
         if(_size<op._size)
             expand(op._size);
-        for(uint16_t i=0;i<_size && i<op._size;i++)
+        for(uint16_t i=0;i<_size && i<op._size;++i)
             _data[i]^=op._data[i];
         return *this;
     }
@@ -361,7 +361,7 @@ using namespace crypto;
     number number::operator~() const
     {
         number ret(*this);
-        for(uint16_t i=0;i<ret.size();i++)
+        for(uint16_t i=0;i<ret.size();++i)
             ret._data[i]= ~ret._data[i];
         return ret;
     }

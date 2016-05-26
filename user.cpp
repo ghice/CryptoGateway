@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	4/26/2016
+ * @date   	5/26/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -242,7 +242,7 @@ namespace crypto {
 				{
 					os::smart_ptr<streamCipher> strm = _streamPackage->buildStream(_password,_passwordLength);
 					streamArr=os::smart_ptr<unsigned char>(new unsigned char[BLOCK_SIZE*xmlList->size()],os::shared_type_array);
-					for(unsigned int i=0;i<BLOCK_SIZE*xmlList->size();i++)
+					for(unsigned int i=0;i<BLOCK_SIZE*xmlList->size();++i)
 						streamArr[i]=strm->getNext();
 				}
 
@@ -296,7 +296,7 @@ namespace crypto {
 							logError(errorPointer(new unknownErrorType(),os::shared_type));
 						}
 					}
-					trc++;
+					++trc;
 				}
 
 				//Default public key
@@ -521,14 +521,14 @@ namespace crypto {
 		{
 			os::smart_ptr<streamCipher> strm = _streamPackage->buildStream(_password,_passwordLength);
 			os::smart_ptr<unsigned char> streamArr(new unsigned char[BLOCK_SIZE*_publicKeys.size()],os::shared_type_array);
-			for(unsigned int i=0;i<BLOCK_SIZE*_publicKeys.size();i++)
+			for(unsigned int i=0;i<BLOCK_SIZE*_publicKeys.size();++i)
 				streamArr[i]=strm->getNext();
 
 			unsigned int trc=0;
 			for(auto it=_publicKeys.getFirst();it;it=it->getNext())
 			{
 				it->getData()->setPassword(streamArr.get()+trc*BLOCK_SIZE,BLOCK_SIZE);
-				trc++;
+				++trc;
 			}
 		}
 		else
@@ -584,14 +584,14 @@ namespace crypto {
 		{
 			os::smart_ptr<streamCipher> strm = _streamPackage->buildStream(_password,_passwordLength);
 			os::smart_ptr<unsigned char> streamArr(new unsigned char[BLOCK_SIZE*_publicKeys.size()],os::shared_type_array);
-			for(unsigned int i=0;i<BLOCK_SIZE*_publicKeys.size();i++)
+			for(unsigned int i=0;i<BLOCK_SIZE*_publicKeys.size();++i)
 				streamArr[i]=strm->getNext();
 
 			unsigned int trc=0;
 			for(auto it=_publicKeys.getFirst();it;it=it->getNext())
 			{
 				it->getData()->setPassword(streamArr.get()+trc*BLOCK_SIZE,BLOCK_SIZE);
-				trc++;
+				++trc;
 			}
 		}
 
@@ -715,7 +715,7 @@ namespace crypto {
 			memcpy(ret+trc,hsh.data(),hsh.size());
 			trc+=stmpk->hashSize();
 
-			for(int i=0;i<targKey->keySize()*4;i++)
+			for(int i=0;i<targKey->keySize()*4;++i)
 				ret[trc+i]=rand();
 			ret[trc+targKey->keySize()*4-1]=rand()&0x0F;
 			cipher=stmpk->buildStream(ret+trc,targKey->keySize()*4);
@@ -751,7 +751,7 @@ namespace crypto {
 		//Now encrypt
 		if(cipher && targKey)
 		{
-			for(int i=cipherStart;i<len;i++)
+			for(int i=cipherStart;i<len;++i)
 				ret[i]=cipher->getNext()^ret[i];
 
 			os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(targKey->algoID());
@@ -824,7 +824,7 @@ namespace crypto {
 
 			os::smart_ptr<streamCipher> cipher=stmpk->buildStream(mess+trc,myKey->size()*4);
 			trc+=myKey->size()*4;
-			for(int i=trc;i<len;i++)
+			for(int i=trc;i<len;++i)
 				mess[i]=mess[i]^cipher->getNext();
 		}
 
@@ -900,7 +900,7 @@ namespace crypto {
 		int cipherStart;
 		unsigned int tempLen;
 
-		for(int i=0;i<targKey->keySize()*4;i++)
+		for(int i=0;i<targKey->keySize()*4;++i)
 			ret[trc+i]=rand();
 		ret[trc+targKey->keySize()*4-1]=rand()&0x0F;
 		cipher=stmpk->buildStream(ret+trc,targKey->keySize()*4);
@@ -928,7 +928,7 @@ namespace crypto {
 		memcpy(ret+trc,arr.get(),tempLen);
 
 		//Now encrypt
-		for(int i=cipherStart;i<finishedLen;i++)
+		for(int i=cipherStart;i<finishedLen;++i)
 			ret[i]=cipher->getNext()^ret[i];
 
 		os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(targKey->algoID());
@@ -1014,7 +1014,7 @@ namespace crypto {
 		//Now decrypt
 		os::smart_ptr<streamCipher> cipher=stmpk->buildStream(temp+trc,targKey->keySize()*4);
 		trc+=pbk->size()*4;
-		for(int i=trc;i<len;i++)
+		for(int i=trc;i<len;++i)
 			temp[i]=cipher->getNext()^temp[i];
 
 		//Pull message

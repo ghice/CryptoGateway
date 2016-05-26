@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.cpp
  * @author Jonathan Bedard
- * @date   4/18/2016
+ * @date   5/26/2016
  * @brief  Implementation for cryptographic file testing
  * @bug No known bugs.
  *
@@ -61,7 +61,7 @@ using namespace test;
 		//Bind data
 		unsigned char refData[100];
 		unsigned char readData[100];
-		for(int i=0;i<100;i++)
+		for(int i=0;i<100;++i)
 			refData[i]=rand();
 
 		try
@@ -81,7 +81,7 @@ using namespace test;
 				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
 
 			//Compare reference and read data
-			for(int i=0;i<100;i++)
+			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
 					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
@@ -113,7 +113,7 @@ using namespace test;
 		//Bind data
 		unsigned char refData[100];
 		unsigned char readData[100];
-		for(int i=0;i<100;i++)
+		for(int i=0;i<100;++i)
 			refData[i]=rand();
 
 		try
@@ -133,7 +133,7 @@ using namespace test;
 				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
 
 			//Compare reference and read data
-			for(int i=0;i<100;i++)
+			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
 					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
@@ -160,7 +160,7 @@ using namespace test;
 		//Bind data
 		unsigned char refData[100];
 		unsigned char readData[100];
-		for(int i=0;i<100;i++)
+		for(int i=0;i<100;++i)
 			refData[i]=rand();
 
 		try
@@ -188,7 +188,7 @@ using namespace test;
 				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
 
 			//Compare reference and read data
-			for(int i=0;i<100;i++)
+			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
 					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
@@ -206,7 +206,7 @@ using namespace test;
 				throw os::smart_ptr<std::exception>(new generalTestException("Failed to confirm author",locString),os::shared_type);
 
 			//Compare reference and read data
-			for(int i=0;i<100;i++)
+			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
 					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
@@ -232,7 +232,7 @@ using namespace test;
 		//Bind data
 		unsigned char refData[100];
 		unsigned char readData[100];
-		for(int i=0;i<100;i++)
+		for(int i=0;i<100;++i)
 			refData[i]=rand();
 
 		try
@@ -260,7 +260,7 @@ using namespace test;
 				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
 
 			//Compare reference and read data
-			for(int i=0;i<100;i++)
+			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
 					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);

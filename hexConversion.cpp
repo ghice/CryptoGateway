@@ -1,7 +1,7 @@
 /**
  * @file   hexConversion.cpp
  * @author Jonathan Bedard
- * @date   3/16/2016
+ * @date   5/26/2016
  * @brief  Hex conversion implementation
  * @bug No known bugs.
  *
@@ -51,7 +51,7 @@ bool crypto::isHexCharacter(char c)
 std::string crypto::toHex(unsigned char i)
 {
     std::string ret="";
-    for(int cnt=0;cnt<2;cnt++)
+    for(int cnt=0;cnt<2;++cnt)
     {
         uint16_t temp=i&15;
         switch (temp)
@@ -117,7 +117,7 @@ std::string crypto::toHex(unsigned char i)
 std::string crypto::toHex(uint32_t i)
 {
     std::string ret="";
-    for(int cnt=0;cnt<8;cnt++)
+    for(int cnt=0;cnt<8;++cnt)
     {
         uint16_t temp=i&15;
         switch (temp)
@@ -184,7 +184,7 @@ unsigned char crypto::fromHex8(const std::string& str)
 {
     unsigned char ret=0;
     
-    for(int i=0;i<str.length()&&i<2;i++)
+    for(int i=0;i<str.length()&&i<2;++i)
     {
         ret = ret<<4;
         switch (str[i])
@@ -247,7 +247,7 @@ uint32_t crypto::fromHex32(const std::string& str)
 {
     uint32_t ret=0;
     
-    for(int i=0;i<str.length()&&i<8;i++)
+    for(int i=0;i<str.length()&&i<8;++i)
     {
         ret = ret<<4;
         switch (str[i])

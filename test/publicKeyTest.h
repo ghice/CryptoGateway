@@ -116,7 +116,7 @@ namespace test
                 os::smart_ptr<pkType> pk2=getStaticKeys<pkType>(publicLen,1);
 			
                 numberType n1(publicLen);
-                for(unsigned i=0;i<publicLen-1;i++)
+                for(unsigned i=0;i<publicLen-1;++i)
                     n1[i]=rand();
                 numberType en1=n1;  
                 numberType en2=n1;
@@ -159,13 +159,13 @@ namespace test
 				os::smart_ptr<unsigned char> char1(new unsigned char[len],os::shared_type);
 				os::smart_ptr<unsigned char> char2(new unsigned char[len],os::shared_type);
 				memset(char1.get(),0,len);
-                for(unsigned i=0;i<len-1;i++)
+                for(unsigned i=0;i<len-1;++i)
                     char1[i]=rand();
                 memcpy(char2.get(),char1.get(),len);
 
                 pk1->encode(char1.get(),len);
                 pk1->crypto::publicKey::decode(char1.get(),len);
-                for(unsigned i=0;i<len;i++)
+                for(unsigned i=0;i<len;++i)
 				{
 					if(char1[i]!=char2[i])
 						throw os::smart_ptr<std::exception>(new generalTestException("Encryption failed",locString),os::shared_type);

@@ -394,7 +394,7 @@ namespace crypto {
 				{
 					if(listSize>5) listSize=5;
 					hashArray=os::smart_ptr<unsigned char>(new unsigned char[listSize*brotherStream->hashSize()],os::shared_type_array);
-					for(unsigned int i=0;hashArray&&i<listSize;i++)
+					for(unsigned int i=0;hashArray&&i<listSize;++i)
 					{
 						if(*brotherPublicKey==*keyList[i]->key())
 							hashArray=NULL;
@@ -747,7 +747,7 @@ namespace crypto {
 			else
 			{
 				newMessage=false;
-				for(unsigned int i=2;i<msg->size() && !newMessage;i++)
+				for(unsigned int i=2;i<msg->size() && !newMessage;++i)
 				{
 					if(msg->data()[i]!=streamMessageIn->data()[i])
 						newMessage=true;
@@ -874,7 +874,7 @@ namespace crypto {
 				unsigned int listSize;
 				os::smart_ptr<os::smart_ptr<nodeKeyReference> > keyList=node->keysByTimestamp(listSize);
 				os::smart_ptr<nodeKeyReference> secKey;
-				for(unsigned int i=0;i<5 && i<listSize && !secKey;i++)
+				for(unsigned int i=0;i<5 && i<listSize && !secKey;++i)
 				{
 					unsigned int datLen=0;
 					auto tdat=keyList[i]->key()->getCompCharData(datLen);
@@ -1223,7 +1223,7 @@ namespace crypto {
 		unsigned int keySize=brotherPKFrame->keySize()*sizeof(uint32_t);
 		os::smart_ptr<uint8_t> strmKey(new uint8_t[keySize],os::shared_type_array);
 		memset(strmKey.get(),0,keySize);
-		for(unsigned int i=0;i<keySize-1;i++)
+		for(unsigned int i=0;i<keySize-1;++i)
 			strmKey[i]=rand();
 		os::smart_ptr<number> temp=brotherPKFrame->convert(strmKey.get(),keySize);
 		strmKey=temp->getCompCharData(keySize);

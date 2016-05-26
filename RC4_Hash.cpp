@@ -62,7 +62,7 @@ using namespace crypto;
 			while(cnt<_size)
 			{
 				_data[cnt] = _data[cnt]^rc.getNext();
-				cnt++;
+				++cnt;
 			}
 		}
     }

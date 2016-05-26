@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoNumberTest.cpp
  * @author Jonathan Bedard
- * @date   4/18/2016
+ * @date   5/26/2016
  * @brief  Testing crypto::number and crypto::integer
  * @bug No known bugs.
  *
@@ -32,7 +32,7 @@ using namespace crypto;
     {
         number ret=integer(8);
         //Size 8
-        for(int i=0;i<4;i++)
+        for(int i=0;i<4;++i)
         {
             ret[i]=rand();
         }
@@ -416,7 +416,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("size comp 4 wrong",locString),shared_type);
         
         //Main test
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             number num1=generateNumber();
             number num2=generateNumber();
@@ -424,7 +424,7 @@ using namespace crypto;
             number ans2=num2|num1;
             number ans3(num1);
             
-            for(int i=0;i<ans3.size();i++)
+            for(int i=0;i<ans3.size();++i)
             {
                 ans3[i]=num1[i]|num2[i];
             }
@@ -472,7 +472,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("size comp 4 wrong",locString),shared_type);
         
         //Main test
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             number num1=generateNumber();
             number num2=generateNumber();
@@ -480,7 +480,7 @@ using namespace crypto;
             number ans2=num2&num1;
             number ans3(num1);
             
-            for(int i=0;i<ans3.size();i++)
+            for(int i=0;i<ans3.size();++i)
             {
                 ans3[i]=num1[i]&num2[i];
             }
@@ -529,7 +529,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("size comp 4 wrong",locString),shared_type);
         
         //Main test
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             number num1=generateNumber();
             number num2=generateNumber();
@@ -537,7 +537,7 @@ using namespace crypto;
             number ans2=num2^num1;
             number ans3(num1);
             
-            for(int i=0;i<ans3.size();i++)
+            for(int i=0;i<ans3.size();++i)
             {
                 ans3[i]=num1[i]^num2[i];
             }
@@ -563,7 +563,7 @@ using namespace crypto;
     void numberNegateTest() throw(os::smart_ptr<std::exception>)
     {
         std::string locString = "cryptoNumberTest.cpp, numberNegateTest()";
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             number t=generateNumber();
             number comp(t);
@@ -575,7 +575,7 @@ using namespace crypto;
             if(t==comp)
                 throw os::smart_ptr<std::exception>(new generalTestException("Negate equals to prev",locString),shared_type);
             
-            for(int i=0;i<t.size();i++)
+            for(int i=0;i<t.size();++i)
                 comp[i]= ~comp[i];
             
             if(t!=comp)
@@ -594,7 +594,7 @@ using namespace crypto;
         int2=integer(8);
         
         //Size 8
-        for(int i=0;i<4;i++)
+        for(int i=0;i<4;++i)
         {
             int1[i]=rand();
             int2[i]=rand();
@@ -666,7 +666,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Size diff: compare == -1 failed",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -719,7 +719,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -767,7 +767,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -838,7 +838,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -875,7 +875,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -922,7 +922,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -969,7 +969,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -1018,7 +1018,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -1067,7 +1067,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -1120,7 +1120,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -1170,7 +1170,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -1219,7 +1219,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
         
         //Run compare tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;
@@ -1256,7 +1256,7 @@ using namespace crypto;
             throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
         
         //Run prime tests, 20 iterations
-        for(int i=0;i<20;i++)
+        for(int i=0;i<20;++i)
         {
             integer src1;
             integer src2;

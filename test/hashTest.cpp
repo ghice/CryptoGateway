@@ -1,7 +1,7 @@
 /**
  * @file   test/hashTest.cpp
  * @author Jonathan Bedard
- * @date   4/18/2016
+ * @date   5/26/2016
  * @brief  Implementation for hash tests
  * @bug No known bugs.
  *

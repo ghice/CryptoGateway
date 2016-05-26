@@ -1,7 +1,7 @@
 /**
  * @file    cryptoHash.cpp
  * @author  Jonathan Bedard
- * @date    2/23/2016
+ * @date    5/26/2016
  * @brief   Implementation of crypto hashing
  * @bug None
  *
@@ -99,7 +99,7 @@ using namespace crypto;
     std::string crypto::hash::toString() const
     {
         std::string ret="";
-        for(int i=0;i<_size;i++)
+        for(int i=0;i<_size;++i)
         {
             ret=toHex(_data[i])+ret;
         }
@@ -133,7 +133,7 @@ using namespace crypto;
             tem+=str[s-2];
             tem+=str[s-1];
             _data[i]=fromHex8(tem);
-            i++;
+            ++i;
             s-=2;
         }
     }
@@ -178,7 +178,7 @@ using namespace crypto;
     //Hash function
     void xorHash::preformHash(const unsigned char* data, uint32_t dLen)
     {
-        for(uint32_t i=0;i<dLen;i++)
+        for(uint32_t i=0;i<dLen;++i)
         {
             _data[i%_size]^=data[i];
         }
