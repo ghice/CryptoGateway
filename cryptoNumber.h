@@ -1,7 +1,7 @@
 /**
  * @file   cryptoNumber.h
  * @author Jonathan Bedard
- * @date   3/2/2016
+ * @date   6/7/2016
  * @brief  Defines basic number types
  * @bug No known bugs.
  *
@@ -558,11 +558,11 @@ namespace crypto
 		 */
         integer& operator+=(const integer& n);
 		/** @brief Increment operator
-		 * @return this++
+		 * @return ++this
 		 */
         integer& operator++();
 		/** @brief Increment operator
-		 * @return ++this
+		 * @return this++-
 		 */
         integer operator++(int dummy);
         
@@ -577,11 +577,11 @@ namespace crypto
 		 */
         integer& operator-=(const integer& n);
         /** @brief Decrement operator
-		 * @return this--
+		 * @return --this
 		 */
 		integer& operator--();
         /** @brief Decrement operator
-		 * @return --this
+		 * @return this--
 		 */
 		integer operator--(int dummy);
         
