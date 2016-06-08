@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.cpp
  * @author Jonathan Bedard
- * @date   5/26/2016
+ * @date   6/7/2016
  * @brief  Implimentation for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -243,7 +243,7 @@ namespace crypto {
 	}
 
 	//Compare keys by timestamp
-	int compareKeysByTimestamp(os::smart_ptr<nodeKeyReference> ref1, os::smart_ptr<nodeKeyReference> ref2)
+	int compareKeysByTimestamp(const os::smart_ptr<nodeKeyReference>& ref1, const os::smart_ptr<nodeKeyReference>& ref2)
 	{
 		if(ref1->timestamp()>ref2->timestamp())
 			return -1;
@@ -252,7 +252,7 @@ namespace crypto {
 		return 0;
 	}
 	//Compare names by timestamp
-	int compareNamesByTimestamp(os::smart_ptr<nodeNameReference> ref1, os::smart_ptr<nodeNameReference> ref2)
+	int compareNamesByTimestamp(const os::smart_ptr<nodeNameReference>& ref1, const os::smart_ptr<nodeNameReference>& ref2)
 	{
 		if(ref1->timestamp()>ref2->timestamp())
 			return -1;
