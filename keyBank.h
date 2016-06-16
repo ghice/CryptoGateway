@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.h
  * @author Jonathan Bedard
- * @date   4/19/2016
+ * @date   5/15/2016
  * @brief  Header for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -98,7 +98,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-        virtual ~nodeGroup(){}
+        virtual ~nodeGroup()throw(){}
         
 		/** @brief Allows access to the most recent name
 		 *
@@ -258,7 +258,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-        virtual ~nodeNameReference(){}
+        virtual ~nodeNameReference()throw(){}
         
         /** @brief Returns a pointer to its master
          * @return crypto::nodeNameReference::_master
@@ -390,7 +390,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-        virtual ~nodeKeyReference(){}
+        virtual ~nodeKeyReference()throw(){}
         
         /** @brief Returns a pointer to its master
          * @return crypto::~nodeKeyReference::_master
@@ -567,7 +567,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-        virtual ~keyBank(){if(_symKey!=NULL) delete [] _symKey;}
+        virtual ~keyBank() throw(){if(_symKey!=NULL) delete [] _symKey;}
         /** @brief Adds authenticated node to bank
          *
          * Note that if a node has not be authenticated,
@@ -734,7 +734,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-        virtual ~avlKeyBank(){}
+        virtual ~avlKeyBank()throw(){}
         
         /** @brief Saves bank to file
          * @return void

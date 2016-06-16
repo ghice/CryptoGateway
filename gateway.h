@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   5/9/2016
+ * @date   6/15/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -135,7 +135,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-		virtual ~gatewaySettings();
+		virtual ~gatewaySettings() throw();
 
 		/** @brief Generate XML save stream
 		 * @return XML save tree
@@ -660,7 +660,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-		virtual ~gateway(){}
+		virtual ~gateway()throw(){}
 		
 		/** @brief Return the node group of the brother
 		 *

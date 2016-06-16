@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   5/26/2016
+ * @date   6/15/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -104,7 +104,7 @@ using namespace crypto;
 		setEncryptionAlgorithm(stream_algo);
 	}
 	//Destructor
-	publicKey::~publicKey()
+	publicKey::~publicKey() throw()
 	{
 		if(_key) delete [] _key;
 	}

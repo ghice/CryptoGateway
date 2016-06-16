@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   5/9/2016
+ * @date   6/15/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -46,7 +46,7 @@ namespace crypto {
 		markChanged();
 	}
 	//Destructor
-	gatewaySettings::~gatewaySettings()
+	gatewaySettings::~gatewaySettings() throw()
 	{
 	}
 	//Generate the XML save tree

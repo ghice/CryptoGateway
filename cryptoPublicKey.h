@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   5/9/2016
+ * @date   6/15/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -276,7 +276,7 @@ namespace crypto
          * of the type which inherits this class should
          * be called.
          */
-		virtual ~publicKey();
+		virtual ~publicKey() throw();
 
 		/** @brief Searches for key by hash
 		 *
