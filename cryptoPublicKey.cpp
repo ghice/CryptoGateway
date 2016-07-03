@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   6/29/2016
+ * @date   7/3/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -977,7 +977,7 @@ using namespace crypto;
 	namespace crypto
 	{
 		//Basic key generation thread
-		void generateKeys(void* ptr,os::smart_ptr<os::smartThread> th)
+		void generateKeys(void* ptr)
 		{
 			RSAKeyGenerator* rkg=(RSAKeyGenerator*) ptr;
 			rkg->p=rkg->generatePrime();
