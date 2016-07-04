@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   6/15/2016
+ * @date   7/4/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -152,7 +152,7 @@ namespace crypto
 		std::string _fileName;
 		/**@ brief Mutex for replacing the keys
 		 */
-		os::multiLock keyLock;
+		os::readWriteLock keyLock;
 	protected:
 		/**@ brief Public key
 		 */

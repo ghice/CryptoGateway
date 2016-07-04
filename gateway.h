@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   6/15/2016
+ * @date   7/4/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -105,7 +105,7 @@ namespace crypto {
 		 * settings during runtime.  Because of this,
 		 * a read/write lock is required.
 		 */
-		os::multiLock lock;
+		os::readWriteLock lock;
 
 		/** @brief User constructor
 		 *
