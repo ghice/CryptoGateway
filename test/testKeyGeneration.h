@@ -1,7 +1,7 @@
 /**
  * @file   test/testKeyGeneration.h
  * @author Jonathan Bedard
- * @date   2/12/2016
+ * @date   7/9/2016
  * @brief  Binds generated testing keys
  * @bug No known bugs.
  *
@@ -19,7 +19,7 @@
 #define TEST_KEY_GENERATION_H
 
 #include "staticTestKeys.h"
-#include "Datastructures.h"
+#include "Datastructures/Datastructures.h"
 #include "UnitTest.h"
 
 namespace test

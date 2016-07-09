@@ -1,7 +1,7 @@
 /**
  * @file   message.h
  * @author Jonathan Bedard
- * @date   4/16/2016
+ * @date   7/9/2016
  * @brief  Crypto-Gateway message
  * @bug No known bugs.
  *
@@ -16,7 +16,7 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
     
-#include "Datastructures.h"
+#include "Datastructures/Datastructures.h"
 
 namespace crypto {
 	

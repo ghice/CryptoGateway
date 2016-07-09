@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   7/4/2016
+ * @date   7/9/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -15,7 +15,7 @@
 #ifndef CRYPTO_PUBLIC_KEY_H
 #define CRYPTO_PUBLIC_KEY_H
 
-#include "Datastructures.h"
+#include "Datastructures/Datastructures.h"
 #include "cryptoNumber.h"
 #include "streamPackage.h"
 #include "osMechanics.h"

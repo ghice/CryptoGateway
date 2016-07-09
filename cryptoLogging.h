@@ -1,7 +1,7 @@
 /**
  * @file   cryptoLogging.h
  * @Author Jonathan Bedard
- * @date   2/23/2016
+ * @date   7/9/2016
  * @brief  Logging for crypto namespace
  * @bug No known bugs.
  *
@@ -14,7 +14,7 @@
 #define CRYPTO_LOGGING_H
 
 #include <iostream>
-#include "smartPointer.h"
+#include "Datastructures/smartPointer.h"
 
 namespace crypto
 {

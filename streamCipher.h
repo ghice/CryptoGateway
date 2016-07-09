@@ -1,7 +1,7 @@
 /**
  * @file	XMLEncryption.h
  * @author	Jonathan Bedard
- * @date   	5/19/2016
+ * @date   	7/9/2016
  * @brief	Defines basic stream ciphers
  * @bug	None
  *
@@ -12,7 +12,7 @@
 #ifndef STREAM_CIPHER_H
 #define STREAM_CIPHER_H
 
-#include "Datastructures.h"
+#include "Datastructures/Datastructures.h"
 #include "cryptoConstants.h"
 #include "cryptoNumber.h"
 
