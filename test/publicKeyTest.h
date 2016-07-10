@@ -1,7 +1,7 @@
 /**
  * @file   test/publicKeyTest.h
  * @author Jonathan Bedard
- * @date   4/18/2016
+ * @date   7/9/2016
  * @brief  Public Key tests
  * @bug No known bugs.
  *
@@ -18,9 +18,9 @@
 #ifndef PUBLIC_KEY_TEST_H
 #define PUBLIC_KEY_TEST_H
 
+#include "UnitTest/UnitTest.h"
 #include "publicKeyPackage.h"
 #include "cryptoPublicKey.h"
-#include "UnitTest.h"
 #include "testKeyGeneration.h"
 
 namespace test

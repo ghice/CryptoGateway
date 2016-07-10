@@ -18,9 +18,9 @@
 #ifndef TEST_KEY_GENERATION_H
 #define TEST_KEY_GENERATION_H
 
+#include "UnitTest/UnitTest.h"
 #include "staticTestKeys.h"
 #include "Datastructures/Datastructures.h"
-#include "UnitTest.h"
 
 namespace test
 {

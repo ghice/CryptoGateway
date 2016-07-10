@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.h
  * @author Jonathan Bedard
- * @date   3/5/2016
+ * @date   7/9/2016
  * @brief  Header for cryptographic file testing
  * @bug No known bugs.
  *
@@ -17,10 +17,10 @@
 #ifndef CRYPTO_FILE_TEST_H
 #define CRYPTO_FILE_TEST_H
 
+#include "UnitTest/UnitTest.h"
 #include "streamPackage.h"
 #include "binaryEncryption.h"
 #include "XMLEncryption.h"
-#include "UnitTest.h"
 
 namespace test {
 

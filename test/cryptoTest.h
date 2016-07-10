@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoTest.h
  * @author Jonathan Bedard
- * @date   4/2/2016
+ * @date   7/9/2016
  * @brief  CryptoGateway library test header
  * @bug No known bugs.
  *
@@ -16,8 +16,8 @@
 #ifndef CRYPTO_TEST_H
 #define CRYPTO_TEST_H
 
+#include "UnitTest/UnitTest.h"
 #include "CryptoGateway.h"
-#include "UnitTest.h"
 
 namespace test
 {

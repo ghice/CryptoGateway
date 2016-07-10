@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.h
  * @author Jonathan Bedard
- * @date   3/20/2016
+ * @date   7/9/2016
  * @brief  Header for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -18,8 +18,8 @@
 #ifndef GATEWAY_TEST_H
 #define GATEWAY_TEST_H
 
+#include "UnitTest/UnitTest.h"
 #include "CryptoGateway.h"
-#include "UnitTest.h"
 
 namespace test
 {

@@ -1,7 +1,7 @@
 /**
  * @file   test/streamTest.h
  * @author Jonathan Bedard
- * @date   4/18/2016
+ * @date   7/9/2016
  * @brief  Header for stream testing
  * @bug No known bugs.
  *
@@ -16,7 +16,7 @@
 #ifndef STREAM_TEST_H
 #define STREAM_TEST_H
 
-#include "UnitTest.h"
+#include "UnitTest/UnitTest.h"
 #include "streamCipher.h"
 
 namespace test {
