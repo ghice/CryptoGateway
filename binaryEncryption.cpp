@@ -1,7 +1,7 @@
 /**
  * @file	binaryEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	5/26/2016
+ * @date   	7/13/2016
  * @brief	Implementation of binary encryption files
  * @bug	None
  *
@@ -52,7 +52,7 @@ namespace crypto {
 		else
 			build(publicKeyLock);
 	}
-	binaryEncryptor::binaryEncryptor(std::string file_name,os::smart_ptr<number> publicKey,unsigned int pkAlgo,unsigned int pkSize,os::smart_ptr<streamPackageFrame> stream_algo)
+	binaryEncryptor::binaryEncryptor(std::string file_name,os::smart_ptr<number> publicKey,unsigned int pkAlgo,size_t pkSize,os::smart_ptr<streamPackageFrame> stream_algo)
 	{
 		_fileName=file_name;
 		_state=true;
@@ -92,7 +92,7 @@ namespace crypto {
 		else build((unsigned char*)password.c_str(),password.length());
 	}
 	//Constructor with raw array
-	binaryEncryptor::binaryEncryptor(std::string file_name,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo):
+	binaryEncryptor::binaryEncryptor(std::string file_name,unsigned char* key,size_t keyLen,os::smart_ptr<streamPackageFrame> stream_algo):
 		output(file_name,std::ios::binary)
 	{
 		_fileName=file_name;
@@ -109,7 +109,7 @@ namespace crypto {
 		else build(key,keyLen);
 	}
 	//Build (triggered by encryptor)
-	void binaryEncryptor::build(unsigned char* key,unsigned int keyLen)
+	void binaryEncryptor::build(unsigned char* key,size_t keyLen)
 	{
 		try
 		{
@@ -190,7 +190,7 @@ namespace crypto {
 			if(!output.good()) throw errorPointer(new fileOpenError(),os::shared_type);
 
 			//Output hash of public key
-			unsigned int arrSize;
+			size_t arrSize;
 			os::smart_ptr<unsigned char> randkey=publicKeyLock->getN()->getCompCharData(arrSize);
 			hash hsh=_streamAlgorithm->hashData(randkey.get(),arrSize);
 			//Output public key if encrypting with private key
@@ -201,17 +201,17 @@ namespace crypto {
 				output.write((char*)hsh.data(),hsh.size());
 
 			//Generate key, and hash
-			srand(time(NULL));
+			srand((unsigned)time(NULL));
 			unsigned int arrayLen=publicKeyLock->size()*4;
 			if(_publicLockType==file::DOUBLE_LOCK) arrayLen=publicKeyLock->size()*8;
 			randkey=os::smart_ptr<unsigned char>(new unsigned char[arrayLen],os::shared_type_array);
 			
 			memset(randkey.get(),0,arrayLen);
-			for(unsigned int i=0;i<(publicKeyLock->size()-1)*4;++i)
+			for(uint16_t i=0;i<(publicKeyLock->size()-1)*4;++i)
 				randkey[i]=rand();
 			if(_publicLockType==file::DOUBLE_LOCK)
 			{
-				for(unsigned int i=0;i<(publicKeyLock->size()-1)*4;++i)
+				for(uint16_t i=0;i<(publicKeyLock->size()-1)*4;++i)
 					randkey[i+publicKeyLock->size()*4]=rand();
 			}
 			hsh=_streamAlgorithm->hashData(randkey.get(),arrayLen);
@@ -248,7 +248,7 @@ namespace crypto {
 		publicKeyLock->readUnlock();
 	}
 	//Build (public key encryption)
-	void binaryEncryptor::build(os::smart_ptr<number> pubKey,unsigned int pkAlgo,unsigned int pkSize)
+	void binaryEncryptor::build(os::smart_ptr<number> pubKey,unsigned int pkAlgo,size_t pkSize)
 	{
 		try
 		{
@@ -258,7 +258,7 @@ namespace crypto {
 			os::smart_ptr<publicKeyPackageFrame> pkframe=publicKeyTypeBank::singleton()->findPublicKey(pkAlgo);
 			if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string((long long unsigned int)pkAlgo)),os::shared_type);
 			pkframe=pkframe->getCopy();
-			pkframe->setKeySize(pkSize);
+			pkframe->setKeySize((uint16_t)pkSize);
 
 			//Attempt to output header
 			uint16_t valHld;
@@ -286,16 +286,16 @@ namespace crypto {
 			if(!output.good()) throw errorPointer(new fileOpenError(),os::shared_type);
 
 			//Output hash of public key
-			unsigned int arrSize;
+			size_t arrSize;
 			os::smart_ptr<unsigned char> randkey=pubKey->getCompCharData(arrSize);
 			hash hsh=_streamAlgorithm->hashData(randkey.get(),arrSize);
 			output.write((char*)hsh.data(),hsh.size());
 
 			//Generate key, and hash
-			srand(time(NULL));
+			srand((unsigned)time(NULL));
 			randkey=os::smart_ptr<unsigned char>(new unsigned char[pkframe->keySize()*4],os::shared_type_array);
 			memset(randkey.get(),0,pkframe->keySize()*4);
-			for(unsigned int i=0;i<(pkframe->keySize()-1)*4;++i)
+			for(uint16_t i=0;i<(pkframe->keySize()-1)*4;++i)
 				randkey[i]=rand();
 			hsh=_streamAlgorithm->hashData(randkey.get(),pkframe->keySize()*4);
 
@@ -342,7 +342,7 @@ namespace crypto {
 		}
 	}
 	//Write data
-	void binaryEncryptor::write(const unsigned char* data,unsigned int dataLen)
+	void binaryEncryptor::write(const unsigned char* data,size_t dataLen)
 	{
 		if(!_state)
 		{
@@ -451,7 +451,7 @@ namespace crypto {
 		else build((unsigned char*)password.c_str(),password.length());
 	}
 	//Binary decryptor byte array constructor
-	binaryDecryptor::binaryDecryptor(std::string file_name,unsigned char* key,unsigned int keyLen):
+	binaryDecryptor::binaryDecryptor(std::string file_name,unsigned char* key,size_t keyLen):
 		input(file_name,std::ios::binary)
 	{
 		_fileName=file_name;
@@ -467,7 +467,7 @@ namespace crypto {
 		else build(key,keyLen);
 	}
 	//Builds the file for decryption (with error logging)
-	void binaryDecryptor::build(unsigned char* key,unsigned int keyLen)
+	void binaryDecryptor::build(unsigned char* key,size_t keyLen)
 	{
 		if(_publicKeyLock) _publicKeyLock->readLock();
 		try
@@ -476,7 +476,7 @@ namespace crypto {
 			std::streampos fsize;
 			fsize = input.tellg();
 			input.seekg( 0, std::ios::end );
-			_bytesLeft = input.tellg() - fsize;
+			_bytesLeft = (unsigned long) (input.tellg() - fsize);
 			input.seekg (0, std::ios::beg);
 
 			//Data values
@@ -543,7 +543,7 @@ namespace crypto {
 					_bytesLeft-=_streamAlgorithm->hashSize();
 					hash keyHash=_streamAlgorithm->hashCopy(buffer);
 
-					unsigned int kIndex;
+					size_t kIndex;
 					bool kType;
 					if(!_publicKeyLock->searchKey(keyHash,kIndex,kType))
 						throw errorPointer(new keyMissing(),os::shared_type);
@@ -578,7 +578,7 @@ namespace crypto {
 					os::smart_ptr<number> tempNum=pkframe->convert(buffer,publicSizeVal*4);
 
 					//Check keys
-					unsigned int dmp1;
+					size_t dmp1;
 					bool dmp2;
 					if(_publicKeyLock)
 					{
@@ -650,7 +650,7 @@ namespace crypto {
 		return ret;
 	}
 	//Read byte array
-	unsigned int binaryDecryptor::read(unsigned char* data,unsigned int dataLen)
+	size_t binaryDecryptor::read(unsigned char* data,size_t dataLen)
 	{
 		if(!_state)
 		{
@@ -662,7 +662,7 @@ namespace crypto {
 			logError(errorPointer(new actionOnFileClosed(),os::shared_type));
 			return 0;
 		}
-		unsigned int readTarg=dataLen;
+		size_t readTarg=dataLen;
 		if(readTarg>_bytesLeft) readTarg=_bytesLeft;
 		input.read((char*) data,dataLen);
 

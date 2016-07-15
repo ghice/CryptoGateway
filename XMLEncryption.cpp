@@ -1,7 +1,7 @@
 /**
  * @file	XMLEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	5/26/2016
+ * @date   	7/13/2016
  * @brief	Implements encrypted XML functions
  * @bug	None
  *
@@ -59,7 +59,7 @@ namespace crypto {
 		//Contains: index, number of children, amount of data
 		unsigned char headerData [6];
 		memset(headerData,0,6);
-		uint16_t data=args.size()+1;
+		uint16_t data=(uint16_t)args.size()+1;
 
 		//Index
 		for(unsigned int i=0;i<args.size()&&data>args.size();++i)
@@ -84,7 +84,7 @@ namespace crypto {
 			if(head->getData()!="")
 				data=1;
 			else if(head->getDataList().size()>0)
-				data=head->getDataList().size();
+				data=(uint16_t)head->getDataList().size();
 			data=os::to_comp_mode(data);
 			memcpy(headerData+4,&data,2);
 		}
@@ -106,7 +106,7 @@ namespace crypto {
 			if(head->getData()!="")
 			{
 				dataptr=os::smart_ptr<unsigned char>(new unsigned char[head->getData().size()+2],os::shared_type_array);
-				data=head->getData().size();
+				data=(uint16_t)head->getData().size();
 				data=os::to_comp_mode(data);
 				memcpy(dataptr.get(),&data,2);
 				memcpy(dataptr.get()+2,head->getData().c_str(),head->getData().size());
@@ -119,7 +119,7 @@ namespace crypto {
 				for(unsigned int i=0;i<head->getDataList().size();++i)
 				{
 					dataptr=os::smart_ptr<unsigned char>(new unsigned char[head->getDataList()[i].size()+2],os::shared_type_array);
-					data=head->getDataList()[i].size();
+					data=(uint16_t)head->getDataList()[i].size();
 					data=os::to_comp_mode(data);
 					memcpy(dataptr.get(),&data,2);
 					memcpy(dataptr.get()+2,head->getDataList()[i].c_str(),head->getDataList()[i].size());
@@ -205,7 +205,7 @@ namespace crypto {
 	{
 		return EXML_Output(path,head,(unsigned char*) password.c_str(),password.length(),spf);
 	}
-    bool EXML_Output(std::string path, os::smartXMLNode head, unsigned char* symKey,unsigned int passwordLength, os::smart_ptr<streamPackageFrame> spf)
+    bool EXML_Output(std::string path, os::smartXMLNode head, unsigned char* symKey,size_t passwordLength, os::smart_ptr<streamPackageFrame> spf)
 	{
 		try
 		{
@@ -337,18 +337,18 @@ namespace crypto {
 			encryHead->addElement(trc1);
 
 			//Generate key, and hash
-			srand(time(NULL));
+			srand((unsigned)time(NULL));
 			unsigned int kySize=pbk->size()*4;
 			if(lockType==file::DOUBLE_LOCK)
 				kySize=2*kySize;
 			os::smart_ptr<unsigned char> randkey;
 			randkey=os::smart_ptr<unsigned char>(new unsigned char[kySize],os::shared_type_array);
 			memset(randkey.get(),0,kySize);
-			for(unsigned int i=0;i<(pbk->size()-1)*4;++i)
+			for(uint16_t i=0;i<(pbk->size()-1)*4;++i)
 				randkey[i]=rand();
 			if(lockType==file::DOUBLE_LOCK)
 			{
-				for(unsigned int i=0;i<(pbk->size()-1)*4;++i)
+				for(uint16_t i=0;i<(pbk->size()-1)*4;++i)
 					randkey[i+pbk->size()*4]=rand();
 			}
 			os::smart_ptr<number> num1=pbk->copyConvert(randkey.get(),pbk->size()*4);
@@ -359,7 +359,7 @@ namespace crypto {
 				num2=pbk->copyConvert(randkey.get()+pbk->size()*4,pbk->size()*4);
 				num2->reduce();
 			}
-			unsigned int keylen;
+			size_t keylen;
 			os::smart_ptr<unsigned char> raw_key;
 			if(lockType==file::DOUBLE_LOCK)
 			{
@@ -404,7 +404,7 @@ namespace crypto {
 			//Else, output a hash of the public key
 			else
 			{
-				unsigned int tArrLen;
+				size_t tArrLen;
 				os::smart_ptr<unsigned char> tempArr=pbk->getN()->getCompCharData(tArrLen);
 				hsh=spf->hashData(tempArr.get(),tArrLen);
 				trc2=os::smartXMLNode(new os::XML_Node("publicKeyHash"),os::shared_type);
@@ -453,7 +453,7 @@ namespace crypto {
         pbk->readUnlock();
         return true;
     }
-    bool EXML_Output(std::string path, os::smartXMLNode head, os::smart_ptr<number> publicKey,unsigned int pkAlgo,unsigned int pkSize,os::smart_ptr<streamPackageFrame> spf)
+    bool EXML_Output(std::string path, os::smartXMLNode head, os::smart_ptr<number> publicKey,unsigned int pkAlgo,size_t pkSize,os::smart_ptr<streamPackageFrame> spf)
 	{
 		//Other types of encryption
 		try
@@ -467,7 +467,7 @@ namespace crypto {
 			os::smart_ptr<publicKeyPackageFrame> pkframe=publicKeyTypeBank::singleton()->findPublicKey(pkAlgo);
 			if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+std::to_string((long long unsigned int)pkAlgo)),os::shared_type);
 			pkframe=pkframe->getCopy();
-			pkframe->setKeySize(pkSize);
+			pkframe->setKeySize((uint16_t)pkSize);
 
 			//Check stream package
 			if(!spf) spf=streamPackageTypeBank::singleton()->defaultPackage();
@@ -507,14 +507,14 @@ namespace crypto {
 			encryHead->addElement(trc1);
 
 			//Generate key, and hash
-			srand(time(NULL));
+			srand((unsigned)time(NULL));
 			os::smart_ptr<unsigned char> randkey=os::smart_ptr<unsigned char>(new unsigned char[pkframe->keySize()*4],os::shared_type_array);
 			memset(randkey.get(),0,pkframe->keySize()*4);
-			for(unsigned int i=0;i<(pkframe->keySize()-1)*4;++i)
+			for(uint16_t i=0;i<(pkframe->keySize()-1)*4;++i)
 				randkey[i]=rand();
 			os::smart_ptr<number> num=pkframe->convert(randkey.get(),pkframe->keySize()*4);
 			num->reduce();
-			unsigned int keylen;
+			size_t keylen;
 			os::smart_ptr<unsigned char> raw_key=num->getCompCharData(keylen);
 			if(!raw_key) throw errorPointer(new hashGenerationError(),os::shared_type);
 			hash hsh=spf->hashData(raw_key.get(),keylen);
@@ -527,7 +527,7 @@ namespace crypto {
 			trc2->setData(hsh.toString());
 			trc1->addElement(trc2);
 			
-			unsigned int tArrLen;
+			size_t tArrLen;
 			os::smart_ptr<unsigned char> tempArr=publicKey->getCompCharData(tArrLen);
 			hsh=spf->hashData(tempArr.get(),tArrLen);
 			trc2=os::smartXMLNode(new os::XML_Node("publicKeyHash"),os::shared_type);
@@ -566,7 +566,7 @@ namespace crypto {
     {
 		return EXML_Input(path,(unsigned char*) password.c_str(),password.length());
 	}
-	os::smartXMLNode EXML_Input(std::string path, unsigned char* symKey,unsigned int passwordLength)
+	os::smartXMLNode EXML_Input(std::string path, unsigned char* symKey,size_t passwordLength)
 	{
 		os::smartXMLNode ret;
 		try
@@ -799,7 +799,7 @@ namespace crypto {
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			if(trc1->getData()!="") throw errorPointer(new fileFormatError(),os::shared_type);
 			
-				unsigned int histInd;
+				size_t histInd;
 				bool tLock;
 				os::smart_ptr<number> readKey;
 
@@ -902,7 +902,7 @@ namespace crypto {
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=fnd->getData();
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				unsigned int keylen;
+				size_t keylen;
 				os::smart_ptr<unsigned char> raw_key;
 				if(pkType==file::DOUBLE_LOCK)
 				{

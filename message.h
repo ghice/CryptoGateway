@@ -1,7 +1,7 @@
 /**
  * @file   message.h
  * @author Jonathan Bedard
- * @date   7/9/2016
+ * @date   7/14/2016
  * @brief  Crypto-Gateway message
  * @bug No known bugs.
  *
@@ -57,13 +57,13 @@ namespace crypto {
 		 * the message.  This value remains constant
 		 * as messages are encrypted and decrypted.
 		 */
-		uint16_t _messageSize;
+		size_t _messageSize;
 		/** @brief Size of the message packet
 		 *
 		 * This size includes all support data
 		 * along with the meaningful message.
 		 */
-		uint16_t _size;
+		size_t _size;
 		/** @brief Depth of encryption
 		 *
 		 * Holds how many times this particular
@@ -85,7 +85,7 @@ namespace crypto {
 		 *
 		 * @return New message
 		 */
-		static message encryptedMessage(uint8_t* rawData,uint16_t sz);
+		static message encryptedMessage(uint8_t* rawData,size_t sz);
 		/** @brief Constructs an decrypted message
 		 *
 		 * Parses an array of data assuming that the 
@@ -97,12 +97,12 @@ namespace crypto {
 		 *
 		 * @return New message
 		 */
-		static message decryptedMessage(uint8_t* rawData,uint16_t sz);
+		static message decryptedMessage(uint8_t* rawData,size_t sz);
 	
 		/** @brief Constructs message with a size
 		 * @param [in] sz Size of message
 		 */
-		message(uint16_t sz);
+		message(size_t sz);
 		/** @brief Copy constructor
 		 * @param [in] msg Message to be copied
 		 */
@@ -119,11 +119,11 @@ namespace crypto {
 		/** @brief Return message size
 		 * @return message::_messageSize
 		 */
-		inline uint16_t messageSize() const {return _messageSize;}
+		inline size_t messageSize() const {return _messageSize;}
 		/** @brief Return message packet size
 		 * @return message::_size
 		 */
-		inline uint16_t size() const {return _size;}
+		inline size_t size() const {return _size;}
 		/** @brief Return level of message encryption
 		 * @return message::_encryptionDepth
 		 */

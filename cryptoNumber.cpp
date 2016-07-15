@@ -121,7 +121,7 @@ using namespace crypto;
 //Get Data-------------------------------------------------------
 
 	//Return the raw byte data for the number
-	os::smart_ptr<unsigned char> number::getCharData(unsigned int& arr_len) const
+	os::smart_ptr<unsigned char> number::getCharData(size_t& arr_len) const
 	{
 		uint32_t targ_size = _size;
         for(targ_size=_size-1;targ_size>0 && _data[targ_size]==0;targ_size--){}
@@ -135,7 +135,7 @@ using namespace crypto;
 		return ret;
 	}
 	//Return a compatibility version of the raw byte data
-	os::smart_ptr<unsigned char> number::getCompCharData(unsigned int& arr_len) const
+	os::smart_ptr<unsigned char> number::getCompCharData(size_t& arr_len) const
 	{
 		uint32_t targ_size = _size;
         for(targ_size=_size-1;targ_size>0 && _data[targ_size]==0;targ_size--){}

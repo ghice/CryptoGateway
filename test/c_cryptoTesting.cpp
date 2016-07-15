@@ -317,7 +317,6 @@ using namespace crypto;
         uint32_t src1[4];
         uint32_t src2[4];
         uint32_t dest1[4];
-        uint32_t dest2[4];
         int ret;
     
         src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;
@@ -386,7 +385,6 @@ using namespace crypto;
         uint32_t src1[4];
         uint32_t src2[4];
         uint32_t dest1[4];
-        uint32_t dest2[4];
         int ret;
     
         src1[3]=0;  src1[2]=0;  src1[1]=0;  src1[0]=0;

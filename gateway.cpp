@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   6/15/2016
+ * @date   7/13/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -222,11 +222,10 @@ namespace crypto {
 		if(!_publicKey) return NULL;
 		lock.increment();
 
-		uint16_t msgCount=0;
-		unsigned int keylen;
+		size_t msgCount=0;
+		size_t keylen;
 		os::smart_ptr<unsigned char> keyDat=_publicKey->getCompCharData(keylen);
-		os::smart_ptr<message> png(new message(2+size::GROUP_SIZE+size::NAME_SIZE+
-			5*sizeof(uint16_t)+keylen),os::shared_type);
+		os::smart_ptr<message> png(new message((uint16_t) (2+size::GROUP_SIZE+size::NAME_SIZE+5*sizeof(uint16_t)+keylen)),os::shared_type);
 		png->data()[0]=message::PING;
 		png->data()[1]=gateway::UNKNOWN_BROTHER;
 		msgCount+=2;
@@ -301,8 +300,6 @@ namespace crypto {
 	os::smart_ptr<message> gateway::getMessage()
 	{
 		os::smart_ptr<message> ret;
-		uint16_t tempCnt1;
-		uint16_t tempCnt2;
 		processTimestamps();
 
 		switch(_currentState)
@@ -400,7 +397,7 @@ namespace crypto {
 							hashArray=NULL;
 						else
 						{
-							unsigned int hashLen;
+							size_t hashLen;
 							os::smart_ptr<unsigned char> dat=keyList[i]->key()->getCompCharData(hashLen);
 							hash hsh=brotherStream->hashData(dat.get(),hashLen);
 							memcpy(hashArray.get()+i*brotherStream->hashSize(),hsh.data(),hsh.size());
@@ -412,12 +409,12 @@ namespace crypto {
 
 			//Search for old keys based on input hashes
 			uint16_t secondaryKeySize=0;
-			unsigned int chrData;
+			size_t chrData;
 			os::smart_ptr<number> oldPK;
 			os::smart_ptr<publicKey> oldPKSignTarg;
 			os::smart_ptr<uint8_t> dat=selfPreciseKey->getCompCharData(chrData);
 			hash cpub=selfStream->hashData(dat.get(),chrData);
-			unsigned int secondaryHistory=~0;
+			size_t secondaryHistory=~0;
 
 			//At this point, we know our brother does not know our current public key
 			if(eligibleKeys.size()>0 && !eligibleKeys.find(&cpub))
@@ -497,7 +494,7 @@ namespace crypto {
 				else num=selfPKFrame->convert(temp.data(),temp.size());
 				num->data()[selfPKFrame->keySize()-1]&=(~(uint32_t)0)>>6;
 
-				unsigned int hist;
+				size_t hist;
 				bool typ;
 				selfPublicKey->searchKey(selfPreciseKey,hist,typ);
 				try
@@ -756,19 +753,19 @@ namespace crypto {
 			if(newMessage)
 			{
 				streamMessageIn=msg;
-				uint16_t keySize=msg->size()-2;
+				size_t keySize=msg->size()-2;
 				uint8_t* strmKey=new uint8_t[keySize];
 				memcpy(strmKey,streamMessageIn->data()+2,msg->size()-2);
 
 				selfPublicKey->readLock();
-				unsigned int hist;
+				size_t hist;
 				bool typ;
 				selfPublicKey->searchKey(selfPreciseKey,hist,typ);
 				selfPublicKey->decode(strmKey,keySize,hist);
 				inputStream=os::smart_ptr<streamDecrypter>(new streamDecrypter(selfStream->buildStream(strmKey,keySize)),os::shared_type);
 				selfPublicKey->readUnlock();
 
-				inputHashLength=keySize+2*size::NAME_SIZE+2*size::GROUP_SIZE+8;
+				inputHashLength=(uint16_t) (keySize+2*size::NAME_SIZE+2*size::GROUP_SIZE+8);
 				inputHashArray=os::smart_ptr<uint8_t>(new uint8_t[inputHashLength],os::shared_type_array);
 				memset(inputHashArray.get(),0,inputHashLength);
 				memcpy(inputHashArray.get()+8,strmKey,keySize);
@@ -876,7 +873,7 @@ namespace crypto {
 				os::smart_ptr<nodeKeyReference> secKey;
 				for(unsigned int i=0;i<5 && i<listSize && !secKey;++i)
 				{
-					unsigned int datLen=0;
+					size_t datLen=0;
 					auto tdat=keyList[i]->key()->getCompCharData(datLen);
 					hash comp=selfStream->hashData(tdat.get(),datLen);
 					if(comp==secondKeyHsh)
@@ -1117,19 +1114,19 @@ namespace crypto {
 			ret->data()[1]=_currentState;
 			return ret;
 		}
-		ret=os::smart_ptr<message>(new message(6+_lastError->errorTitle().length()+_lastError->errorDescription().length()),os::shared_type);
+		ret=os::smart_ptr<message>(new message((uint16_t) (6+_lastError->errorTitle().length()+_lastError->errorDescription().length())),os::shared_type);
 		ret->data()[0]=_lastErrorLevel;
 		ret->data()[1]=_currentState;
 			
 		uint16_t tempCnt1=2;
-		uint16_t tempCnt2=_lastError->errorTitle().length();
+		uint16_t tempCnt2=(uint16_t)_lastError->errorTitle().length();
 		tempCnt2=os::to_comp_mode(tempCnt2);
 		memcpy(ret->data()+tempCnt1,&tempCnt2,2);
 		tempCnt1+=2;
 		memcpy(ret->data()+tempCnt1,_lastError->errorTitle().c_str(),_lastError->errorTitle().length());
 
-		tempCnt1+=_lastError->errorTitle().length();
-		tempCnt2=_lastError->errorTitle().length();
+		tempCnt1+=(uint16_t)_lastError->errorTitle().length();
+		tempCnt2=(uint16_t)_lastError->errorTitle().length();
 		tempCnt2=os::to_comp_mode(tempCnt2);
 		memcpy(ret->data()+tempCnt1,&tempCnt2,2);
 		tempCnt1+=2;
@@ -1220,7 +1217,7 @@ namespace crypto {
 			return;
 		}
 		streamEstTimestamp=os::getTimestamp();
-		unsigned int keySize=brotherPKFrame->keySize()*sizeof(uint32_t);
+		size_t keySize=brotherPKFrame->keySize()*sizeof(uint32_t);
 		os::smart_ptr<uint8_t> strmKey(new uint8_t[keySize],os::shared_type_array);
 		memset(strmKey.get(),0,keySize);
 		for(unsigned int i=0;i<keySize-1;++i)
@@ -1228,13 +1225,13 @@ namespace crypto {
 		os::smart_ptr<number> temp=brotherPKFrame->convert(strmKey.get(),keySize);
 		strmKey=temp->getCompCharData(keySize);
 
-		streamMessageOut=os::smart_ptr<message>(new message(keySize+2),os::shared_type);
+		streamMessageOut=os::smart_ptr<message>(new message((uint16_t) (keySize+2)),os::shared_type);
 		streamMessageOut->data()[0]=message::STREAM_KEY;
 		streamMessageOut->data()[1]=_currentState;
 
 		outputStream=os::smart_ptr<streamEncrypter>(new streamEncrypter(brotherStream->buildStream(strmKey.get(),keySize)),os::shared_type);
 
-		outputHashLength=keySize+2*size::NAME_SIZE+2*size::GROUP_SIZE+8;
+		outputHashLength=(uint16_t)(keySize+2*size::NAME_SIZE+2*size::GROUP_SIZE+8);
 		outputHashArray=os::smart_ptr<uint8_t>(new uint8_t[outputHashLength],os::shared_type_array);
 		memset(outputHashArray.get(),0,outputHashLength);
 		memcpy(outputHashArray.get()+8,strmKey.get(),keySize);
@@ -1268,8 +1265,8 @@ namespace crypto {
 			gateway::logError(errorPointer(new customError("Encryption error","Message type cannot be encrypted"),os::shared_type),BASIC_ERROR_STATE);
 			return NULL;
 		}
-		unsigned int newSize;
-		unsigned int encrySize;
+		size_t newSize;
+		size_t encrySize;
 		uint8_t* oldData=msg->data();
 		if(msg->encryptionDepth()==0)
 		{
@@ -1290,7 +1287,7 @@ namespace crypto {
 			memcpy(msg->data()+4,oldData+2,encrySize);
 		}
 		msg->data()[0]=oldData[0];
-		msg->data()[1]=msg->encryptionDepth();
+		msg->data()[1]=(uint8_t)msg->encryptionDepth();
 
 		uint16_t encryTag;
 		try
@@ -1348,8 +1345,8 @@ namespace crypto {
 			return NULL;
 		}
 
-		unsigned int newSize;
-		unsigned int decrySize=msg->size()-4;
+		size_t newSize;
+		size_t decrySize=msg->size()-4;
 
 		uint8_t* oldData=msg->data();
 		if(eDepth==1)
@@ -1367,7 +1364,7 @@ namespace crypto {
 			msg->_data=new uint8_t[newSize];
 			memcpy(msg->data()+2,oldData+4,decrySize);
 			msg->_encryptionDepth=eDepth-1;
-			msg->data()[1]=msg->encryptionDepth();
+			msg->data()[1]=(uint8_t)msg->encryptionDepth();
 		}
 		msg->data()[0]=oldData[0];
 		uint16_t decryTag;

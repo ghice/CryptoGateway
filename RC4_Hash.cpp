@@ -1,7 +1,7 @@
 /**
  * @file    cryptoHash.cpp
  * @author  Jonathan Bedard
- * @date    2/23/2016
+ * @date    7/13/2016
  * @brief   Implementation of RC4 hash
  * @bug None
  *
@@ -27,7 +27,7 @@ using namespace crypto;
  ********************************************************************/
 
     //RC-4 hash with data and size
-    rc4Hash::rc4Hash(const unsigned char* data, uint32_t length, uint16_t size):
+    rc4Hash::rc4Hash(const unsigned char* data, size_t length, uint16_t size):
         hash(rc4Hash::staticAlgorithm(),size)
     {
         preformHash(data,length);
@@ -40,13 +40,13 @@ using namespace crypto;
 		memcpy(_data,data,size);
     }
     //Hash function
-    void rc4Hash::preformHash(const unsigned char* data, uint32_t dLen)
+    void rc4Hash::preformHash(const unsigned char* data, size_t dLen)
     {
 		memset(_data,0,_size);
 
-		int value = 0;
-		int cnt = 0;
-		int len;
+		size_t value = 0;
+		size_t cnt = 0;
+		size_t len;
   
 		while(value<dLen)
 		{

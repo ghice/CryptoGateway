@@ -236,7 +236,7 @@ unsigned char crypto::fromHex8(const std::string& str)
             case 'F':
                 ret=ret|15;
                 break;
-            defult:
+            default:
                 break;
         }
     }
@@ -299,7 +299,7 @@ uint32_t crypto::fromHex32(const std::string& str)
             case 'F':
                 ret=ret|15;
                 break;
-            defult:
+            default:
                 break;
         }
     }

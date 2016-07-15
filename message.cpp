@@ -1,7 +1,7 @@
 /**
  * @file   message.cpp
  * @author Jonathan Bedard
- * @date   4/16/2016
+ * @date   7/14/2016
  * @brief  Crypto-Gateway message implementation
  * @bug No known bugs.
  *
@@ -23,7 +23,7 @@
 namespace crypto {
 	
 	//Build an encrypted message from raw data
-	message message::encryptedMessage(uint8_t* rawData,uint16_t sz)
+	message message::encryptedMessage(uint8_t* rawData,size_t sz)
 	{
 		message ret(sz);
 		memcpy(ret.data(),rawData,sz);
@@ -42,13 +42,13 @@ namespace crypto {
 		return ret;
 	}
 	//Build a decrypted message from raw data
-	message message::decryptedMessage(uint8_t* rawData,uint16_t sz)
+	message message::decryptedMessage(uint8_t* rawData,size_t sz)
 	{
 		message ret(sz);
 		return ret;
 	}
 	//Default message constructor
-	message::message(uint16_t sz)
+	message::message(size_t sz)
 	{
 		if(sz<1) throw errorPointer(new bufferSmallError(),os::shared_type);
 		_data=new uint8_t[sz];
@@ -79,7 +79,7 @@ namespace crypto {
 		}
 		if(_size+s.length()+1>MAX_EXM)
 			return false;
-		int old_len = _size;
+		size_t old_len = _size;
 
 		uint8_t* tdat=_data;
 		tdat=new uint8_t[_size+s.length()+1];
@@ -87,11 +87,11 @@ namespace crypto {
 		memcpy(tdat,_data,_size);
 		memcpy(tdat+_size,s.c_str(),s.length());
 
-		tdat[_size+s.length()]=s.length();
+		tdat[_size+s.length()]=(uint8_t)s.length();
 		delete [] _data;
 		_data=tdat;
-		_size=_size+s.length()+1;
-		_messageSize=_messageSize+s.length()+1;
+		_size=(uint16_t) (_size+s.length()+1);
+		_messageSize=(uint16_t) (_messageSize+s.length()+1);
 		return true;
 	}
 	//Remove string from message

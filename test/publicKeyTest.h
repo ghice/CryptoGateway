@@ -116,7 +116,7 @@ namespace test
                 os::smart_ptr<pkType> pk2=getStaticKeys<pkType>(publicLen,1);
 			
                 numberType n1(publicLen);
-                for(unsigned i=0;i<publicLen-1;++i)
+                for(uint16_t i=0;i<publicLen-1;++i)
                     n1[i]=rand();
                 numberType en1=n1;  
                 numberType en2=n1;
@@ -207,7 +207,7 @@ namespace test
 				pk.addKeyPair(n2,d2);
 
 				//Search by number
-				unsigned int histVal;
+				size_t histVal;
 				bool typ;
 				if(!pk.searchKey(n1,histVal,typ))
 					throw os::smart_ptr<std::exception>(new generalTestException("Could not find key N1",locString),os::shared_type);
@@ -219,7 +219,7 @@ namespace test
 					throw os::smart_ptr<std::exception>(new generalTestException("D2 search returned incorrectly",locString),os::shared_type);
 
 				//Search by hash
-				unsigned int charLen;
+				size_t charLen;
 				os::smart_ptr<unsigned char> ptrArr=n2->getCompCharData(charLen);
 				if(!pk.searchKey(crypto::rc4Hash::hash256Bit(ptrArr.get(),charLen),histVal,typ))
 					throw os::smart_ptr<std::exception>(new generalTestException("Could not find key N2",locString),os::shared_type);

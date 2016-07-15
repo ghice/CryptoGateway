@@ -1,7 +1,7 @@
 /**
  * @file	XMLEncryption.h
  * @author	Jonathan Bedard
- * @date   	7/9/2016
+ * @date   	7/14/2016
  * @brief	Defines basic stream ciphers
  * @bug	None
  *
@@ -47,7 +47,7 @@ namespace crypto {
 
 	public:
 		//Constructor
-		RCFour(uint8_t* arr, int len);
+		RCFour(uint8_t* arr, size_t len);
 		virtual ~RCFour();
 
 		uint8_t getNext();
@@ -73,7 +73,7 @@ namespace crypto {
         
         uint16_t getIdentifier() const;
         const uint8_t* getPacket() const;
-        uint8_t* encrypt(uint8_t* pt, unsigned int len, bool surpress=true) const;
+        uint8_t* encrypt(uint8_t* pt, size_t len, bool surpress=true) const;
     };
 
 	//Encrypts a byte stream
@@ -88,7 +88,7 @@ namespace crypto {
 		streamEncrypter(os::smart_ptr<streamCipher> c);
 		virtual ~streamEncrypter();
 
-		uint8_t* sendData(uint8_t* array, unsigned int len, uint16_t& flag);
+		uint8_t* sendData(uint8_t* array, size_t len, uint16_t& flag);
 	};
 
 	//Decrypts a byte stream
@@ -104,7 +104,7 @@ namespace crypto {
 		streamDecrypter(os::smart_ptr<streamCipher> c);
 		virtual ~streamDecrypter();
 
-		uint8_t* recieveData(uint8_t* array, unsigned int len, uint16_t flag);
+		uint8_t* recieveData(uint8_t* array, size_t len, uint16_t flag);
 	};
 };
 

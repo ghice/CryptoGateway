@@ -32,9 +32,9 @@ namespace crypto {
         virtual os::smart_ptr<streamPackageFrame> getCopy() const {return NULL;}
         
 		virtual hash hashEmpty() const {return xorHash();}
-        virtual hash hashData(unsigned char* data, uint32_t len) const {return xorHash();}
+        virtual hash hashData(unsigned char* data, size_t len) const {return xorHash();}
         virtual hash hashCopy(unsigned char* data) const {return xorHash(data,_hashSize);}
-        virtual os::smart_ptr<streamCipher> buildStream(unsigned char* data, uint32_t len) const {return NULL;}
+        virtual os::smart_ptr<streamCipher> buildStream(unsigned char* data, size_t len) const {return NULL;}
 
 		//Return stream type name
 		virtual std::string streamAlgorithmName() const {return "NULL Stream";}
@@ -58,7 +58,7 @@ namespace crypto {
 
         //Preform the hash
 		hash hashEmpty() const {return hashType();}
-        hash hashData(unsigned char* data, uint32_t len) const
+        hash hashData(unsigned char* data, size_t len) const
         {
             if(_hashSize==size::hash64)
                 return hashType::hash64Bit(data,len);
@@ -73,7 +73,7 @@ namespace crypto {
         hash hashCopy(unsigned char* data) const {return rc4Hash(data,_hashSize);}
         
         //Build a stream
-        os::smart_ptr<streamCipher> buildStream(unsigned char* data, uint32_t len) const
+        os::smart_ptr<streamCipher> buildStream(unsigned char* data, size_t len) const
         {return os::smart_ptr<streamCipher>(new streamType(data,len),os::shared_type);}
         
         //Return stream type name

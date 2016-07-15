@@ -1,7 +1,7 @@
 /**
  * @file    cryptoHash.cpp
  * @author  Jonathan Bedard
- * @date    5/26/2016
+ * @date    7/13/2016
  * @brief   Implementation of crypto hashing
  * @bug None
  *
@@ -82,14 +82,14 @@ using namespace crypto;
 //Operator Access----------------------------------------------------
 
     //Return value
-    unsigned char crypto::hash::operator[](uint16_t pos) const
+    unsigned char crypto::hash::operator[](size_t pos) const
     {
         if(pos<0 || pos>=_size)
             return 0;
         return _data[pos];
     }
     //Set value
-    unsigned char& crypto::hash::operator[](uint16_t pos)
+    unsigned char& crypto::hash::operator[](size_t pos)
     {
         if(pos<0 || pos>=_size)
             return _data[0];
@@ -108,7 +108,7 @@ using namespace crypto;
     //Convert the hash from a string
     void crypto::hash::fromString(const std::string& str)
     {
-        uint16_t strLen = str.length();
+        uint16_t strLen = (uint16_t) str.length();
         
         //Check length first
         if(strLen==size::hash64*2) _size=size::hash64;
@@ -126,7 +126,7 @@ using namespace crypto;
         
         //Read out string
         uint16_t i=0;
-        uint16_t s=str.length();
+        uint16_t s=(uint16_t) str.length();
         while(i<_size)
         {
             std::string tem="";
@@ -163,7 +163,7 @@ using namespace crypto;
  ********************************************************************/
 
     //XOR hash with data and size
-    xorHash::xorHash(const unsigned char* data, uint32_t length, uint16_t size):
+    xorHash::xorHash(const unsigned char* data, size_t length, uint16_t size):
         hash(xorHash::staticAlgorithm(),size)
     {
         preformHash(data,length);
@@ -176,7 +176,7 @@ using namespace crypto;
 		memcpy(_data,data,size);
     }
     //Hash function
-    void xorHash::preformHash(const unsigned char* data, uint32_t dLen)
+    void xorHash::preformHash(const unsigned char* data, size_t dLen)
     {
         for(uint32_t i=0;i<dLen;++i)
         {

@@ -1,7 +1,7 @@
 /**
  * @file	publicKeyPackage.h
  * @author	Jonathan Bedard
- * @date   	5/19/2016
+ * @date   	7/13/2016
  * @brief	Declaration of public key bank
  * @bug	None
  *
@@ -27,14 +27,14 @@ namespace crypto {
         
         virtual os::smart_ptr<publicKeyPackageFrame> getCopy() const {return NULL;}
         
-		virtual os::smart_ptr<number> convert(uint32_t* arr, uint16_t len) const{return publicKey::copyConvert(arr,len,_publicSize);}
-        virtual os::smart_ptr<number> convert(const unsigned char* arr,unsigned int len) const{return publicKey::copyConvert(arr,len,_publicSize);}
+		virtual os::smart_ptr<number> convert(uint32_t* arr, size_t len) const{return publicKey::copyConvert(arr,len,_publicSize);}
+        virtual os::smart_ptr<number> convert(const unsigned char* arr,size_t len) const{return publicKey::copyConvert(arr,len,_publicSize);}
 
         virtual os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
         {return publicKey::encode(code,publicN,_publicSize);}
-		virtual void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
+		virtual void encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN) const
 		{publicKey::encode(code,codeLength,publicN,_publicSize);}
-        virtual void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
+        virtual void encode(unsigned char* code, size_t codeLength, unsigned const char* publicN, size_t nLength) const
         {publicKey::encode(code,codeLength,publicN,nLength,_publicSize);}
 		
 
@@ -43,7 +43,7 @@ namespace crypto {
         virtual os::smart_ptr<publicKey> bindKeys(uint32_t* _n,uint32_t* _d) const {return NULL;}
         
         virtual os::smart_ptr<publicKey> openFile(std::string fileName,std::string password) const {return NULL;}
-        virtual os::smart_ptr<publicKey> openFile(std::string fileName,unsigned char* key,unsigned int keyLen) const {return NULL;}
+        virtual os::smart_ptr<publicKey> openFile(std::string fileName,unsigned char* key,size_t keyLen) const {return NULL;}
         
         //Return data info
         virtual std::string algorithmName() const {return "NULL public key";}
@@ -61,21 +61,21 @@ namespace crypto {
         virtual ~publicKeyPackage(){}
         os::smart_ptr<publicKeyPackageFrame> getCopy() const {return os::smart_ptr<publicKeyPackageFrame>(new publicKeyPackage<pkType>(_publicSize),os::shared_type);}
         
-		os::smart_ptr<number> convert(uint32_t* arr, uint16_t len) const{return pkType::copyConvert(arr,len,_publicSize);}
-        os::smart_ptr<number> convert(const unsigned char* arr,unsigned int len) const{return pkType::copyConvert(arr,len,_publicSize);}
+		os::smart_ptr<number> convert(uint32_t* arr, size_t len) const{return pkType::copyConvert(arr,len,_publicSize);}
+        os::smart_ptr<number> convert(const unsigned char* arr,size_t len) const{return pkType::copyConvert(arr,len,_publicSize);}
 
         os::smart_ptr<number> encode(os::smart_ptr<number> code, os::smart_ptr<number> publicN) const
         {return pkType::encode(code,publicN,_publicSize);}
-		void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
+		void encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN) const
 		{pkType::encode(code,codeLength,publicN,_publicSize);}
-        void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
+        void encode(unsigned char* code, size_t codeLength, unsigned const char* publicN, size_t nLength) const
         {pkType::encode(code,codeLength,publicN,nLength,_publicSize);}
 
 		os::smart_ptr<publicKey> generate() const {return os::smart_ptr<publicKey>(new pkType(_publicSize),os::shared_type);}
         os::smart_ptr<publicKey> bindKeys(os::smart_ptr<integer> _n,os::smart_ptr<integer> _d) const {return os::smart_ptr<publicKey>(new pkType(_n,_d,_publicSize),os::shared_type);}
         os::smart_ptr<publicKey> bindKeys(uint32_t* _n,uint32_t* _d) const {return os::smart_ptr<publicKey>(new pkType(_n,_d,_publicSize),os::shared_type);}
         os::smart_ptr<publicKey> openFile(std::string fileName,std::string password) const {return os::smart_ptr<publicKey>(new pkType(fileName,password),os::shared_type);}
-        os::smart_ptr<publicKey> openFile(std::string fileName,unsigned char* key,unsigned int keyLen) const {return os::smart_ptr<publicKey>(new pkType(fileName,key,keyLen),os::shared_type);}
+        os::smart_ptr<publicKey> openFile(std::string fileName,unsigned char* key,size_t keyLen) const {return os::smart_ptr<publicKey>(new pkType(fileName,key,keyLen),os::shared_type);}
 
 		//Return data info
         std::string algorithmName() const {return pkType::staticAlgorithmName();}

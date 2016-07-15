@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   7/3/2016
+ * @date   7/13/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -89,7 +89,7 @@ using namespace crypto;
 		setEncryptionAlgorithm(stream_algo);
 	}
 	//Password constructor
-	publicKey::publicKey(uint16_t algo,std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo)
+	publicKey::publicKey(uint16_t algo,std::string fileName,unsigned char* key,size_t keyLen,os::smart_ptr<streamPackageFrame> stream_algo)
 	{
 		if(fileName=="") throw errorPointer(new fileOpenError(),os::shared_type);
 		_algorithm=algo;
@@ -110,7 +110,7 @@ using namespace crypto;
 	}
 
 	//Find key by hash
-	bool publicKey::searchKey(hash hsh, unsigned int& hist,bool& type)
+	bool publicKey::searchKey(hash hsh, size_t& hist,bool& type)
 	{
 		os::smart_ptr<streamPackageFrame> hsFrame=streamPackageTypeBank::singleton()->findStream(algo::streamRC4,hsh.algorithm());
 		if(!hsFrame) return false;
@@ -118,7 +118,7 @@ using namespace crypto;
 		hsFrame->setHashSize(hsh.size());
 
 		//Default D case
-		unsigned int dLen;
+		size_t dLen;
 		os::smart_ptr<unsigned char> dataChar=d->getCompCharData(dLen);
 		if(hsh==hsFrame->hashData(dataChar.get(),dLen))
 		{
@@ -167,7 +167,7 @@ using namespace crypto;
 		return false;
 	}
 	//Find key by value
-	bool publicKey::searchKey(os::smart_ptr<number> key, unsigned int& hist,bool& type)
+	bool publicKey::searchKey(os::smart_ptr<number> key, size_t& hist,bool& type)
 	{
 		//Default D case
 		if(*key==*d)
@@ -231,18 +231,18 @@ using namespace crypto;
         return ret;
     }
     //Static copy/convert
-    os::smart_ptr<number> publicKey::copyConvert(const uint32_t* arr,uint16_t len,uint16_t size)
+    os::smart_ptr<number> publicKey::copyConvert(const uint32_t* arr,size_t len,uint16_t size)
     {
 		os::smart_ptr<number> ret;
 		if(arr==NULL)
 			ret=os::smart_ptr<number>(new number(),os::shared_type);
 		else
-			ret=os::smart_ptr<number>(new number(arr,len),os::shared_type);
+			ret=os::smart_ptr<number>(new number(arr,(uint16_t)len),os::shared_type);
         ret->expand(size*2);
         return ret;
     }
     //Static copy/convert
-    os::smart_ptr<number> publicKey::copyConvert(const unsigned char* arr,unsigned int len,uint16_t size)
+    os::smart_ptr<number> publicKey::copyConvert(const unsigned char* arr,size_t len,uint16_t size)
     {
         uint32_t* dumpArray=new uint32_t[len/4+1];
         memset(dumpArray,0,4*(len/4+1));
@@ -258,10 +258,10 @@ using namespace crypto;
     os::smart_ptr<number> publicKey::copyConvert(const os::smart_ptr<number> num) const
     {return publicKey::copyConvert(num,_size);}
 	//Copy convert
-    os::smart_ptr<number> publicKey::copyConvert(const uint32_t* arr,uint16_t len) const
+    os::smart_ptr<number> publicKey::copyConvert(const uint32_t* arr,size_t len) const
     {return publicKey::copyConvert(arr,len,_size);}
 	//Copy convert for raw byte array
-	os::smart_ptr<number> publicKey::copyConvert(const unsigned char* arr,unsigned int len) const
+	os::smart_ptr<number> publicKey::copyConvert(const unsigned char* arr,size_t len) const
     {return publicKey::copyConvert(arr,len,_size);}
 
 	//Compare two public keys (by size and algorithm)
@@ -295,7 +295,7 @@ using namespace crypto;
         markChanged();
     }
     //Set the history length
-    void publicKey::setHistory(uint16_t hist)
+    void publicKey::setHistory(size_t hist)
     {
         if(hist>20) return; //Can't keep track of more than 20 at a time
         if(hist<_history)
@@ -327,7 +327,7 @@ using namespace crypto;
 		return copyConvert(d);
 	}
 	//Return the old N
-	os::smart_ptr<number> publicKey::getOldN(unsigned int history)
+	os::smart_ptr<number> publicKey::getOldN(size_t history)
 	{
 		if(history==CURRENT_INDEX) return getN();
 		if(history>=oldN.size()) return NULL;
@@ -344,7 +344,7 @@ using namespace crypto;
 		return copyConvert(trc->getData());
 	}
 	//Return the old D
-	os::smart_ptr<number> publicKey::getOldD(unsigned int history)
+	os::smart_ptr<number> publicKey::getOldD(size_t history)
 	{
 		if(history==CURRENT_INDEX) return getN();
 		if(history>=oldD.size()) return NULL;
@@ -361,7 +361,7 @@ using namespace crypto;
 		return copyConvert(trc->getData());
 	}
 	//Return an old timestamp
-	uint64_t publicKey::getOldTimestamp(unsigned int history)
+	uint64_t publicKey::getOldTimestamp(size_t history)
 	{
 		if(history==CURRENT_INDEX) return timestamp();
 		if(history>=_timestamps.size()) return NULL;
@@ -464,7 +464,7 @@ using namespace crypto;
         }
 
         //Old n and d's
-        dumpVal=os::to_comp_mode(_history);
+        dumpVal=os::to_comp_mode((uint16_t)_history);
         memcpy(dumpArray.get(),&dumpVal,2);
         ben->write(dumpArray.get(),2);
         if(!ben->good())
@@ -630,7 +630,7 @@ using namespace crypto;
         markChanged();
     }
 	//Set password (by array)
-	void publicKey::setPassword(unsigned char* key,unsigned int keyLen)
+	void publicKey::setPassword(unsigned char* key,size_t keyLen)
 	{
         writeLock();
 		if(_key) delete [] _key;
@@ -671,20 +671,20 @@ using namespace crypto;
         return code;
     }
     //Static hybrid encode
-	void publicKey::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN, uint16_t size)
+	void publicKey::encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN, uint16_t size)
 	{
 		os::smart_ptr<number> enc=publicKey::encode(publicKey::copyConvert(code,codeLength,size),publicN,size);
-		unsigned int tLen;
+		size_t tLen;
 		auto tdat=enc->getCompCharData(tLen);
 		memset(code,0,codeLength);
 		if(tLen>codeLength) memcpy(code,tdat.get(),codeLength);
 		else memcpy(code,tdat.get(),tLen);
 	}
 	//Static raw encode
-    void publicKey::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size)
+    void publicKey::encode(unsigned char* code, size_t codeLength, unsigned const char* publicN, size_t nLength, uint16_t size)
     {
         os::smart_ptr<number> enc=publicKey::encode(publicKey::copyConvert(code,codeLength,size),publicKey::copyConvert(code,codeLength,size),size);
-        unsigned int tLen;
+        size_t tLen;
 		auto tdat=enc->getCompCharData(tLen);
 		memset(code,0,codeLength);
 		if(tLen>codeLength) memcpy(code,tdat.get(),codeLength);
@@ -697,10 +697,10 @@ using namespace crypto;
         return publicKey::encode(code,publicN,size());
 	}
 	//Encode with raw data, public key
-	void publicKey::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
+	void publicKey::encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN) const
 	{publicKey::encode(code,codeLength,publicN,size());}
 	//Encode with raw data
-	void publicKey::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
+	void publicKey::encode(unsigned char* code, size_t codeLength, unsigned const char* publicN, size_t nLength) const
     {publicKey::encode(code,codeLength,publicN,nLength,size());}
 
     //Default decode
@@ -710,7 +710,7 @@ using namespace crypto;
 		return code;
 	}
 	//Old decode
-	os::smart_ptr<number> publicKey::decode(os::smart_ptr<number> code,unsigned int hist)
+	os::smart_ptr<number> publicKey::decode(os::smart_ptr<number> code,size_t hist)
 	{
 		if(hist==CURRENT_INDEX) return decode(code);
 		os::smart_ptr<number> histN=getOldN(hist);
@@ -719,20 +719,20 @@ using namespace crypto;
 		return code;
 	}
 	//Decode with raw data
-	void publicKey::decode(unsigned char* code, unsigned int codeLength) const
+	void publicKey::decode(unsigned char* code, size_t codeLength) const
 	{
 		os::smart_ptr<number> enc=decode(copyConvert(code,codeLength));
-		unsigned int tLen;
+		size_t tLen;
 		auto tdat=enc->getCompCharData(tLen);
 		memset(code,0,codeLength);
 		if(tLen>codeLength) memcpy(code,tdat.get(),codeLength);
 		else memcpy(code,tdat.get(),tLen);
 	}
 	//Old decode raw data
-	void publicKey::decode(unsigned char* code, unsigned int codeLength,unsigned int hist)
+	void publicKey::decode(unsigned char* code, size_t codeLength,size_t hist)
 	{
 		os::smart_ptr<number> enc=decode(copyConvert(code,codeLength),hist);
-		unsigned int tLen;
+		size_t tLen;
 		auto tdat=enc->getCompCharData(tLen);
 		memset(code,0,codeLength);
 		if(tLen>codeLength) memcpy(code,tdat.get(),codeLength);
@@ -799,7 +799,7 @@ using namespace crypto;
         loadFile();
     }
     //Load a public key from a file
-    publicRSA::publicRSA(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo):
+    publicRSA::publicRSA(std::string fileName,unsigned char* key,size_t keyLen,os::smart_ptr<streamPackageFrame> stream_algo):
         publicKey(algo::publicRSA,fileName,key,keyLen,stream_algo)
     {
         initE();
@@ -819,18 +819,18 @@ using namespace crypto;
         return ret;
     }
     //Static copy/convert
-    os::smart_ptr<number> publicRSA::copyConvert(const uint32_t* arr,uint16_t len,uint16_t size)
+    os::smart_ptr<number> publicRSA::copyConvert(const uint32_t* arr,size_t len,uint16_t size)
     {
         os::smart_ptr<number> ret;
 		if(arr==NULL)
 			ret=os::smart_ptr<number>(new integer(),os::shared_type);
 		else
-			ret=os::smart_ptr<number>(new integer(arr,len),os::shared_type);
+			ret=os::smart_ptr<number>(new integer(arr,(uint16_t)len),os::shared_type);
         ret->expand(size*2);
         return ret;
     }
     //Static copy/convert
-    os::smart_ptr<number> publicRSA::copyConvert(const unsigned char* arr,unsigned int len,uint16_t size)
+    os::smart_ptr<number> publicRSA::copyConvert(const unsigned char* arr,size_t len,uint16_t size)
     {
         uint32_t* dumpArray=new uint32_t[len/4+1];
         memset(dumpArray,0,4*(len/4+1));
@@ -847,10 +847,10 @@ using namespace crypto;
     os::smart_ptr<number> publicRSA::copyConvert(const os::smart_ptr<number> num) const
     {return publicRSA::copyConvert(num,size());}
     //Copy convert
-    os::smart_ptr<number> publicRSA::copyConvert(const uint32_t* arr,uint16_t len) const
+    os::smart_ptr<number> publicRSA::copyConvert(const uint32_t* arr,size_t len) const
     {return publicRSA::copyConvert(arr,len,size());}
     //Copy convert for raw byte array
-    os::smart_ptr<number> publicRSA::copyConvert(const unsigned char* arr,unsigned int len) const
+    os::smart_ptr<number> publicRSA::copyConvert(const unsigned char* arr,size_t len) const
     {return publicRSA::copyConvert(arr,len,size());}
 
     //Static encode
@@ -864,20 +864,20 @@ using namespace crypto;
         return os::smart_ptr<number> (new integer(os::cast<integer,number>(code)->moduloExponentiation(e, *os::cast<integer,number>(publicN))),os::shared_type);
 	}
     //Static hybrid encode
-	void publicRSA::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN, uint16_t size)
+	void publicRSA::encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN, uint16_t size)
 	{
 		os::smart_ptr<number> enc=publicRSA::encode(publicRSA::copyConvert(code,codeLength,size),publicN,size);
-		unsigned int tLen;
+		size_t tLen;
 		auto tdat=enc->getCompCharData(tLen);
 		memset(code,0,codeLength);
 		if(tLen>codeLength) memcpy(code,tdat.get(),codeLength);
 		else memcpy(code,tdat.get(),tLen);
 	}
 	//Static raw encode
-    void publicRSA::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size)
+    void publicRSA::encode(unsigned char* code, size_t codeLength, unsigned const char* publicN, size_t nLength, uint16_t size)
     {
         os::smart_ptr<number> enc=publicRSA::encode(publicRSA::copyConvert(code,codeLength,size),publicRSA::copyConvert(code,codeLength,size),size);
-        unsigned int tLen;
+        size_t tLen;
 		auto tdat=enc->getCompCharData(tLen);
 		memset(code,0,codeLength);
 		if(tLen>codeLength) memcpy(code,tdat.get(),codeLength);
@@ -891,13 +891,13 @@ using namespace crypto;
         return publicRSA::encode(code,publicN,size());
     }
     //Hybrid encode
-	void publicRSA::encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN) const
+	void publicRSA::encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN) const
 	{
 		if(!publicN) publicN=n;
 		publicRSA::encode(code,codeLength,publicN,size());
 	}
 	//Raw encode
-    void publicRSA::encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const
+    void publicRSA::encode(unsigned char* code, size_t codeLength, unsigned const char* publicN, size_t nLength) const
     {publicRSA::encode(code,codeLength,publicN,nLength,size());}
 
     //Decode key
@@ -909,7 +909,7 @@ using namespace crypto;
         return os::smart_ptr<number>(new integer(os::cast<integer,number>(code)->moduloExponentiation(*os::cast<integer,number>(d), *os::cast<integer,number>(n))),os::shared_type);
     }
 	//Old decode key
-    os::smart_ptr<number> publicRSA::decode(os::smart_ptr<number> code, unsigned int hist)
+    os::smart_ptr<number> publicRSA::decode(os::smart_ptr<number> code, size_t hist)
     {
 		if(hist==CURRENT_INDEX)
 			return decode(code);
@@ -937,7 +937,7 @@ using namespace crypto;
 	integer RSAKeyGenerator::generatePrime()
 	{
 		integer ret(2*master->size());
-		for(unsigned int i=0;i<master->size()/2;++i)
+		for(uint16_t i=0;i<master->size()/2;++i)
 			ret[i]=((uint32_t) rand())^(((uint32_t)rand())<<16);
 		ret[0]=ret[0]|1;
 		ret[master->size()/2-1]^=1<<31;
@@ -997,7 +997,7 @@ using namespace crypto;
 			return;
 		}
 
-        srand(time(NULL));
+        srand((unsigned)time(NULL));
 		keyGen=os::smart_ptr<RSAKeyGenerator>(new RSAKeyGenerator(*this),os::shared_type);
 		os::spawnThread(&generateKeys,keyGen.get(),"RSA Key Generation");
 		writeUnlock();

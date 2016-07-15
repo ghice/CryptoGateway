@@ -1,7 +1,7 @@
 /**
  * @file	user.cpp
  * @author	Jonathan Bedard
- * @date   	5/26/2016
+ * @date   	7/13/2016
  * @brief	Implementation of the CryptoGateway user
  * @bug	None
  *
@@ -32,7 +32,7 @@ namespace crypto {
   -----------------------------------*/
 
 	//User constructor
-	user::user(std::string username,std::string saveDir,const unsigned char* key,unsigned int keyLen)
+	user::user(std::string username,std::string saveDir,const unsigned char* key,size_t keyLen)
 	{
 		//Basic initializers
 		if(_username.size()>size::NAME_SIZE)
@@ -487,7 +487,7 @@ namespace crypto {
   -----------------------------------*/
 
 	//Sets password
-	void user::setPassword(const unsigned char* key,unsigned int keyLen)
+	void user::setPassword(const unsigned char* key,size_t keyLen)
 	{
 		//Set key
 		if(_password!=NULL)
@@ -637,7 +637,7 @@ namespace crypto {
 	}
 	
 	//Searching for key
-	os::smart_ptr<publicKey> user::searchKey(hash hsh, unsigned int& hist,bool& type)
+	os::smart_ptr<publicKey> user::searchKey(hash hsh, size_t& hist,bool& type)
 	{
 		auto trc=_publicKeys.getFirst();
 		while(trc)
@@ -648,7 +648,7 @@ namespace crypto {
 		}
 		return NULL;
 	}
-	os::smart_ptr<publicKey> user::searchKey(os::smart_ptr<number> key, unsigned int& hist,bool& type)
+	os::smart_ptr<publicKey> user::searchKey(os::smart_ptr<number> key, size_t& hist,bool& type)
 	{
 		auto trc=_publicKeys.getFirst();
 		while(trc)
@@ -665,7 +665,7 @@ namespace crypto {
   -----------------------------------*/
 
 	//Unsigned ID message
-	unsigned char* user::unsignedIDMessage(unsigned int& len, std::string groupID,std::string nodeName)
+	unsigned char* user::unsignedIDMessage(size_t& len, std::string groupID,std::string nodeName)
 	{
 		len=0;
 		os::smart_ptr<nodeGroup> nd=_keyBank->find(groupID,nodeName);
@@ -692,22 +692,22 @@ namespace crypto {
 		if(targKey) ret[0]=0x80;
 
 		//Place in the group ID first
-		unsigned int trc=1;
+		size_t trc=1;
 		memcpy(ret+trc,groupID.c_str(),groupID.length());
 		trc+=size::GROUP_SIZE;
 
 		//Bind algorithm data
-		ret[trc]=pbk->algorithm();
-		ret[trc+1]=pbk->size();
-		ret[trc+2]=stmpk->hashAlgorithm();
-		ret[trc+3]=stmpk->hashSize();
-		ret[trc+4]=stmpk->streamAlgorithm();
+		ret[trc]=(unsigned char) pbk->algorithm();
+		ret[trc+1]=(unsigned char) pbk->size();
+		ret[trc+2]=(unsigned char) stmpk->hashAlgorithm();
+		ret[trc+3]=(unsigned char) stmpk->hashSize();
+		ret[trc+4]=(unsigned char) stmpk->streamAlgorithm();
 		trc+=5;
 
 		//Prepare for encryption data (if targeted)
 		os::smart_ptr<streamCipher> cipher;
-		int cipherStart;
-		unsigned int tempLen;
+		size_t cipherStart;
+		size_t tempLen;
 		if(targKey)
 		{
 			auto arr=targKey->key()->getCompCharData(tempLen);
@@ -715,7 +715,7 @@ namespace crypto {
 			memcpy(ret+trc,hsh.data(),hsh.size());
 			trc+=stmpk->hashSize();
 
-			for(int i=0;i<targKey->keySize()*4;++i)
+			for(uint16_t i=0;i<targKey->keySize()*4;++i)
 				ret[trc+i]=rand();
 			ret[trc+targKey->keySize()*4-1]=rand()&0x0F;
 			cipher=stmpk->buildStream(ret+trc,targKey->keySize()*4);
@@ -751,7 +751,7 @@ namespace crypto {
 		//Now encrypt
 		if(cipher && targKey)
 		{
-			for(int i=cipherStart;i<len;++i)
+			for(size_t i=cipherStart;i<len;++i)
 				ret[i]=cipher->getNext()^ret[i];
 
 			os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(targKey->algoID());
@@ -769,11 +769,11 @@ namespace crypto {
 		return ret;
 	}
 	//Process an ID message
-	bool user::processIDMessage(unsigned char* mess, unsigned int len)
+	bool user::processIDMessage(unsigned char* mess, size_t len)
 	{
 		//Check message header
 		if(!isIDMessage(mess[0])) return false;
-		if(len<1+size::GROUP_SIZE+size::NAME_SIZE+5) return false;
+		if(len < 1+size::GROUP_SIZE+size::NAME_SIZE+5) return false;
 		if(!mess) return false;
 		unsigned int trc=1;
 
@@ -815,7 +815,7 @@ namespace crypto {
 			hash hsh=stmpk->hashCopy(mess+trc);
 			trc+=stmpk->hashSize();
 
-			unsigned int hist;
+			size_t hist;
 			bool type;
 			os::smart_ptr<publicKey> myKey=searchKey(hsh,hist,type);
 			if(!myKey) return false;
@@ -868,7 +868,7 @@ namespace crypto {
 		return true;
 	}
 	//Encrypt a message
-	unsigned char* user::encryptMessage(unsigned int& finishedLen, const unsigned char* mess, unsigned int len, std::string groupID,std::string nodeName)
+	unsigned char* user::encryptMessage(size_t& finishedLen, const unsigned char* mess, size_t len, std::string groupID,std::string nodeName)
 	{
 		finishedLen=0;
 		os::smart_ptr<nodeGroup> nd=_keyBank->find(groupID,nodeName);
@@ -886,19 +886,19 @@ namespace crypto {
 		finishedLen=pbk->size()*4+len+6+targKey->keySize()*4;
 		unsigned char* ret=new unsigned char[finishedLen];
 		ret[0]=0x01|0x80;
-		unsigned int trc=1;
+		size_t trc=1;
 
-		ret[trc]=pbk->algorithm();
-		ret[trc+1]=pbk->size();
-		ret[trc+2]=stmpk->hashAlgorithm();
-		ret[trc+3]=stmpk->hashSize();
-		ret[trc+4]=stmpk->streamAlgorithm();
+		ret[trc]=(unsigned char)pbk->algorithm();
+		ret[trc+1]=(unsigned char)pbk->size();
+		ret[trc+2]=(unsigned char)stmpk->hashAlgorithm();
+		ret[trc+3]=(unsigned char)stmpk->hashSize();
+		ret[trc+4]=(unsigned char)stmpk->streamAlgorithm();
 		trc+=5;
 
 		//Prepare for encryption data (if targeted)
 		os::smart_ptr<streamCipher> cipher;
-		int cipherStart;
-		unsigned int tempLen;
+		size_t cipherStart;
+		size_t tempLen;
 
 		for(int i=0;i<targKey->keySize()*4;++i)
 			ret[trc+i]=rand();
@@ -928,7 +928,7 @@ namespace crypto {
 		memcpy(ret+trc,arr.get(),tempLen);
 
 		//Now encrypt
-		for(int i=cipherStart;i<finishedLen;++i)
+		for(size_t i=cipherStart;i<finishedLen;++i)
 			ret[i]=cipher->getNext()^ret[i];
 
 		os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(targKey->algoID());
@@ -953,7 +953,7 @@ namespace crypto {
 		return ret;
 	}
 	//Decrypt a message
-	unsigned char* user::decryptMessage(unsigned int& finishedLen, const unsigned char* mess, unsigned int len, std::string groupID,std::string nodeName)
+	unsigned char* user::decryptMessage(size_t& finishedLen, const unsigned char* mess, size_t len, std::string groupID,std::string nodeName)
 	{
 		//Check message header
 		os::smart_ptr<publicKeyPackageFrame> pbkfrm;
@@ -974,7 +974,7 @@ namespace crypto {
 		}
 		if(len<6) return NULL;
 
-		unsigned int trc=1;
+		size_t trc=1;
 		uint16_t pbkID=mess[trc];
 		uint16_t pbkSize=mess[trc+1];
 		uint16_t hshAlgo=mess[trc+2];
@@ -1014,7 +1014,7 @@ namespace crypto {
 		//Now decrypt
 		os::smart_ptr<streamCipher> cipher=stmpk->buildStream(temp+trc,targKey->keySize()*4);
 		trc+=pbk->size()*4;
-		for(int i=trc;i<len;++i)
+		for(size_t i=trc;i<len;++i)
 			temp[i]=cipher->getNext()^temp[i];
 
 		//Pull message

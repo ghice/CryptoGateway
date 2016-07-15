@@ -1,7 +1,7 @@
 /**
  * @file	user.h
  * @author	Jonathan Bedard
- * @date   	4/26/2016
+ * @date   	7/13/2016
  * @brief	Definition of the CryptoGateway user
  * @bug	None
  *
@@ -46,7 +46,7 @@ namespace crypto {
 		unsigned char* _password;
 		/** @brief Length of symmetric key
 		 */
-		unsigned int _passwordLength;
+		size_t _passwordLength;
 		/** @brief Save directory for user
 		 */
 		std::string _saveDir;
@@ -107,7 +107,7 @@ namespace crypto {
 		 * @param [in] keyLen Length of symetric key
 		 * 
 		 */
-		user(std::string username,std::string saveDir="",const unsigned char* key=NULL,unsigned int keyLen=0);
+		user(std::string username,std::string saveDir="",const unsigned char* key=NULL,size_t keyLen=0);
 		/** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object
@@ -137,7 +137,7 @@ namespace crypto {
 		 *
 		 * @return void
 		 */
-		void setPassword(const unsigned char* key=NULL,unsigned int keyLen=0);
+		void setPassword(const unsigned char* key=NULL,size_t keyLen=0);
 		/** @brief Set stream package
 		 *
 		 * Binds a new stream package.  Calls
@@ -220,7 +220,7 @@ namespace crypto {
 		 * @param [in] nodeName Name of target node
 		 * @return Unsigned ID message
 		 */
-		unsigned char* unsignedIDMessage(unsigned int& len, std::string groupID="default",std::string nodeName="");
+		unsigned char* unsignedIDMessage(size_t& len, std::string groupID="default",std::string nodeName="");
 		/** @brief Process ID message
 		 *
 		 * Processes any ID message.  Note that this function can process
@@ -230,7 +230,7 @@ namespace crypto {
 		 * @param [in] len Length of incoming message
 		 * @return True if valid ID message, else, false
 		 */
-		bool processIDMessage(unsigned char* mess, unsigned int len);
+		bool processIDMessage(unsigned char* mess, size_t len);
 		/** @brief Encrypt an out-going message
 		 *
 		 * Takes an array of data and encrypts it with the
@@ -244,7 +244,7 @@ namespace crypto {
 		 * @param [in] nodeName String of the name of the target node
 		 * @return Encrypted message pointer
 		 */
-		unsigned char* encryptMessage(unsigned int& finishedLen, const unsigned char* mess, unsigned int len, std::string groupID,std::string nodeName);
+		unsigned char* encryptMessage(size_t& finishedLen, const unsigned char* mess, size_t len, std::string groupID,std::string nodeName);
 		/** @brief Decrypt a message
 		 *
 		 * Takes an array of data representing an encrypted message targeted for this user.
@@ -257,7 +257,7 @@ namespace crypto {
 		 * @param [in] nodeName Name of message source
 		 * @return Decrypted message
 		 */
-		unsigned char* decryptMessage(unsigned int& finishedLen, const unsigned char* mess, unsigned int len, std::string groupID,std::string nodeName);
+		unsigned char* decryptMessage(size_t& finishedLen, const unsigned char* mess, size_t len, std::string groupID,std::string nodeName);
 
 	//Access-------------------------------------------------------------
 
@@ -272,7 +272,7 @@ namespace crypto {
 		/** @brief Access password length
 		 * @return crypto::user::_passwordLength
 		 */
-		unsigned int passwordLength() const {return _passwordLength;}
+		size_t passwordLength() const {return _passwordLength;}
 		/** @brief Access save directory
 		 * @return crypto::user::_saveDir + username
 		 */
@@ -345,7 +345,7 @@ namespace crypto {
 		 * @param [out] type Type (public or private)
 		 * @return Key pair conatining the searched key
 		 */
-		os::smart_ptr<publicKey> searchKey(hash hsh, unsigned int& hist,bool& type);
+		os::smart_ptr<publicKey> searchKey(hash hsh, size_t& hist,bool& type);
 		/** @brief Searches for key
 		 *
 		 * Binds the location that the keys were found
@@ -356,14 +356,14 @@ namespace crypto {
 		 * @param [out] type Type (public or private)
 		 * @return Key pair conatining the searched key
 		 */
-		os::smart_ptr<publicKey> searchKey(os::smart_ptr<number> key, unsigned int& hist,bool& type);
+		os::smart_ptr<publicKey> searchKey(os::smart_ptr<number> key, size_t& hist,bool& type);
 		/** @brief Searches for key
 		 * @param [in] num Key to search for
 		 * @return Key pair conatining the searched key
 		 */
 		os::smart_ptr<publicKey> searchKey(hash hsh)
 		{
-			unsigned int hist;
+			size_t hist;
 			bool type;
 			return searchKey(hsh,hist,type);
 		}
@@ -373,7 +373,7 @@ namespace crypto {
 		 */
 		os::smart_ptr<publicKey> searchKey(os::smart_ptr<number> key)
 		{
-			unsigned int hist;
+			size_t hist;
 			bool type;
 			return searchKey(key,hist,type);
 		}

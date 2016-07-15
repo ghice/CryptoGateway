@@ -1,7 +1,7 @@
 /**
  * @file	XMLEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	5/26/2016
+ * @date   	7/14/2016
  * @brief	Implementation of RC-4
  * @bug	None
  *
@@ -43,7 +43,7 @@ using namespace crypto;
 		else throw errorPointer(new bufferSmallError(),os::shared_type);
 
 		//Initialize the packet Array
-		int cnt = 0;
+		unsigned cnt = 0;
 		packetArray = new uint8_t[size];
 		packetArray[0] = source->getNext();
 		packetArray[1] = source->getNext();
@@ -63,7 +63,7 @@ using namespace crypto;
 	//Returns the packet data
 	const uint8_t* streamPacket::getPacket() const{return packetArray;}
 	//Encrypts, dynamic suppression
-	uint8_t* streamPacket::encrypt(uint8_t* pt, unsigned int len, bool surpress) const
+	uint8_t* streamPacket::encrypt(uint8_t* pt, size_t len, bool surpress) const
 	{
 		if(!surpress && len>size)
 			throw errorPointer(new customError("Unsecure length","The length of your input to codePacket.encrypt(...) is unsecure!"),os::shared_type);
@@ -78,7 +78,7 @@ using namespace crypto;
 	}
 
 	//Constructor
-	RCFour::RCFour(uint8_t* arr, int len)
+	RCFour::RCFour(uint8_t* arr, size_t len)
 	{
 		//Check the array length
 		if(len<1) throw errorPointer(new passwordSmallError(),os::shared_type);
@@ -151,7 +151,7 @@ using namespace crypto;
 		delete [] ID_check;
 	}
 	//Encrypts an array
-	uint8_t* streamEncrypter::sendData(uint8_t* array, unsigned int len, uint16_t& flag)
+	uint8_t* streamEncrypter::sendData(uint8_t* array, size_t len, uint16_t& flag)
 	{
 		if(len>size::stream::PACKETSIZE) throw errorPointer(new bufferLargeError(),os::shared_type);
     
@@ -247,7 +247,7 @@ using namespace crypto;
 		cipher=NULL;
 	}
 	//Encrypts an array
-	uint8_t* streamDecrypter::recieveData(uint8_t* array, unsigned int len, uint16_t flag)
+	uint8_t* streamDecrypter::recieveData(uint8_t* array, size_t len, uint16_t flag)
 	{
 		if(len>size::stream::PACKETSIZE) throw errorPointer(new bufferLargeError(),os::shared_type);
 		

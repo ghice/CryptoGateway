@@ -1,7 +1,7 @@
 /**
  * @file	binaryEncryption.h
  * @author	Jonathan Bedard
- * @date   	3/7/2016
+ * @date   	7/14/2016
  * @brief	Definition of binary encryption files
  * @bug	None
  *
@@ -17,6 +17,7 @@
 #include "streamPackage.h"
 #include "publicKeyPackage.h"
 #include "cryptoError.h"
+#include "keyBank.h"
 
 namespace crypto {
 
@@ -77,7 +78,7 @@ namespace crypto {
 		 * @param [in] keyLen Length of symmetric key
 		 * @return void
 		 */
-		void build(unsigned char* key,unsigned int keyLen);
+		void build(unsigned char* key,size_t keyLen);
 		/** @brief Construct class with public key
 		 *
 		 * This function acts as a constructor.
@@ -101,7 +102,7 @@ namespace crypto {
 		 * @param [in] pkSize Size of public key
 		 * @return void
 		 */
-		void build(os::smart_ptr<number> pubKey,unsigned int pkAlgo,unsigned int pkSize);
+		void build(os::smart_ptr<number> pubKey,unsigned int pkAlgo,size_t pkSize);
 	public:
 		/** @brief Construct with public key
 		 *
@@ -127,7 +128,7 @@ namespace crypto {
 		 * @param [in] pkSize Defines size of public key
 		 * @param [in] stream_algo Optional stream algorithm definition
 		 */
-		binaryEncryptor(std::string file_name,os::smart_ptr<number> publicKey,unsigned int pkAlgo,unsigned int pkSize,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+		binaryEncryptor(std::string file_name,os::smart_ptr<number> publicKey,unsigned int pkAlgo,size_t pkSize,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
 		/** @brief Construct with password
 		 *
 		 * Constructs the file writer with a
@@ -150,7 +151,7 @@ namespace crypto {
 		 * @param [in] keyLen Length of symmetric key
 		 * @param [in] stream_algo Optional stream algorithm definition
 		 */
-		binaryEncryptor(std::string file_name,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+		binaryEncryptor(std::string file_name,unsigned char* key,size_t keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
 
 		/** @brief Write a single character
 		 *
@@ -164,7 +165,7 @@ namespace crypto {
 		 * @param [in] dataLen Length of data array
 		 * @return void
 		 */
-		void write(const unsigned char* data,unsigned int dataLen);
+		void write(const unsigned char* data,size_t dataLen);
 		/** @brief Closes the output file
 		 *
 		 * @return void
@@ -263,7 +264,7 @@ namespace crypto {
 		std::ifstream input;
 		/** @brief Number of bytes left in the file
 		 */
-		unsigned long _bytesLeft;
+		size_t _bytesLeft;
 
 		/** @brief Central constructor function
 		 *
@@ -279,7 +280,7 @@ namespace crypto {
 		 * @param [in] keyLen Length of symmetric key, 0 by default
 		 * @return void
 		 */
-		void build(unsigned char* key=NULL,unsigned int keyLen=0);
+		void build(unsigned char* key=NULL,size_t keyLen=0);
 	public:
 		/** @brief Construct with public key
 		 *
@@ -317,7 +318,7 @@ namespace crypto {
 		 * @param [in] key Symmetric key byte array
 		 * @param [in] keyLen Size of the symmetric key
 		 */
-		binaryDecryptor(std::string file_name,unsigned char* key,unsigned int keyLen);
+		binaryDecryptor(std::string file_name,unsigned char* key,size_t keyLen);
 
 		/** @brief Attempts to read a single character
 		 *
@@ -338,7 +339,7 @@ namespace crypto {
 		 * @param [in] dataLen Number of bytes attempting to read
 		 * @return Number of bytes read
 		 */
-		unsigned int read(unsigned char* data,unsigned int dataLen);
+		size_t read(unsigned char* data,size_t dataLen);
 		/** @brief Closes the output file
 		 *
 		 * @return void
@@ -369,7 +370,7 @@ namespace crypto {
 		 *
 		 * @return crypto::binaryDecryptor::_bytesLeft
 		 */
-		unsigned long bytesLeft() const {return _bytesLeft;}
+		inline size_t bytesLeft() const {return _bytesLeft;}
 		/** @brief Pointer to the user which signed this file
 		 * @return crypto::binaryDecryptor::_author
 		 */

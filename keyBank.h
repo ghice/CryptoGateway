@@ -497,7 +497,7 @@ namespace crypto {
 		unsigned char* _symKey;
 		/** @brief Length of symmetric key
 		 */
-		unsigned int _keyLen;
+		size_t _keyLen;
 		/** @brief Public key group to encrypt file
 		 */
 		os::smart_ptr<publicKey> _pubKey;
@@ -551,7 +551,7 @@ namespace crypto {
 		 * @param [in] keyLen Length of symetric key
 		 * @param [in] strmPck Definition of algorithms used
          */
-        keyBank(std::string savePath,const unsigned char* key=NULL,unsigned int keyLen=0,os::smart_ptr<streamPackageFrame> strmPck=NULL);
+        keyBank(std::string savePath,const unsigned char* key=NULL,size_t keyLen=0,os::smart_ptr<streamPackageFrame> strmPck=NULL);
 		/** @brief Construct with save path and public key
          *
          * @param [in] savePath Path to save file
@@ -635,7 +635,7 @@ namespace crypto {
 		 *
 		 * @return void
 		 */
-		void setPassword(const unsigned char* key=NULL,unsigned int keyLen=0);
+		void setPassword(const unsigned char* key=NULL,size_t keyLen=0);
 		/** @brief Set stream package
 		 *
 		 * Binds a new stream package.  Calls
@@ -716,7 +716,7 @@ namespace crypto {
 		 * @param [in] keyLen Length of symetric key
 		 * @param [in] strmPck Definition of algorithms used
          */
-        avlKeyBank(std::string savePath="",const unsigned char* key=NULL,unsigned int keyLen=0,os::smart_ptr<streamPackageFrame> strmPck=NULL);
+        avlKeyBank(std::string savePath="",const unsigned char* key=NULL,size_t keyLen=0,os::smart_ptr<streamPackageFrame> strmPck=NULL);
 		/** @brief Construct with save path and public key
 		 *
          * Intializes the key bank and

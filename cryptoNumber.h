@@ -122,7 +122,7 @@ namespace crypto
 		 * @param [out] arr_len
 		 * return Byte array
 		 */
-		os::smart_ptr<unsigned char> getCharData(unsigned int& arr_len) const;
+		os::smart_ptr<unsigned char> getCharData(size_t& arr_len) const;
 		/** @brief Build compatibility byte array
 		 *
 		 * Constructs a byte array based on the
@@ -133,7 +133,7 @@ namespace crypto
 		 * @param [out] arr_len
 		 * return Byte array
 		 */
-		os::smart_ptr<unsigned char> getCompCharData(unsigned int& arr_len) const;
+		os::smart_ptr<unsigned char> getCompCharData(size_t& arr_len) const;
 
         /** @brief Build hex string from number
 		 * @return Hex string

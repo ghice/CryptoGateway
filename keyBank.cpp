@@ -453,7 +453,7 @@ namespace crypto {
 -----------------------------------*/
 
 	//Key bank constructor
-	keyBank::keyBank(std::string savePath,const unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> strmPck)
+	keyBank::keyBank(std::string savePath,const unsigned char* key,size_t keyLen,os::smart_ptr<streamPackageFrame> strmPck)
 	{
 		_savePath=savePath;
 
@@ -496,7 +496,7 @@ namespace crypto {
 		markChanged();
 	}
 	//Set password
-	void keyBank::setPassword(const unsigned char* key,unsigned int keyLen)
+	void keyBank::setPassword(const unsigned char* key,size_t keyLen)
 	{
 		//Set key
 		if(_symKey!=NULL)
@@ -555,7 +555,7 @@ namespace crypto {
 -----------------------------------*/
     
     //AVL bank constructor
-    avlKeyBank::avlKeyBank(std::string savePath,const unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> strmPck):
+    avlKeyBank::avlKeyBank(std::string savePath,const unsigned char* key,size_t keyLen,os::smart_ptr<streamPackageFrame> strmPck):
         keyBank(savePath,key,keyLen,strmPck)
     {
         load();

@@ -150,7 +150,7 @@ namespace crypto {
          * @param [in] data Data array to be hashed
          * @param [in] dLen Length of data array
          */
-        virtual void preformHash(unsigned char* data, uint32_t dLen){}
+        virtual void preformHash(unsigned char* data, size_t dLen){}
         
         /** @brief Algorithm name string access
          *
@@ -185,7 +185,7 @@ namespace crypto {
          *
          * @return crypto::hash::_size*8
          */
-        inline uint32_t numBits() const {return _size*8;}
+        inline size_t numBits() const {return _size*8;}
         /** @brief Modifiable data access
          *
          * Provides mutable data-access to
@@ -211,7 +211,7 @@ namespace crypto {
          * @param [in] pos Data index
          * @return crypto::hash::_data[pos]
          */
-        unsigned char operator[](uint16_t pos) const;
+        unsigned char operator[](size_t pos) const;
         /** @brief Constant data access
          *
          * Provides immutable data-access to
@@ -220,7 +220,7 @@ namespace crypto {
          * @param [in] pos Data index
          * @return crypto::hash::_data[pos]
          */
-        unsigned char& operator[](uint16_t pos);
+        unsigned char& operator[](size_t pos);
         
         /** @brief Converts hash to string
          *
@@ -262,7 +262,7 @@ namespace crypto {
      * @return Hash for data array
      */
     template <class hashClass>
-    hashClass hashData(uint16_t hashType,const unsigned char* data, uint32_t length)
+    hashClass hashData(uint16_t hashType,const unsigned char* data, size_t length)
     {
         if(hashType==size::hash64)
             return hashClass::hash64Bit(data,length);
@@ -297,7 +297,7 @@ namespace crypto {
          * @param [in] length Length of data array
          * @param [in] size Size of hash
          */
-        xorHash(const unsigned char* data, uint32_t length, uint16_t size);
+        xorHash(const unsigned char* data, size_t length, uint16_t size);
     public:
         /** @brief Algorithm name string access
          *
@@ -355,7 +355,7 @@ namespace crypto {
          * @param [in] data Data array to be hashed
          * @param [in] dLen Length of data array
          */
-        void preformHash(const unsigned char* data, uint32_t dLen);
+        void preformHash(const unsigned char* data, size_t dLen);
         /** @brief Algorithm name string access
          *
          * Returns the name of the current
@@ -376,7 +376,7 @@ namespace crypto {
          * @param length Length of data array to be hashed
          * @return New xorHash
          */
-        static xorHash hash64Bit(const unsigned char* data, uint32_t length){return xorHash(data,length,size::hash64);}
+        static xorHash hash64Bit(const unsigned char* data, size_t length){return xorHash(data,length,size::hash64);}
         /** @brief Static 128 bit hash
          *
          * Hashes the provided data array
@@ -387,7 +387,7 @@ namespace crypto {
          * @param length Length of data array to be hashed
          * @return New xorHash
          */
-        static xorHash hash128Bit(const unsigned char* data, uint32_t length){return xorHash(data,length,size::hash128);}
+        static xorHash hash128Bit(const unsigned char* data, size_t length){return xorHash(data,length,size::hash128);}
         /** @brief Static 256 bit hash
          *
          * Hashes the provided data array
@@ -398,7 +398,7 @@ namespace crypto {
          * @param length Length of data array to be hashed
          * @return New xorHash
          */
-        static xorHash hash256Bit(const unsigned char* data, uint32_t length){return xorHash(data,length,size::hash256);}
+        static xorHash hash256Bit(const unsigned char* data, size_t length){return xorHash(data,length,size::hash256);}
         /** @brief Static 512 bit hash
          *
          * Hashes the provided data array
@@ -409,7 +409,7 @@ namespace crypto {
          * @param length Length of data array to be hashed
          * @return New xorHash
          */
-        static xorHash hash512Bit(const unsigned char* data, uint32_t length){return xorHash(data,length,size::hash512);}
+        static xorHash hash512Bit(const unsigned char* data, size_t length){return xorHash(data,length,size::hash512);}
     };
 }
 

@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   5/26/2016
+ * @date   7/13/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -850,8 +850,8 @@ using namespace crypto;
         user usr2("testUser2","");
         usr2.addPublicKey(cast<publicKey,publicRSA>(getStaticKeys<publicRSA>(crypto::size::public128)));
 
-		unsigned int len1;
-		unsigned int len2;
+		size_t len1;
+		size_t len2;
 		unsigned char* mes1;
 		unsigned char* mes2;
 

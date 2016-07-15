@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   7/9/2016
+ * @date   7/13/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -136,14 +136,14 @@ namespace crypto
 		uint16_t _algorithm;
 		/**@ brief Number of historical keys to keep
 		 */
-        uint16_t _history;
+        size_t _history;
 
 		/** @brief Symmetric key for encryption
 		 */
 		unsigned char* _key;
 		/** @brief Length of symmetric key
 		 */
-		unsigned int _keyLen;
+		size_t _keyLen;
 		/**@ brief Algorithm used for encryption
 		 */
 		os::smart_ptr<streamPackageFrame> fePackage;
@@ -210,7 +210,7 @@ namespace crypto
 		 * @param keyLen Length of symmetric key
 		 * @param stream_algo Symmetric key encryption algorithm, NULL by default
 		 */
-		publicKey(uint16_t algo,std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+		publicKey(uint16_t algo,std::string fileName,unsigned char* key,size_t keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
     
 		/** @brief Locks the write lock
 		 * @return void
@@ -255,7 +255,7 @@ namespace crypto
 		 * Allows the current key to be accessed
 		 * as historical index '-1'
 		 */
-		static const unsigned int CURRENT_INDEX = ~0;
+		static const size_t CURRENT_INDEX = ~0;
 		/** @brief Public boolean marker
 		 */
 		static const bool PUBLIC=true;
@@ -288,7 +288,7 @@ namespace crypto
 		 * @param [out] type Type (public or private)
 		 * @return True if the key was found, else, false
 		 */
-		bool searchKey(hash hsh, unsigned int& hist,bool& type);
+		bool searchKey(hash hsh, size_t& hist,bool& type);
 		/** @brief Searches for key
 		 *
 		 * Binds the location that the keys were found
@@ -299,7 +299,7 @@ namespace crypto
 		 * @param [out] type Type (public or private)
 		 * @return True if the key was found, else, false
 		 */
-		bool searchKey(os::smart_ptr<number> key, unsigned int& hist,bool& type);
+		bool searchKey(os::smart_ptr<number> key, size_t& hist,bool& type);
 		/** @brief Converts number to correct type
 		 * @param [in] num Number to be converted
 		 * @return Converted number
@@ -310,13 +310,13 @@ namespace crypto
 		 * @param [in] len Length of array to be converted
 		 * @return Converted number
 		 */
-        virtual os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+        virtual os::smart_ptr<number> copyConvert(const uint32_t* arr,size_t len) const;
 		/** @brief Converts byte array to correct number type
 		 * @param [in] arr Byte array to be converted
 		 * @param [in] len Length of array to be converted
 		 * @return Converted number
 		 */
-        virtual os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
+        virtual os::smart_ptr<number> copyConvert(const unsigned char* arr,size_t len) const;
         
 		/** @brief Converts number to correct type, statically
 		 * @param [in] num Number to be converted
@@ -328,13 +328,13 @@ namespace crypto
 		 * @param [in] len Length of array to be converted
 		 * @return Converted number
 		 */
-		static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
+		static os::smart_ptr<number> copyConvert(const uint32_t* arr,size_t len,uint16_t size);
 		/** @brief Converts byte array to correct number type, statically
 		 * @param [in] arr Byte array to be converted
 		 * @param [in] len Length of array to be converted
 		 * @return Converted number
 		 */
-		static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
+		static os::smart_ptr<number> copyConvert(const unsigned char* arr,size_t len,uint16_t size);
 
 		/** @brief Public key access
 		 * @return crypto::publicKey::n
@@ -352,17 +352,17 @@ namespace crypto
 		 * @param history Historical index, 0 by default
 		 * @return Public key at given index
 		 */
-		os::smart_ptr<number> getOldN(unsigned int history=0);
+		os::smart_ptr<number> getOldN(size_t history=0);
 		/** @brief Access old private keys
 		 * @param history Historical index, 0 by default
 		 * @return Private key at given index
 		 */
-		os::smart_ptr<number> getOldD(unsigned int history=0);
+		os::smart_ptr<number> getOldD(size_t history=0);
 		/** @brief Access old time-stamps
 		 * @param history Historical index, 0 by default
 		 * @return Time-stamp at given index
 		 */
-		uint64_t getOldTimestamp(unsigned int history=0);
+		uint64_t getOldTimestamp(size_t history=0);
 		/** @brief Key generation function
 		 *
 		 * Generates new keys for the specific
@@ -407,11 +407,11 @@ namespace crypto
 		 * @param [in] hist History size to be bound
 		 * @return void
 		 */
-        void setHistory(uint16_t hist);
+        void setHistory(size_t hist);
 		/** @breif Access history size
 		 * @return crypto::publicKey::_history
 		 */
-        inline uint16_t history() const {return _history;}
+        inline size_t history() const {return _history;}
 
 		/** @brief Re-save the entire structure
 		 * @return void
@@ -436,7 +436,7 @@ namespace crypto
 		 * @param [in] keyLen Length of symmetric key
 		 * @return void
 		 */
-		void setPassword(unsigned char* key,unsigned int keyLen);
+		void setPassword(unsigned char* key,size_t keyLen);
 		/** @breif Binds a new symmetric key
 		 *
 		 * @param [in] password String representing the symmetric key
@@ -488,9 +488,10 @@ namespace crypto
 		 * @param [in/out] code Data to be encoded
 		 * @param [in] codeLength Length of code array
 		 * @param [in] publicN Public key to be encoded against, NULL by default
+		 * @param [in] size Size of key used
 		 * @return void
 		 */
-		static void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN, uint16_t size);
+		static void encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN, uint16_t size);
         /** @brief Static data encode
 		 *
 		 * This function is expected to be re-implemented
@@ -505,7 +506,7 @@ namespace crypto
 		 * @param [in] size Size of key used
 		 * @return void
 		 */
-		static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
+		static void encode(unsigned char* code, size_t codeLength, unsigned const char* publicN, size_t nLength, uint16_t size);
         
 		/** @brief Number encode
 		 * @param [in] code Data to be encoded
@@ -519,7 +520,7 @@ namespace crypto
 		 * @param [in] publicN Public key to be encoded against, NULL by default
 		 * @return void
 		 */
-		virtual void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN=NULL) const;
+		virtual void encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN=NULL) const;
 		/** @brief Data encode
 		 * @param [in/out] code Data to be encoded
 		 * @param [in] codeLength Length of code array
@@ -527,7 +528,7 @@ namespace crypto
 		 * @param [in] nLength Length of key array
 		 * @return void
 		 */
-		virtual void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
+		virtual void encode(unsigned char* code,size_t codeLength, unsigned const char* publicN, size_t nLength) const;
 		/** @brief Number decode
 		 *
 		 * Uses the private key to decode a
@@ -550,7 +551,7 @@ namespace crypto
 		 * @param [in] hist Index of historical key
 		 * @return Decoded number
 		 */
-		virtual os::smart_ptr<number> decode(os::smart_ptr<number> code, unsigned int hist);
+		virtual os::smart_ptr<number> decode(os::smart_ptr<number> code, size_t hist);
 		/** @brief Data decode
 		 *
 		 * Uses the private key to decode a
@@ -560,7 +561,7 @@ namespace crypto
 		 * @param [in] codeLength Length of code to be decoded
 		 * @return void
 		 */
-        void decode(unsigned char* code, unsigned int codeLength) const;
+        void decode(unsigned char* code, size_t codeLength) const;
 		/** @brief Data decode, old key
 		 *
 		 * Uses the private key to decode a
@@ -571,7 +572,7 @@ namespace crypto
 		 * @param [in] hist Index of historical key
 		 * @return void
 		 */
-        void decode(unsigned char* code, unsigned int codeLength, unsigned int hist);
+        void decode(unsigned char* code, size_t codeLength, size_t hist);
 
 		/** @brief Compares equality by size and algorithm
 		 * @return boolean '=='
@@ -677,7 +678,7 @@ namespace crypto
 		 * @param keyLen Length of symmetric key
 		 * @param stream_algo Symmetric key encryption algorithm, NULL by default
 		 */
-	    publicRSA(std::string fileName,unsigned char* key,unsigned int keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
+	    publicRSA(std::string fileName,unsigned char* key,size_t keyLen,os::smart_ptr<streamPackageFrame> stream_algo=NULL);
 	    
 		/** @brief Virtual destructor
          *
@@ -698,13 +699,13 @@ namespace crypto
 		 * @param [in] len Length of array to be converted
 		 * @return Converted number
 		 */
-		os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len) const;
+		os::smart_ptr<number> copyConvert(const uint32_t* arr,size_t len) const;
 	    /** @brief Converts byte array to integer
 		 * @param [in] arr Byte array to be converted
 		 * @param [in] len Length of array to be converted
 		 * @return Converted number
 		 */
-		os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len) const;
+		os::smart_ptr<number> copyConvert(const unsigned char* arr,size_t len) const;
 	    
 		/** @brief Converts number to integer, statically
 		 * @param [in] num Number to be converted
@@ -716,13 +717,13 @@ namespace crypto
 		 * @param [in] len Length of array to be converted
 		 * @return Converted number
 		 */
-		static os::smart_ptr<number> copyConvert(const uint32_t* arr,uint16_t len,uint16_t size);
+		static os::smart_ptr<number> copyConvert(const uint32_t* arr,size_t len,uint16_t size);
 	    /** @brief Converts byte array to integer, statically
 		 * @param [in] arr Byte array to be converted
 		 * @param [in] len Length of array to be converted
 		 * @return Converted number
 		 */
-		static os::smart_ptr<number> copyConvert(const unsigned char* arr,unsigned int len,uint16_t size);
+		static os::smart_ptr<number> copyConvert(const unsigned char* arr,size_t len,uint16_t size);
 	    
 		/** @brief Access algorithm ID
 		 * @return crypto::algo::publicRSA
@@ -776,7 +777,7 @@ namespace crypto
 		 * @param [in] size Size of key used
 		 * @return void
 		 */
-		static void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN, uint16_t size);
+		static void encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN, uint16_t size);
 	    /** @brief Static data encode
 		 *
 		 * Encodes based on the RSA algorithm.  This function
@@ -791,7 +792,7 @@ namespace crypto
 		 * @param [in] size Size of key used
 		 * @return void
 		 */
-		static void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength, uint16_t size);
+		static void encode(unsigned char* code, size_t codeLength, unsigned const char* publicN, size_t nLength, uint16_t size);
 	    
 		/** @brief Number encode
 		 * @param [in] code Data to be encoded
@@ -805,14 +806,14 @@ namespace crypto
 		 * @param [in] publicN Public key to be encoded against, NULL by default
 		 * @return void
 		 */
-		void encode(unsigned char* code, unsigned int codeLength, os::smart_ptr<number> publicN=NULL) const;
+		void encode(unsigned char* code, size_t codeLength, os::smart_ptr<number> publicN=NULL) const;
 		/** @brief Data encode against number
 		 * @param [in/out] code Data to be encoded
 		 * @param [in] codeLength Length of code array
 		 * @param [in] publicN Public key to be encoded against, NULL by default
 		 * @return void
 		 */
-		void encode(unsigned char* code, unsigned int codeLength, unsigned const char* publicN, unsigned int nLength) const;
+		void encode(unsigned char* code, size_t codeLength, unsigned const char* publicN, size_t nLength) const;
 	    
 		/** @brief Number decode
 		 *
@@ -834,7 +835,7 @@ namespace crypto
 		 * @param [in] hist Index of historical key
 		 * @return Decoded number
 		 */
-	    os::smart_ptr<number> decode(os::smart_ptr<number> code, unsigned int hist);
+	    os::smart_ptr<number> decode(os::smart_ptr<number> code, size_t hist);
 	};
 	/** @brief Helper key generation class
 	 *

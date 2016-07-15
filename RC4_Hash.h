@@ -43,7 +43,7 @@ namespace crypto {
          * @param [in] length Length of data array
          * @param [in] size Size of hash
          */
-        rc4Hash(const unsigned char* data, uint32_t length, uint16_t size);
+        rc4Hash(const unsigned char* data, size_t length, uint16_t size);
     public:
         /** @brief Algorithm name string access
          *
@@ -101,7 +101,7 @@ namespace crypto {
          * @param [in] data Data array to be hashed
          * @param [in] dLen Length of data array
          */
-        void preformHash(const unsigned char* data, uint32_t dLen);
+        void preformHash(const unsigned char* data, size_t dLen);
         /** @brief Algorithm name string access
          *
          * Returns the name of the current
@@ -122,7 +122,7 @@ namespace crypto {
          * @param length Length of data array to be hashed
          * @return New xorHash
          */
-        static rc4Hash hash64Bit(const unsigned char* data, uint32_t length){return rc4Hash(data,length,size::hash64);}
+        static rc4Hash hash64Bit(const unsigned char* data, size_t length){return rc4Hash(data,length,size::hash64);}
         /** @brief Static 128 bit hash
          *
          * Hashes the provided data array
@@ -133,7 +133,7 @@ namespace crypto {
          * @param length Length of data array to be hashed
          * @return New xorHash
          */
-        static rc4Hash hash128Bit(const unsigned char* data, uint32_t length){return rc4Hash(data,length,size::hash128);}
+        static rc4Hash hash128Bit(const unsigned char* data, size_t length){return rc4Hash(data,length,size::hash128);}
         /** @brief Static 256 bit hash
          *
          * Hashes the provided data array
@@ -144,7 +144,7 @@ namespace crypto {
          * @param length Length of data array to be hashed
          * @return New xorHash
          */
-        static rc4Hash hash256Bit(const unsigned char* data, uint32_t length){return rc4Hash(data,length,size::hash256);}
+        static rc4Hash hash256Bit(const unsigned char* data, size_t length){return rc4Hash(data,length,size::hash256);}
         /** @brief Static 512 bit hash
          *
          * Hashes the provided data array
@@ -155,7 +155,7 @@ namespace crypto {
          * @param length Length of data array to be hashed
          * @return New xorHash
          */
-        static rc4Hash hash512Bit(const unsigned char* data, uint32_t length){return rc4Hash(data,length,size::hash512);}
+        static rc4Hash hash512Bit(const unsigned char* data, size_t length){return rc4Hash(data,length,size::hash512);}
     };
 }
 
