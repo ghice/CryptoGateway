@@ -1,7 +1,7 @@
 /**
  * @file   gateway.cpp
  * @author Jonathan Bedard
- * @date   7/13/2016
+ * @date   9/3/2016
  * @brief  Implements the gateway
  * @bug No known bugs.
  *
@@ -420,9 +420,9 @@ namespace crypto {
 			if(eligibleKeys.size()>0 && !eligibleKeys.find(&cpub))
 			{
 				bool type;
-				for(auto htrc=eligibleKeys.getFirst();htrc && !oldPKSignTarg;htrc=htrc->getNext())
+				for(auto htrc=eligibleKeys.first();htrc && !oldPKSignTarg;++htrc)
 				{
-					oldPKSignTarg=selfSettings->getUser()->searchKey(*htrc->getData(),secondaryHistory,type);
+					oldPKSignTarg=selfSettings->getUser()->searchKey(*htrc,secondaryHistory,type);
 				}
 				
 				if(oldPKSignTarg) oldPK=oldPKSignTarg->getOldN(secondaryHistory);
@@ -919,7 +919,7 @@ namespace crypto {
 
 			//Read in our possible hash targets
 			uint8_t arrLen=msg->data()[2+16+brotherPKFrame->keySize()*4+2+secondaryKeySize*4+selfStream->hashSize()];
-			eligibleKeys=os::unsortedList<hash>();
+			eligibleKeys=os::pointerUnsortedList<hash>();
 			for(unsigned int i=arrLen;i>0;i--)
 			{
 				eligibleKeys.insert(os::smart_ptr<hash>(

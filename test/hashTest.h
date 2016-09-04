@@ -1,7 +1,7 @@
 /**
  * @file   test/hashTest.h
  * @author Jonathan Bedard
- * @date   7/9/2016
+ * @date   8/29/2016
  * @brief  Header for hash testing
  * @bug No known bugs.
  *
@@ -17,8 +17,8 @@
 #define HASH_TEST_H
 
 #include "UnitTest/UnitTest.h"
-#include "cryptoHash.h"
-#include "RC4_Hash.h"
+#include "../cryptoHash.h"
+#include "../RC4_Hash.h"
 
 namespace test {
     

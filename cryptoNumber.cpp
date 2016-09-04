@@ -1,7 +1,7 @@
 /**
  * @file   cryptoNumber.cpp
  * @author Jonathan Bedard
- * @date   4/3/2016
+ * @date   8/28/2016
  * @brief  Implements basic number types
  * @bug No known bugs.
  *
@@ -18,7 +18,7 @@
 
 #include "cryptoLogging.h"
 #include "cryptoNumber.h"
-#include "osMechanics.h"
+#include "osMechanics/osMechanics.h"
 
 using namespace crypto;
 
@@ -1071,13 +1071,13 @@ using namespace crypto;
         return ret;
     }
     //Shift operators
-    integer integer::operator>>(uint16_t n) const
+    integer integer::operator>>(unsigned n) const
     {
         integer ret(_size);
         rightShift(n,&ret);
         return ret;
     }
-    integer integer::operator<<(uint16_t n) const
+    integer integer::operator<<(unsigned n) const
     {
         integer ret(_size);
         leftShift(n,&ret);

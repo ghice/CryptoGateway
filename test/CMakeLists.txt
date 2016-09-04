@@ -6,7 +6,6 @@ MESSAGE(STATUS --------- Tests --------- )
 MESSAGE(STATUS )
 
 SET(CUR_SRC ${GLOBAL_DIR}/CryptoGateway/test)
-INCLUDE_DIRECTORIES(${CUR_SRC})
 
 SET( SRC_H
 	${CUR_SRC}/cryptoTest.h

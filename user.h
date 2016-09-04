@@ -1,7 +1,7 @@
 /**
  * @file	user.h
  * @author	Jonathan Bedard
- * @date   	7/13/2016
+ * @date   	8/28/2016
  * @brief	Definition of the CryptoGateway user
  * @bug	None
  *
@@ -65,7 +65,7 @@ namespace crypto {
 		 * This stores all public keys accociated with
 		 * this specific user.
 		 */
-		os::asyncAVLTree<publicKey> _publicKeys;
+		os::pointerAVLTreeThreadSafe<publicKey> _publicKeys;
 		/** @brief Default public key
 		 *
 		 * Sets the default public key definition.
@@ -76,7 +76,7 @@ namespace crypto {
 		os::smart_ptr<publicKey> _defaultKey;
 		/** @brief List of gateway settings
 		 */
-		os::asyncAVLTree<gatewaySettings> _settings;
+		os::pointerAVLTreeThreadSafe<gatewaySettings> _settings;
 
         /** @brief Creates meta-data XML file
          *
@@ -115,7 +115,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-		virtual ~user();
+		virtual ~user() throw();
 		
 		/** @brief Saves all dependencies
 		 *
@@ -297,7 +297,7 @@ namespace crypto {
 		 *
 		 * @return crypto::user::_publicKeys.getFirst()
 		 */
-		os::smart_ptr<os::adnode<publicKey> > getFirstPublicKey() {return _publicKeys.getFirst();}
+		os::iterator<publicKey> getFirstPublicKey() {return _publicKeys.first();}
 		/** @brief Returns the last public key group
 		 *
 		 * Allows programs to list off the available
@@ -305,7 +305,7 @@ namespace crypto {
 		 *
 		 * @return crypto::user::_publicKeys.getFirst()
 		 */
-		os::smart_ptr<os::adnode<publicKey> > getLastPublicKey() {return _publicKeys.getLast();}
+		os::iterator<publicKey> getLastPublicKey() {return _publicKeys.last();}
 
 		/** @brief Find gateway settings
 		 * @param [in] group Name of group of the settings
@@ -325,7 +325,7 @@ namespace crypto {
 		 *
 		 * @return crypto::user::_settings.getFirst()
 		 */
-		os::smart_ptr<os::adnode<gatewaySettings> > getFirstSettings() {return _settings.getFirst();}
+        os::iterator<gatewaySettings> getFirstSettings() {return _settings.first();}
 		/** @brief Returns the last gateway settings group
 		 *
 		 * Allows programs to list off the available
@@ -333,7 +333,7 @@ namespace crypto {
 		 *
 		 * @return crypto::user::_settings.getLast()
 		 */
-		os::smart_ptr<os::adnode<gatewaySettings> > getLastSettings() {return _settings.getLast();}
+		os::iterator<gatewaySettings> getLastSettings() {return _settings.last();}
 
 		/** @brief Searches for key by hash
 		 *

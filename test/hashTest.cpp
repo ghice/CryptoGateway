@@ -1,7 +1,7 @@
 /**
  * @file   test/hashTest.cpp
  * @author Jonathan Bedard
- * @date   5/26/2016
+ * @date   9/4/2016
  * @brief  Implementation for hash tests
  * @bug No known bugs.
  *
@@ -40,7 +40,7 @@ using namespace test;
         h2[0]=5;
         
         if(h1!=h2)
-            throw os::smart_ptr<std::exception>(new generalTestException("XOR hash algorithm failed",locString),os::shared_type);
+            generalTestException::throwException("XOR hash algorithm failed",locString);
     }
     //xor Test suite
     xorTestSuite::xorTestSuite():
@@ -68,7 +68,7 @@ using namespace test;
 		h2.fromString("FAFF300339376F54");
         
         if(h1!=h2)
-            throw os::smart_ptr<std::exception>(new generalTestException("XOR hash algorithm failed",locString),os::shared_type);
+            generalTestException::throwException("XOR hash algorithm failed",locString);
     }
     //xor Test suite
     RC4HashTestSuite::RC4HashTestSuite():

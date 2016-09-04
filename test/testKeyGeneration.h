@@ -1,7 +1,7 @@
 /**
  * @file   test/testKeyGeneration.h
  * @author Jonathan Bedard
- * @date   7/9/2016
+ * @date   9/4/2016
  * @brief  Binds generated testing keys
  * @bug No known bugs.
  *
@@ -20,6 +20,7 @@
 
 #include "UnitTest/UnitTest.h"
 #include "staticTestKeys.h"
+#include "CryptoGateway/CryptoGateway.h"
 #include "Datastructures/Datastructures.h"
 
 namespace test

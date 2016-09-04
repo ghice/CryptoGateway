@@ -10,7 +10,7 @@ MESSAGE(STATUS ========= CryptoGateway ==========)
 MESSAGE(STATUS )
 
 SET(CUR_SRC ${GLOBAL_DIR}/CryptoGateway)
-INCLUDE_DIRECTORIES(${CUR_SRC})
+INCLUDE_DIRECTORIES(${GLOBAL_DIR})
 
 SET( SRC_H
 	${CUR_SRC}/CryptoGateway.h

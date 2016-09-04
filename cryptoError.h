@@ -1,7 +1,7 @@
 /**
  * @file	cryptoError.h
  * @author	Jonathan Bedard
- * @date   	4/1/2016
+ * @date   	8/28/2016
  * @brief	Declaration of cryptographic errors
  * @bug	None
  *
@@ -17,7 +17,7 @@
  
 #include "streamPackage.h"
 #include "cryptoLogging.h"
-#include "osMechanics.h"
+#include "osMechanics/osMechanics.h"
 
 namespace crypto {
 
@@ -28,7 +28,7 @@ namespace crypto {
 	 * It contains the time which the error
 	 * occurred and can be thrown.
 	 */
-	class error: public virtual os::ptrComp, public std::exception
+    class error: public std::exception
 	{
 		/** @brief Time the error was created
 		 */
@@ -98,6 +98,12 @@ namespace crypto {
 			e->whatString=errorTitle()+" on "+timestampString()+" : "+errorDescription();
 			return whatString.c_str();
 		}
+        
+        #undef CURRENT_CLASS
+        #define CURRENT_CLASS error
+        POINTER_HASH_CAST
+        POINTER_COMPARE
+        COMPARE_OPERATORS
 	};
 	/** @brief Smart pointer to crypto::error
 	 */
@@ -765,7 +771,7 @@ namespace crypto {
 	 * Defines a class which is notified
 	 * when another class throws a crypto::error.
 	 */
-	class errorListener: public virtual os::ptrComp
+	class errorListener
 	{
 	private:
 		/** @brief Friendship with crypto::errorSender
@@ -788,7 +794,7 @@ namespace crypto {
 		 * listener is registered
 		 * to.
 		 */
-		os::smartSet<errorSender> senders;
+		os::pointerSet<errorSender> senders;
 	public:
 		/** @brief Virtual destructor
          *
@@ -797,7 +803,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-		virtual ~errorListener();
+		virtual ~errorListener() throw();
 
 		/** @brief Receive error event
 		 *
@@ -810,6 +816,12 @@ namespace crypto {
 		 * @return void
 		 */
 		virtual void receiveError(errorPointer elm,os::smart_ptr<errorSender> source){}
+        
+        #undef CURRENT_CLASS
+        #define CURRENT_CLASS errorListener
+        POINTER_HASH_CAST
+        POINTER_COMPARE
+        COMPARE_OPERATORS
 	};
 
 	/** @brief Sends crypto::error
@@ -820,7 +832,7 @@ namespace crypto {
 	 * which have already been created
 	 * and caught.
 	 */
-	class errorSender: public virtual os::ptrComp
+	class errorSender
 	{
 		/** @brief Friendship with crypto::errorListener
 		 *
@@ -841,11 +853,11 @@ namespace crypto {
 		 * All of the listeners registered
 		 * to this sender.
 		 */
-		os::smartSet<errorListener> errorListen;
+		os::pointerSet<errorListener> errorListen;
 
 		/** @brief List of current errors
 		 */
-		os::unsortedList<error> errorLog;
+		os::pointerUnsortedList<error> errorLog;
 		/** @brief Number of errors kept
 		 *
 		 * Allows for old errors to expire
@@ -878,7 +890,7 @@ namespace crypto {
          * of the type which inherits this class should
          * be called.
          */
-		virtual ~errorSender();
+		virtual ~errorSender() throw();
 
 		/** @brief Register listener
 		 * @param [in/out] listener Listener to register
@@ -909,6 +921,12 @@ namespace crypto {
 		 * @return crypto::errorSender::errorLog.size()
 		 */
 		unsigned int numberErrors() const {return errorLog.size();}
+        
+        #undef CURRENT_CLASS
+        #define CURRENT_CLASS errorSender
+        POINTER_HASH_CAST
+        POINTER_COMPARE
+        COMPARE_OPERATORS
 	};
 };
 

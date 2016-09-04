@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.cpp
  * @author Jonathan Bedard
- * @date   6/7/2016
+ * @date   9/3/2016
  * @brief  Implimentation for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -40,28 +40,28 @@ namespace crypto {
 			//Names
 			auto list1=fileNode->findElement("names");
 			if(list1->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-			os::smartXMLNode secondLevel=list1->getFirst()->getData();
+			os::smartXMLNode secondLevel=&list1->first();
 			auto list2=secondLevel->findElement("name");
 			if(list2->size()<=0) throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Insert name block
-			for(auto block=list2->getFirst();block;block=block->getNext())
+			for(auto block=list2->first();block;++block)
 			{
 				//Group
-				auto parseList=block->getData()->findElement("group");
+				auto parseList=block->findElement("group");
 				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				std::string gn=parseList->getFirst()->getData()->getData();
+				std::string gn=parseList->first()->getData();
 
 				//Name
-				parseList=block->getData()->findElement("name");
+				parseList=block->findElement("name");
 				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				std::string nm=parseList->getFirst()->getData()->getData();
+				std::string nm=parseList->first()->getData();
 
 				//Timestamp
-				parseList=block->getData()->findElement("timestamp");
+				parseList=block->findElement("timestamp");
 				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
 				uint64_t times=0;
-				std::stringstream(parseList->getFirst()->getData()->getData())>>times;
+				std::stringstream(parseList->first()->getData())>>times;
 				if(times==0) throw errorPointer(new fileFormatError(),os::shared_type);
 
 				//Construct
@@ -73,34 +73,34 @@ namespace crypto {
 			//Keys
 			list1=fileNode->findElement("keys");
 			if(list1->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-			secondLevel=list1->getFirst()->getData();
+			secondLevel=&list1->first();
 			list2=secondLevel->findElement("key");
 			if(list2->size()<=0) throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Insert key block
-			for(auto block=list2->getFirst();block;block=block->getNext())
+			for(auto block=list2->first();block;++block)
 			{
 				//Key size
-				auto parseList=block->getData()->findElement("keySize");
+				auto parseList=block->findElement("keySize");
 				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				uint16_t ks=std::stoi(parseList->getFirst()->getData()->getData())/32;
+				uint16_t ks=std::stoi(parseList->first()->getData())/32;
 
 				//Algo ID
-				parseList=block->getData()->findElement("algo");
+				parseList=block->findElement("algo");
 				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				std::string ali=parseList->getFirst()->getData()->getData();
+				std::string ali=parseList->first()->getData();
 
 				//Timestamp
-				parseList=block->getData()->findElement("timestamp");
+				parseList=block->findElement("timestamp");
 				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
 				uint64_t times=0;
-				std::stringstream(parseList->getFirst()->getData()->getData())>>times;
+				std::stringstream(parseList->first()->getData())>>times;
 				if(times==0) throw errorPointer(new fileFormatError(),os::shared_type);
 
 				//Key
-				parseList=block->getData()->findElement("key");
+				parseList=block->findElement("key");
 				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				auto hld=parseList->getFirst()->getData();
+				auto hld=&parseList->first();
 				if(hld->getDataList().size()!=ks) throw errorPointer(new fileFormatError(),os::shared_type);
 				os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(ali);
 				if(!pkfrm) throw errorPointer(new fileFormatError(),os::shared_type);
@@ -203,19 +203,19 @@ namespace crypto {
 	{
 		sortingLock.lock();
 		if(source._master!=_master) throw errorPointer(new masterMismatch(),os::shared_type);
-		auto trc1=source.nameList.getFirst();
+		auto trc1=source.nameList.first();
 		while(trc1)
 		{
-			trc1->getData()->_master=this;
-			nameList.insert(trc1->getData());
-			trc1=trc1->getNext();
+			trc1->_master=this;
+			nameList.insert(&trc1);
+			++trc1;
 		}
-		auto trc2=source.keyList.getFirst();
+		auto trc2=source.keyList.first();
 		while(trc2)
 		{
-			trc2->getData()->_master=this;
-			keyList.insert(trc2->getData());
-			trc2=trc2->getNext();
+			trc2->_master=this;
+			keyList.insert(&trc2);
+			++trc2;
 		}
 		sortKeys();
 		sortNames();
@@ -265,9 +265,9 @@ namespace crypto {
 	{
 		sortedKeys=os::smart_ptr<os::smart_ptr<nodeKeyReference> >(new os::smart_ptr<nodeKeyReference>[keyList.size()],os::shared_type_array);
 		unsigned int cnt=0;
-		for(auto i=keyList.getFirst();i;i=i->getNext())
+		for(auto i=keyList.first();i;++i)
 		{
-			sortedKeys[cnt]=i->getData();
+			sortedKeys[cnt]=&i;
 			++cnt;
 		}
 		os::pointerQuicksort(sortedKeys,cnt,&compareKeysByTimestamp);
@@ -277,9 +277,9 @@ namespace crypto {
 	{
 		sortedNames=os::smart_ptr<os::smart_ptr<nodeNameReference> >(new os::smart_ptr<nodeNameReference>[nameList.size()],os::shared_type_array);
 		unsigned int cnt=0;
-		for(auto i=nameList.getFirst();i;i=i->getNext())
+		for(auto i=nameList.first();i;++i)
 		{
-			sortedNames[cnt]=i->getData();
+			sortedNames[cnt]=&i;
 			++cnt;
 		}
 		os::pointerQuicksort(sortedNames,cnt,&compareNamesByTimestamp);
@@ -311,23 +311,23 @@ namespace crypto {
         
         //Name list
         os::smartXMLNode tlevel(new os::XML_Node("names"),os::shared_type);
-        for(auto i=nameList.getFirst();i;i=i->getNext())
+        for(auto i=nameList.first();i;++i)
         {
             os::smartXMLNode nlev(new os::XML_Node("name"),os::shared_type);
             
             //Group
             os::smartXMLNode temp(new os::XML_Node("group"),os::shared_type);
-            temp->setData(i->getData()->groupName());
+            temp->setData(i->groupName());
             nlev->addElement(temp);
             
             //Name
             temp=os::smartXMLNode(new os::XML_Node("name"),os::shared_type);
-            temp->setData(i->getData()->name());
+            temp->setData(i->name());
             nlev->addElement(temp);
             
             //Timestamp
             temp=os::smartXMLNode(new os::XML_Node("timestamp"),os::shared_type);
-            temp->setData(std::to_string((long long unsigned int)i->getData()->timestamp()));
+            temp->setData(std::to_string((long long unsigned int)i->timestamp()));
             nlev->addElement(temp);
             
             tlevel->addElement(nlev);
@@ -336,32 +336,32 @@ namespace crypto {
         
         //Key list
         tlevel=os::smartXMLNode(new os::XML_Node("keys"),os::shared_type);
-        for(auto i=keyList.getFirst();i;i=i->getNext())
+        for(auto i=keyList.first();i;++i)
         {
             os::smartXMLNode klev(new os::XML_Node("key"),os::shared_type);
             tlevel->addElement(klev);
             
             //Key
             os::smartXMLNode temp(new os::XML_Node("key"),os::shared_type);
-            for(unsigned t=0;t<i->getData()->keySize();t++)
-                temp->getDataList().push_back(std::to_string((long long unsigned int)(*i->getData()->key())[t]));
+            for(unsigned t=0;t<i->keySize();t++)
+                temp->getDataList().push_back(std::to_string((long long unsigned int)(*i->key())[t]));
             klev->addElement(temp);
             
             //Key size
             temp=os::smartXMLNode(new os::XML_Node("keySize"),os::shared_type);
-            temp->setData(std::to_string((long long unsigned int)i->getData()->keySize()*32));
+            temp->setData(std::to_string((long long unsigned int)i->keySize()*32));
             klev->addElement(temp);
             
             //Algorithm
             temp=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
-			os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(i->getData()->algoID());
+			os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(i->algoID());
 			if(!pkfrm) pkfrm=publicKeyTypeBank::singleton()->defaultPackage();
 			temp->setData(pkfrm->algorithmName());
             klev->addElement(temp);
             
             //Timestamp
             temp=os::smartXMLNode(new os::XML_Node("timestamp"),os::shared_type);
-            temp->setData(std::to_string((long long unsigned int)i->getData()->timestamp()));
+            temp->setData(std::to_string((long long unsigned int)i->timestamp()));
             klev->addElement(temp);
         }
         ret->addElement(tlevel);
@@ -399,14 +399,9 @@ namespace crypto {
     int nodeNameReference::compare(const nodeNameReference& comp)const
     {
         int compV=_groupName.compare(comp._groupName);
-        if(compV>0) return 1;
-        else if(compV<0) return -1;
+        if(compV!=0) return compV;
         
-        compV=_name.compare(comp._name);
-        if(compV>0) return 1;
-        else if(compV<0) return -1;
-        
-        return 0;
+        return _name.compare(comp._name);
     }
 
 /*-----------------------------------
@@ -440,11 +435,9 @@ namespace crypto {
     int nodeKeyReference::compare(const nodeKeyReference& comp)const
     {
         int dif = _algoID-comp._algoID;
-        if(dif>0) return 1;
-        else if(dif<0) return -1;
+        if(dif!=0) return dif;
         dif = _keySize-comp._keySize;
-        if(dif>0) return 1;
-        else if(dif<0) return -1;
+        if(dif!=0) return dif;
         return _key->compare(comp._key.get());
     }
     
@@ -612,12 +605,12 @@ namespace crypto {
 				throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Iterate through children
-			auto it=headNode->getChildren()->getFirst();
+			auto it=headNode->getChildren()->first();
 			while(it)
 			{
-				os::smart_ptr<nodeGroup> nd=fileLoadHelper(it->getData());
+				os::smart_ptr<nodeGroup> nd=fileLoadHelper(&it);
 				nodeBank.insert(nd);
-				it=it->getNext();
+				++it;
 			}
 		}
 		catch (errorPointer e) {logError(e);}
@@ -633,9 +626,9 @@ namespace crypto {
 		}
 		try
 		{
-			os::smartXMLNode headNode(new os::XML_Node("keyBank"),os::shared_type);
-			for(auto i=nodeBank.getFirst();i;i=i->getNext())
-				headNode->addElement(i->getData()->buildXML());
+            os::smartXMLNode headNode(new os::XML_Node("keyBank"),os::shared_type);
+            for(auto i=nodeBank.first();i;++i)
+				headNode->addElement(i->buildXML());
 
 			//Use public key first
 			if(_pubKey && !_pubKey->generating())
@@ -687,8 +680,8 @@ namespace crypto {
     //Add authenticated node
     os::smart_ptr<nodeGroup> avlKeyBank::addPair(std::string groupName,std::string name,os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
     {
-        os::smart_ptr<nodeGroup> foundName=keyBank::find(groupName,name);
-        os::smart_ptr<nodeGroup> foundKey=keyBank::find(key,algoID,keySize);
+        os::smart_ptr<nodeGroup> foundName=avlKeyBank::find(groupName,name);
+        os::smart_ptr<nodeGroup> foundKey=avlKeyBank::find(key,algoID,keySize);
         
         os::smart_ptr<nodeGroup> ret;
         //Neither case
@@ -712,7 +705,7 @@ namespace crypto {
         //Both name and key were found, but are seperate
         else if(foundName!=foundKey)
         {
-            nodeBank.findDelete(foundKey);
+            nodeBank.remove(foundKey);
             foundName->merge(*foundKey);
             ret=foundName;
         }
@@ -724,28 +717,26 @@ namespace crypto {
     //Find node (name)
     os::smart_ptr<nodeGroup> avlKeyBank::find(os::smart_ptr<nodeNameReference> name)
     {
-        auto temp=nameTree.find(name);
-        if(!temp) return NULL;
-        name=temp->getData();
-        nodeGroup* ref=name->master();
-        if(!ref) NULL;
+        auto temp=nameTree.search(name);
+        if(!temp) return os::smart_ptr<nodeGroup>();
+        nodeGroup* ref=temp->master();
+        if(!ref) return os::smart_ptr<nodeGroup>();
         
-        auto trc = nodeBank.find(ref);
-        if(!trc) return NULL;
-        return trc->getData();
+        auto trc = nodeBank.search(ref);
+        if(!trc) return os::smart_ptr<nodeGroup>();
+        return &trc;
     }
     //Fine node (key)
     os::smart_ptr<nodeGroup> avlKeyBank::find(os::smart_ptr<nodeKeyReference> key)
     {
-        auto temp=keyTree.find(key);
-        if(!temp) return NULL;
-        key=temp->getData();
-        nodeGroup* ref=key->master();
-        if(!ref) NULL;
+        auto temp=keyTree.search(key);
+        if(!temp) return os::smart_ptr<nodeGroup>();
+        nodeGroup* ref=temp->master();
+        if(!ref) return os::smart_ptr<nodeGroup>();
         
-        auto trc = nodeBank.find(ref);
-        if(!trc) return NULL;
-        return trc->getData();
+        auto trc = nodeBank.search(ref);
+        if(!trc) return os::smart_ptr<nodeGroup>();
+        return &trc;
     }
 }
 

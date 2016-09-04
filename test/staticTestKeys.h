@@ -21,8 +21,8 @@
  * DO NOT USE THESE KEYS!!!!
  */
 
-#include "CryptoGateway.h"
-#include "osMechanics.h"
+#include "../CryptoGateway.h"
+#include "osMechanics/osMechanics.h"
 namespace crypto
 {
 	namespace constant

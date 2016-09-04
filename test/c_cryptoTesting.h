@@ -1,7 +1,7 @@
 /**
  * @file   test/c_cryptoTesting.h
  * @author Jonathan Bedard
- * @date   7/9/2016
+ * @date   8/29/2016
  * @brief  Header for C file testing
  * @bug No known bugs.
  *
@@ -18,8 +18,8 @@
 #define C_CRYPTO_TESTING_H
 
 #include "UnitTest/UnitTest.h"
-#include "CryptoGateway.h"
-#include "cryptoCHeaders.h"
+#include "../CryptoGateway.h"
+#include "../cryptoCHeaders.h"
 
 namespace test
 {

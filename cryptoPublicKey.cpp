@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.cpp
  * @author Jonathan Bedard
- * @date   7/13/2016
+ * @date   8/28/2016
  * @brief  Generalized and RSA public key implementation
  * @bug No known bugs.
  *
@@ -138,9 +138,9 @@ using namespace crypto;
         
         //Search private key history
 		unsigned int histTrc=0;
-        for(auto trc=oldD.getFirst();trc;trc=trc->getNext())
+        for(auto trc=oldD.first();trc;++trc)
 		{
-			dataChar=trc->getData()->getCompCharData(dLen);
+			dataChar=trc->getCompCharData(dLen);
 			if(hsh==hsFrame->hashData(dataChar.get(),dLen))
 			{
 				hist=histTrc;
@@ -152,9 +152,9 @@ using namespace crypto;
 
 		//Search public key history
 		histTrc=0;
-        for(auto trc=oldN.getFirst();trc;trc=trc->getNext())
+        for(auto trc=oldN.first();trc;++trc)
 		{
-			dataChar=trc->getData()->getCompCharData(dLen);
+			dataChar=trc->getCompCharData(dLen);
 			if(hsh==hsFrame->hashData(dataChar.get(),dLen))
 			{
 				hist=histTrc;
@@ -187,9 +187,9 @@ using namespace crypto;
         
         //Search private key history
 		unsigned int histTrc=0;
-        for(auto trc=oldD.getFirst();trc;trc=trc->getNext())
+        for(auto trc=oldD.first();trc;++trc)
 		{
-			if(*key == *trc->getData())
+			if(*key == *trc)
 			{
 				hist=histTrc;
 				type=PRIVATE;
@@ -200,9 +200,9 @@ using namespace crypto;
 
 		//Search public key history
 		histTrc=0;
-        for(auto trc=oldN.getFirst();trc;trc=trc->getNext())
+        for(auto trc=oldN.first();trc;++trc)
 		{
-			if(*key == *trc->getData())
+			if(*key == *trc)
 			{
 				hist=histTrc;
 				type=PUBLIC;
@@ -287,11 +287,11 @@ using namespace crypto;
         
         //Remove extra n and d
         while(oldN.size()>_history)
-            oldN.findDelete(oldN.getLast()->getData());
+            oldN.remove(&oldN.last());
         while(oldD.size()>_history)
-            oldD.findDelete(oldD.getLast()->getData());
+            oldD.remove(&oldD.last());
 		while(_timestamps.size()>_history)
-            _timestamps.findDelete(_timestamps.getLast()->getData());
+            _timestamps.remove(&_timestamps.last());
         markChanged();
     }
     //Set the history length
@@ -302,11 +302,11 @@ using namespace crypto;
         {
             //Remove extra n and d
             while(oldN.size()>_history)
-				oldN.findDelete(oldN.getLast()->getData());
+				oldN.remove(&oldN.last());
 			while(oldD.size()>_history)
-				oldD.findDelete(oldD.getLast()->getData());
+				oldD.remove(&oldD.last());
 			while(_timestamps.size()>_history)
-				_timestamps.findDelete(_timestamps.getLast()->getData());
+				_timestamps.remove(&_timestamps.last());
         }
         _history=hist;
 		markChanged();
@@ -333,15 +333,15 @@ using namespace crypto;
 		if(history>=oldN.size()) return NULL;
 
 		readLock();
-		auto trc=oldN.getFirst();
+		auto trc=oldN.first();
 		for(unsigned int i=0;i<history&&trc;++i)
 		{
-			trc=trc->getNext();
+			++trc;
 		}
 		readUnlock();
 
 		if(!trc) return NULL;
-		return copyConvert(trc->getData());
+		return copyConvert(&trc);
 	}
 	//Return the old D
 	os::smart_ptr<number> publicKey::getOldD(size_t history)
@@ -350,15 +350,15 @@ using namespace crypto;
 		if(history>=oldD.size()) return NULL;
 
 		readLock();
-		auto trc=oldD.getFirst();
+		auto trc=oldD.first();
 		for(unsigned int i=0;i<history&&trc;++i)
 		{
-			trc=trc->getNext();
+			++trc;
 		}
 		readUnlock();
 
 		if(!trc) return NULL;
-		return copyConvert(trc->getData());
+		return copyConvert(&trc);
 	}
 	//Return an old timestamp
 	uint64_t publicKey::getOldTimestamp(size_t history)
@@ -367,15 +367,15 @@ using namespace crypto;
 		if(history>=_timestamps.size()) return NULL;
 
 		readLock();
-		auto trc=_timestamps.getFirst();
+		auto trc=_timestamps.first();
 		for(unsigned int i=0;i<history&&trc;++i)
 		{
-			trc=trc->getNext();
+			++trc;
 		}
 		readUnlock();
 
 		if(!trc) return NULL;
-		return *(trc->getData());
+		return *(&trc);
 	}
 	//Generate a new key
 	void publicKey::generateNewKeys()
@@ -474,19 +474,19 @@ using namespace crypto;
             throw errorPointer(new actionOnFileError(),os::shared_type);
         }
         
-        auto ntrc=oldN.getLast();
-        auto dtrc=oldD.getLast();
-		auto ttrc=_timestamps.getLast();
+        auto ntrc=oldN.last();
+        auto dtrc=oldD.last();
+		auto ttrc=_timestamps.last();
         while(ntrc && dtrc && ttrc)
         {
-			tsTemp=os::to_comp_mode(*(ttrc->getData()));
+			tsTemp=os::to_comp_mode(*ttrc);
 			ben->write((unsigned char*)&tsTemp,8);
 
             for(unsigned int i1=0;i1<2;i1++)
             {
                 os::smart_ptr<number> t;
-                if(i1==0) t=ntrc->getData();
-                else t=dtrc->getData();
+                if(i1==0) t=&ntrc;
+                else t=&dtrc;
                 for(unsigned int i2=0;i2<_size;i2++)
                 {
                     ldval=os::to_comp_mode(t->data()[i2]);
@@ -502,9 +502,9 @@ using namespace crypto;
                 errorSaving("Write failed");
                 throw errorPointer(new actionOnFileError(),os::shared_type);
             }
-            ntrc=ntrc->getPrev();
-            dtrc=dtrc->getPrev();
-			ttrc=ttrc->getPrev();
+            --ntrc;
+            --dtrc;
+			--ttrc;
         }
         readUnlock();
         finishedSaving();
@@ -759,16 +759,16 @@ using namespace crypto;
         d=copyConvert(ky.d);
         
         //Copy old n
-        for(auto trc=ky.oldN.getLast();trc;trc=trc->getPrev())
-            oldN.insert(copyConvert(trc->getData()));
+        for(auto trc=ky.oldN.last();trc;--trc)
+            oldN.insert(copyConvert(&trc));
         
         //Copy old d
-        for(auto trc=ky.oldD.getLast();trc;trc=trc->getPrev())
-            oldD.insert(copyConvert(trc->getData()));
+        for(auto trc=ky.oldD.last();trc;--trc)
+            oldD.insert(copyConvert(&trc));
 
 		//Copy timestamps
-        for(auto trc=ky._timestamps.getLast();trc;trc=trc->getPrev())
-			_timestamps.insert(trc->getData());
+        for(auto trc=ky._timestamps.last();trc;--trc)
+			_timestamps.insert(&trc);
 
         markChanged();
     }
@@ -808,7 +808,7 @@ using namespace crypto;
     //Init the "e" variable
     void publicRSA::initE()
     {
-        e=(integer::one()<<16)+integer::one();
+        e=(integer::one()<<(unsigned)16)+integer::one();
     }
 
     //Static copy/convert
@@ -860,7 +860,7 @@ using namespace crypto;
             throw errorPointer(new publicKeySizeWrong(), os::shared_type);
         if(code->typeID()!=numberType::Base10 || publicN->typeID()!=numberType::Base10)
             throw errorPointer(new illegalAlgorithmBind("Base10"),os::shared_type);
-        integer e((integer::one()<<16)+integer::one());
+        integer e((integer::one()<<(unsigned)16)+integer::one());
         return os::smart_ptr<number> (new integer(os::cast<integer,number>(code)->moduloExponentiation(e, *os::cast<integer,number>(publicN))),os::shared_type);
 	}
     //Static hybrid encode

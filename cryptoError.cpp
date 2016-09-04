@@ -1,7 +1,7 @@
 /**
  * @file	cryptoError.cpp
  * @author	Jonathan Bedard
- * @date   	4/16/2016
+ * @date   	8/26/2016
  * @brief	Implementation of error sender and listener
  * @bug	None
  *
@@ -25,15 +25,15 @@ namespace crypto {
  ------------------------------------------------------------*/
 
 	//Deletes an error listener
-	errorListener::~errorListener()
+	errorListener::~errorListener() throw()
 	{
-		for(auto trc=senders.getFirst();trc;trc=trc->getNext())
+		for(auto trc=senders.first();trc;++trc)
 		{
-			trc->getData()->listenerLock.acquire();
+			trc->listenerLock.acquire();
 			mtx.acquire();
-			trc->getData()->errorListen.findDelete(this);
+			trc->errorListen.remove(this);
 			mtx.release();
-			trc->getData()->listenerLock.release();
+			trc->listenerLock.release();
 		}
 	}
 
@@ -42,14 +42,14 @@ namespace crypto {
  ------------------------------------------------------------*/
 
 	//Error destructor
-	errorSender::~errorSender()
+	errorSender::~errorSender() throw()
 	{
 		listenerLock.acquire();
-		for(auto trc=errorListen.getFirst();trc;trc=trc->getNext())
+		for(auto trc=errorListen.first();trc;++trc)
 		{
-			trc->getData()->mtx.acquire();
-			trc->getData()->senders.findDelete(this);
-			trc->getData()->mtx.release();
+			trc->mtx.acquire();
+			trc->senders.remove(this);
+			trc->mtx.release();
 		}
 		listenerLock.release();
 	}
@@ -73,8 +73,8 @@ namespace crypto {
 		listenerLock.acquire();
 		listener->mtx.acquire();
 
-		errorListen.findDelete(listener);
-		listener->senders.findDelete(this);
+		errorListen.remove(listener);
+		listener->senders.remove(this);
 
 		listener->mtx.release();
 		listenerLock.release();
@@ -84,13 +84,13 @@ namespace crypto {
 	{
 		listenerLock.acquire();
 		errorLog.insert(elm);
-		if(errorLog.size()>_logLength) errorLog.findDelete(errorLog.getFirst()->getData());
+		if(errorLog.size()>_logLength) errorLog.remove(&errorLog.first());
 		
-		for(auto trc=errorListen.getFirst();trc;trc=trc->getNext())
+		for(auto trc=errorListen.first();trc;++trc)
 		{
-			trc->getData()->mtx.acquire();
-			trc->getData()->receiveError(elm,this);
-			trc->getData()->mtx.release();
+			trc->mtx.acquire();
+			trc->receiveError(elm,this);
+			trc->mtx.release();
 		}
 		listenerLock.release();
 	}
@@ -98,14 +98,14 @@ namespace crypto {
 	errorPointer errorSender::popError()
 	{
 		listenerLock.acquire();
-		auto tem=errorLog.getLast();
+		auto tem=errorLog.last();
 		if(!tem)
 		{
 			listenerLock.release();
 			return NULL;
 		}
-		errorPointer ptr=tem->getData();
-		errorLog.findDelete(ptr);
+		errorPointer ptr=&tem;
+		errorLog.remove(ptr);
 		listenerLock.release();
 		return ptr;
 	}
@@ -118,7 +118,7 @@ namespace crypto {
 		_logLength=logLength;
 
 		while(errorLog.size()>logLength)
-			errorLog.findDelete(errorLog.getLast()->getData());
+			errorLog.remove(&errorLog.last());
 
 		listenerLock.release();
 	}

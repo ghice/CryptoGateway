@@ -1,7 +1,7 @@
 /**
  * @file	XMLEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	7/13/2016
+ * @date   	8/26/2016
  * @brief	Implements encrypted XML functions
  * @bug	None
  *
@@ -32,9 +32,9 @@ namespace crypto {
 
 		ret.push_back(head->getID());
 		std::vector<std::string> temp;
-		for(auto it=head->getChildren()->getFirst();it;it=it->getNext())
+		for(auto it=head->getChildren()->first();it;++it)
 		{
-			temp=generateArgumentList(it->getData());
+			temp=generateArgumentList(&it);
 			for(trc1=0;trc1<temp.size();trc1++)
 			{
 				bool found=false;
@@ -96,8 +96,8 @@ namespace crypto {
 		//Output children
 		if(head->getChildren()->size()>0)
 		{
-			for(auto trc=head->getChildren()->getFirst();trc;trc=trc->getNext())
-				recursiveXMLPrinting(trc->getData(),strm,args,ofs);
+			for(auto trc=head->getChildren()->first();trc;++trc)
+				recursiveXMLPrinting(&trc,strm,args,ofs);
 		}
 		//Output data
 		else
@@ -591,7 +591,6 @@ namespace crypto {
 			os::smartXMLNode enhead=os::xml::parseNode(filein);
 			os::smartXMLNode trc1;
 			os::smartXMLNode trc2;
-			os::smart_ptr<os::adnode<os::XML_Node> > fnd;
 			std::string streamID;
 			std::string hashID;
 			unsigned int hashSize;
@@ -601,44 +600,44 @@ namespace crypto {
 			if(enhead->getID()!="header") throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Public key
-			fnd=enhead->findElement("public_key")->getFirst();
+			auto fnd=enhead->findElement("public_key")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			if(trc1->getData()!="none") throw errorPointer(new illegalAlgorithmBind("Expected NULL Public Key"),os::shared_type);
 
 			//Stream
-			fnd=enhead->findElement("stream")->getFirst();
+			fnd=enhead->findElement("stream")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			if(trc1->getData()!="") throw errorPointer(new fileOpenError(),os::shared_type);
 			
 				//Algorithm
-				fnd=trc1->findElement("algo")->getFirst();
+				fnd=trc1->findElement("algo")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				streamID=trc2->getData();
 
 			//Hash
-			fnd=enhead->findElement("hash")->getFirst();
+			fnd=enhead->findElement("hash")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			if(trc1->getData()!="") throw errorPointer(new fileOpenError(),os::shared_type);
 			
 				//Algorithm
-				fnd=trc1->findElement("algo")->getFirst();
+				fnd=trc1->findElement("algo")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				hashID=trc2->getData();
 
 				//Size
-				fnd=trc1->findElement("size")->getFirst();
+				fnd=trc1->findElement("size")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				hashSize = std::stoi(trc2->getData())/8;
 
@@ -649,16 +648,16 @@ namespace crypto {
 			spf->setHashSize(hashSize);
 
 			//Key manipulation
-			fnd=enhead->findElement("key")->getFirst();
+			fnd=enhead->findElement("key")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			if(trc1->getData()!="") throw errorPointer(new fileOpenError(),os::shared_type);
 			
 				//Hash
-				fnd=trc1->findElement("hash")->getFirst();
+				fnd=trc1->findElement("hash")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				hash refHash=spf->hashData(symKey,passwordLength);
 				hash compHash(refHash);
@@ -666,9 +665,9 @@ namespace crypto {
 				if(refHash!=compHash) throw errorPointer(new hashCompareError(),os::shared_type);
 
 			//Arg list
-			fnd=enhead->findElement("argList")->getFirst();
+			fnd=enhead->findElement("argList")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			std::vector<std::string> argList;
 			if(trc1->getData()=="")
@@ -708,7 +707,6 @@ namespace crypto {
 			os::smartXMLNode enhead=os::xml::parseNode(filein);
 			os::smartXMLNode trc1;
 			os::smartXMLNode trc2;
-			os::smart_ptr<os::adnode<os::XML_Node> > fnd;
 			std::string streamID;
 			std::string hashID;
 			unsigned int hashSize;
@@ -718,31 +716,31 @@ namespace crypto {
 			if(enhead->getID()!="header") throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Public key
-			fnd=enhead->findElement("public_key")->getFirst();
+			auto fnd=enhead->findElement("public_key")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			if(trc1->getData()!="") throw errorPointer(new fileFormatError(),os::shared_type);
 
 				//Algorithm
 				std::string algoName;
-				fnd=trc1->findElement("algo")->getFirst();
+				fnd=trc1->findElement("algo")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				algoName=trc2->getData();
 
 				//Size
-				fnd=trc1->findElement("size")->getFirst();
+				fnd=trc1->findElement("size")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				unsigned int pkSize=std::stoi(trc2->getData())/32;
 
 				//Encryption type
-				fnd=trc1->findElement("type")->getFirst();
+				fnd=trc1->findElement("type")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				unsigned int pkType=std::stoi(trc2->getData());
 
@@ -752,37 +750,37 @@ namespace crypto {
 				pkframe->setKeySize(pkSize);
 
 			//Stream
-			fnd=enhead->findElement("stream")->getFirst();
+			fnd=enhead->findElement("stream")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			if(trc1->getData()!="") throw errorPointer(new fileFormatError(),os::shared_type);
 			
 				//Algorithm
-				fnd=trc1->findElement("algo")->getFirst();
+				fnd=trc1->findElement("algo")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				streamID=trc2->getData();
 
 			//Hash
-			fnd=enhead->findElement("hash")->getFirst();
+			fnd=enhead->findElement("hash")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			if(trc1->getData()!="") throw errorPointer(new fileFormatError(),os::shared_type);
 			
 				//Algorithm
-				fnd=trc1->findElement("algo")->getFirst();
+				fnd=trc1->findElement("algo")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				hashID=trc2->getData();
 
 				//Size
-				fnd=trc1->findElement("size")->getFirst();
+				fnd=trc1->findElement("size")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				hashSize = std::stoi(trc2->getData())/8;
 
@@ -793,9 +791,9 @@ namespace crypto {
 			spf->setHashSize(hashSize);
 
 			//Key manipulation
-			fnd=enhead->findElement("key")->getFirst();
+			fnd=enhead->findElement("key")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			if(trc1->getData()!="") throw errorPointer(new fileFormatError(),os::shared_type);
 			
@@ -814,9 +812,9 @@ namespace crypto {
 						throw errorPointer(new illegalAlgorithmBind(std::to_string((long long unsigned int)pbk->size()*32)+" vs "+std::to_string((long long unsigned int)pkframe->keySize()*32)),os::shared_type);
 
 					//Public key hash
-					fnd=trc1->findElement("publicKeyHash")->getFirst();
+					fnd=trc1->findElement("publicKeyHash")->first();
 					if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-					trc2=fnd->getData();
+					trc2=&fnd;
 					if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 					hash pkHash=spf->hashEmpty();
 					pkHash.fromString(trc2->getData());
@@ -825,9 +823,9 @@ namespace crypto {
 				}
 				else
 				{
-					fnd=trc1->findElement("publicKey")->getFirst();
+					fnd=trc1->findElement("publicKey")->first();
 					if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-					trc2=fnd->getData();
+					trc2=&fnd;
 					if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 					readKey=os::smart_ptr<number>(new number(),os::shared_type);
 					readKey->fromString(trc2->getData());
@@ -849,9 +847,9 @@ namespace crypto {
 				}
 
 				//Raw Key
-				fnd=trc1->findElement("encryptedKey")->getFirst();
+				fnd=trc1->findElement("encryptedKey")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				os::smart_ptr<number> num1(new number(),os::shared_type);
 				os::smart_ptr<number> num2;
@@ -898,9 +896,9 @@ namespace crypto {
 				
 
 				//Hash
-				fnd=trc1->findElement("hash")->getFirst();
+				fnd=trc1->findElement("hash")->first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-				trc2=fnd->getData();
+				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				size_t keylen;
 				os::smart_ptr<unsigned char> raw_key;
@@ -923,9 +921,9 @@ namespace crypto {
 					throw errorPointer(new hashCompareError(),os::shared_type);
 
 			//Arg list
-			fnd=enhead->findElement("argList")->getFirst();
+			fnd=enhead->findElement("argList")->first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
-			trc1=fnd->getData();
+			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
 			std::vector<std::string> argList;
 			if(trc1->getData()=="")

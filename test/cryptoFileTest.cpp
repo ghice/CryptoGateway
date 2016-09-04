@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.cpp
  * @author Jonathan Bedard
- * @date   5/26/2016
+ * @date   9/4/2016
  * @brief  Implementation for cryptographic file testing
  * @bug No known bugs.
  *
@@ -19,10 +19,10 @@
 #include <string>
 #include <stdint.h>
 #include "cryptoFileTest.h"
-#include "publicKeyPackage.h"
+#include "../publicKeyPackage.h"
 #include "testKeyGeneration.h"
-#include "XMLEncryption.h"
-#include "keyBank.h"
+#include "../XMLEncryption.h"
+#include "../keyBank.h"
 
 using namespace crypto;
 using namespace test;
@@ -38,14 +38,14 @@ using namespace test;
 
 		os::smart_ptr<streamPackageFrame> pck=streamPackageTypeBank::singleton()->findStream(algo::streamNULL,algo::hashNULL);
 		if(pck)
-			throw os::smart_ptr<std::exception>(new generalTestException("Stream NULL and Hash NULL returned algorithm",locString),os::shared_type);
+			generalTestException::throwException("Stream NULL and Hash NULL returned algorithm",locString);
 		pck=streamPackageTypeBank::singleton()->findStream(algo::streamRC4,algo::hashRC4);
 
 		if(!pck)
-			throw os::smart_ptr<std::exception>(new generalTestException("No default stream and hash",locString),os::shared_type);
+			generalTestException::throwException("No default stream and hash",locString);
 		
 		if(pck!=streamPackageTypeBank::singleton()->findStream(RCFour::staticAlgorithmName(),rc4Hash::staticAlgorithmName()))
-			throw os::smart_ptr<std::exception>(new generalTestException("Default package does not match known default package",locString),os::shared_type);
+			generalTestException::throwException("Default package does not match known default package",locString);
 	}
 
 	//Binary file test
@@ -69,22 +69,22 @@ using namespace test;
 			//Write data
 			binaryEncryptor binEn("testExample.bin","binaryPassword",streamPackage);
 			if(!binEn.good())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary writer",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary writer",locString);
 			binEn.write(refData,100);
 			binEn.close();
 
 			//Decryptor
 			binaryDecryptor binDe("testExample.bin","binaryPassword");
 			if(!binDe.good())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader",locString);
 			if(100!=binDe.read(readData,100))
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader",locString);
 
 			//Compare reference and read data
 			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
-					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
+					generalTestException::throwException("Reference-read mis-match",locString);
 			}
 		}
 		catch(os::smart_ptr<std::exception> e)
@@ -95,7 +95,7 @@ using namespace test;
 		catch(...)
 		{
 			os::delete_file("testExample.bin");
-			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type);
+			generalTestException::throwException("Unknown exception type",locString);
 		}
 		os::delete_file("testExample.bin");
 	}
@@ -121,22 +121,22 @@ using namespace test;
 			//Write data
 			binaryEncryptor binEn("testExample.bin",pubkey);
 			if(!binEn.good())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary writer",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary writer",locString);
 			binEn.write(refData,100);
 			binEn.close();
 
 			//Decryptor
 			binaryDecryptor binDe("testExample.bin",pubkey);
 			if(!binDe.good())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader",locString);
 			if(100!=binDe.read(readData,100))
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader",locString);
 
 			//Compare reference and read data
 			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
-					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
+					generalTestException::throwException("Reference-read mis-match",locString);
 			}
 		}
 		catch(os::smart_ptr<std::exception> e)
@@ -147,7 +147,7 @@ using namespace test;
 		catch(...)
 		{
 			os::delete_file("testExample.bin");
-			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type);
+			generalTestException::throwException("Unknown exception type",locString);
 		}
 		os::delete_file("testExample.bin");
 	}
@@ -176,22 +176,22 @@ using namespace test;
 			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
 			binaryEncryptor binEn("testExample.bin",kys,file::PUBLIC_UNLOCK);
 			if(!binEn.good())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary writer",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary writer",locString);
 			binEn.write(refData,100);
 			binEn.close();
 
 			//Decryptor
 			binaryDecryptor binDe("testExample.bin",kys);
 			if(!binDe.good())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader",locString);
 			if(100!=binDe.read(readData,100))
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader",locString);
 
 			//Compare reference and read data
 			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
-					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
+					generalTestException::throwException("Reference-read mis-match",locString);
 			}
 
 			//Decrypt again
@@ -199,17 +199,17 @@ using namespace test;
 			os::smart_ptr<nodeGroup> ng=kybnk.addPair("No-G","Me",kys->getN(),kys->algorithm(),kys->size());
 			binaryDecryptor binDe2("testExample.bin",&kybnk);
 			if(!binDe2.good())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader (signing case)",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader (signing case)",locString);
 			if(100!=binDe2.read(readData,100))
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader (signing case)",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader (signing case)",locString);
 			if(!binDe2.author() || binDe2.author()->name() != ng->name())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to confirm author",locString),os::shared_type);
+				generalTestException::throwException("Failed to confirm author",locString);
 
 			//Compare reference and read data
 			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
-					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
+					generalTestException::throwException("Reference-read mis-match",locString);
 			}
 		}
 		catch(os::smart_ptr<std::exception> e)
@@ -220,7 +220,7 @@ using namespace test;
 		catch(...)
 		{
 			os::delete_file("testExample.bin");
-			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type);
+			generalTestException::throwException("Unknown exception type",locString);
 		}
 		os::delete_file("testExample.bin");
 	}
@@ -248,22 +248,22 @@ using namespace test;
 			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
 			binaryEncryptor binEn("testExample.bin",kys,file::DOUBLE_LOCK);
 			if(!binEn.good())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary writer",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary writer",locString);
 			binEn.write(refData,100);
 			binEn.close();
 
 			//Decryptor
 			binaryDecryptor binDe("testExample.bin",kys);
 			if(!binDe.good())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader",locString);
 			if(100!=binDe.read(readData,100))
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to init binary reader",locString),os::shared_type);
+				generalTestException::throwException("Failed to init binary reader",locString);
 
 			//Compare reference and read data
 			for(int i=0;i<100;++i)
 			{
 				if(refData[i]!=readData[i])
-					throw os::smart_ptr<std::exception>(new generalTestException("Reference-read mis-match",locString),os::shared_type);
+					generalTestException::throwException("Reference-read mis-match",locString);
 			}
 
 		}
@@ -275,7 +275,7 @@ using namespace test;
 		catch(...)
 		{
 			os::delete_file("testExample.bin");
-			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type);
+			generalTestException::throwException("Unknown exception type",locString);
 		}
 		os::delete_file("testExample.bin");
 	}
@@ -403,14 +403,14 @@ using namespace test;
 		{
 			os::smartXMLNode xmn=generateReferenceTree();
 			if(!crypto::EXML_Output("testFile.xml",xmn,"password",streamPackage))
-				throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+				generalTestException::throwException("EXML write failure",locString);
 
 			os::smartXMLNode xmlParse=crypto::EXML_Input("testFile.xml","password");
 			if(!xmlParse)
-				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure",locString),os::shared_type);
+				generalTestException::throwException("EXML read failure",locString);
 
 			if(!os::xml::compareTrees(xmn,xmlParse))
-				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+				generalTestException::throwException("Tree comparison failed",locString);
 		}
 		catch(os::smart_ptr<std::exception> e)
 		{
@@ -425,7 +425,7 @@ using namespace test;
 		catch(...)
 		{
 			os::delete_file("testFile.xml");
-			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type); 
+			generalTestException::throwException("Unknown exception type",locString); 
 		}
 		os::delete_file("testFile.xml");
     }
@@ -445,14 +445,14 @@ using namespace test;
 		{
 			os::smartXMLNode xmn=generateReferenceTree();
 			if(!crypto::EXML_Output("pubTest.xml",xmn,pubkey))
-				throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+				generalTestException::throwException("EXML write failure",locString);
 
 			os::smartXMLNode xmlParse=crypto::EXML_Input("pubTest.xml",pubkey);
 			if(!xmlParse)
-				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure",locString),os::shared_type);
+				generalTestException::throwException("EXML read failure",locString);
 
 			if(!os::xml::compareTrees(xmn,xmlParse))
-				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+				generalTestException::throwException("Tree comparison failed",locString);
 		}
 		catch(os::smart_ptr<std::exception> e)
 		{
@@ -467,7 +467,7 @@ using namespace test;
 		catch(...)
 		{
 			os::delete_file("pubTest.xml");
-			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type); 
+			generalTestException::throwException("Unknown exception type",locString); 
 		}
 		os::delete_file("pubTest.xml");
     }
@@ -490,24 +490,24 @@ using namespace test;
 			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
 			os::smartXMLNode xmn=generateReferenceTree();
 			if(!crypto::EXML_Output("pubTest.xml",xmn,kys,file::PUBLIC_UNLOCK))
-				throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+				generalTestException::throwException("EXML write failure",locString);
 
 			os::smartXMLNode xmlParse1=crypto::EXML_Input("pubTest.xml",kys);
 			if(!xmlParse1)
-				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure (unlock with self)",locString),os::shared_type);
+				generalTestException::throwException("EXML read failure (unlock with self)",locString);
 			if(!os::xml::compareTrees(xmn,xmlParse1))
-				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+				generalTestException::throwException("Tree comparison failed",locString);
 
 			avlKeyBank kybnk;
 			os::smart_ptr<nodeGroup> ng=kybnk.addPair("No-G","Me",kys->getN(),kys->algorithm(),kys->size());
 			os::smart_ptr<nodeGroup> ntemp;
 			os::smartXMLNode xmlParse2=crypto::EXML_Input("pubTest.xml",&kybnk,ntemp);
 			if(!xmlParse2)
-				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure (unlock with bank)",locString),os::shared_type);
+				generalTestException::throwException("EXML read failure (unlock with bank)",locString);
 			if(!os::xml::compareTrees(xmn,xmlParse2))
-				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+				generalTestException::throwException("Tree comparison failed",locString);
 			if(!ntemp || ntemp->name() != ng->name())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to confirm author",locString),os::shared_type);
+				generalTestException::throwException("Failed to confirm author",locString);
 		}
 		catch(os::smart_ptr<std::exception> e)
 		{
@@ -522,7 +522,7 @@ using namespace test;
 		catch(...)
 		{
 			os::delete_file("pubTest.xml");
-			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type); 
+			generalTestException::throwException("Unknown exception type",locString); 
 		}
 		os::delete_file("pubTest.xml");
 	}
@@ -544,14 +544,14 @@ using namespace test;
 			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
 			os::smartXMLNode xmn=generateReferenceTree();
 			if(!crypto::EXML_Output("pubTest.xml",xmn,kys,file::DOUBLE_LOCK))
-				throw os::smart_ptr<std::exception>(new generalTestException("EXML write failure",locString),os::shared_type);
+				generalTestException::throwException("EXML write failure",locString);
 
 			os::smartXMLNode xmlParse=crypto::EXML_Input("pubTest.xml",kys);
 			if(!xmlParse)
-				throw os::smart_ptr<std::exception>(new generalTestException("EXML read failure",locString),os::shared_type);
+				generalTestException::throwException("EXML read failure",locString);
 
 			if(!os::xml::compareTrees(xmn,xmlParse))
-				throw os::smart_ptr<std::exception>(new generalTestException("Tree comparison failed",locString),os::shared_type);
+				generalTestException::throwException("Tree comparison failed",locString);
 		}
 		catch(os::smart_ptr<std::exception> e)
 		{
@@ -566,7 +566,7 @@ using namespace test;
 		catch(...)
 		{
 			os::delete_file("pubTest.xml");
-			throw os::smart_ptr<std::exception>(new generalTestException("Unknown exception type",locString),os::shared_type); 
+			generalTestException::throwException("Unknown exception type",locString); 
 		}
 		os::delete_file("pubTest.xml");
 	}

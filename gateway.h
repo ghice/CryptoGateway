@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   7/4/2016
+ * @date   9/3/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -216,54 +216,18 @@ namespace crypto {
 		 */
 		os::smart_ptr<message> ping();
 
-		/** @brief Equality comparison operator
-		 *
-		 * Uses the group ID to gateway settings.
-		 *
-		 * @param [in] cmp Object to compare against
-		 * @return this->_groupID == cmp._groupID
-		 */
-		bool operator==(const gatewaySettings& cmp) const{return _groupID==cmp._groupID;}
-		/** @brief Not-equals comparison operator
-		 *
-		 * Uses the group ID to gateway settings.
-		 *
-		 * @param [in] cmp Object to compare against
-		 * @return this->_groupID != cmp._groupID
-		 */
-		bool operator!=(const gatewaySettings& cmp) const{return _groupID!=cmp._groupID;}
-		/** @brief Less-than comparison operator
-		 *
-		 * Uses the group ID to gateway settings.
-		 *
-		 * @param [in] cmp Object to compare against
-		 * @return this->_groupID < cmp._groupID
-		 */
-		bool operator<(const gatewaySettings& cmp) const{return _groupID<cmp._groupID;}
-		/** @brief Greater-than comparison operator
-		 *
-		 * Uses the group ID to gateway settings.
-		 *
-		 * @param [in] cmp Object to compare against
-		 * @return this->_groupID > cmp._groupID
-		 */
-		bool operator>(const gatewaySettings& cmp) const{return _groupID>cmp._groupID;}
-		/** @brief Less-than/Equals-to comparison operator
-		 *
-		 * Uses the group ID to gateway settings.
-		 *
-		 * @param [in] cmp Object to compare against
-		 * @return this->_groupID <= cmp._groupID
-		 */
-		bool operator<=(const gatewaySettings& cmp) const{return _groupID<=cmp._groupID;}
-		/** @brief Greater-than/Equals-to comparison operator
-		 *
-		 * Uses the group ID to gateway settings.
-		 *
-		 * @param [in] cmp Object to compare against
-		 * @return this->_groupID >= cmp._groupID
-		 */
-		bool operator>=(const gatewaySettings& cmp) const{return _groupID>=cmp._groupID;}
+        /** @brief Cast nodeNameReference to size_t
+         * @return Hashed location of nodeNameReference
+         */
+        inline operator size_t() const {return os::hashData(_groupID.c_str(),_groupID.length());}
+        /** @brief Compare gatewaySettings by group ID
+         * @return 0 if equal, 1 or -1 for greater than/less than
+         */
+        inline int compare(const gatewaySettings& cmp) const {return _groupID.compare(cmp._groupID);}
+        
+        #undef CURRENT_CLASS
+        #define CURRENT_CLASS gatewaySettings
+        COMPARE_OPERATORS
 	};
 
 	/** @brief Security gateway
@@ -549,7 +513,7 @@ namespace crypto {
 		 * list of the hashes of public keys
 		 * associated with this node.
 		 */
-		os::unsortedList<hash> eligibleKeys;
+		os::pointerUnsortedList<hash> eligibleKeys;
 
 		/** @brief Data for incoming hashes
 		 */

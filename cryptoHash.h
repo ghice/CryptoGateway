@@ -1,7 +1,7 @@
 /**
  * @file    cryptoHash.h
  * @author  Jonathan Bedard
- * @date    2/23/2016
+ * @date    8/28/2016
  * @brief   Declaration of crypto hashing
  * @bug None
  *
@@ -17,6 +17,7 @@
 #include <iostream>
 #include <stdlib.h>
 
+#include "Datastructures/Datastructures.h"
 #include "hexConversion.h"
 #include "cryptoConstants.h"
 
@@ -247,6 +248,13 @@ namespace crypto {
         bool operator>=(const hash& comp) const{return compare(&comp)>=0;}
         bool operator<(const hash& comp) const{return compare(&comp)==-1;}
         bool operator<=(const hash& comp) const{return compare(&comp)<=0;}
+        
+        /** @brief Cast to a size_t for hashing
+         * ALlows data structures to cast this
+         * object to a size_t for hash tables.
+         * @return void
+         */
+        inline operator size_t() const {return os::hashData(_data, _size);}
     };
 
     /** @brief Hashes data with the specified algorithm

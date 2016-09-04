@@ -1,7 +1,7 @@
 /**
  * @file   test/testKeyGeneration.h
  * @author Jonathan Bedard
- * @date   4/18/2016
+ * @date   9/4/2016
  * @brief  Implementation of test key binding
  * @bug No known bugs.
  *
@@ -23,6 +23,7 @@ namespace test
 	//Finding static keys
 	void findKeysRaw(uint32_t*& nPtr,uint32_t*& dPtr,uint16_t algoID,uint16_t keySize,unsigned int version)
 	{
+		std::string locString="testKeyGeneration.h, void findKeys(...)";
 		//RSA case
 		if(algoID==crypto::algo::publicRSA)
 		{
@@ -93,9 +94,9 @@ namespace test
 				}
 			}
 			else
-				throw os::smart_ptr<std::exception>(new generalTestException("Illegal public key size: "+std::to_string((long long unsigned int)keySize*32),"testKeyGeneration.h, void findKeys(...)"),os::shared_type);
+				throw os::descriptiveException("Illegal public key size: "+std::to_string((long long unsigned int)keySize*32)+" at "+locString);
 		}
-		else throw os::smart_ptr<std::exception>(new generalTestException("Requested algorithm is not a public key algorithm","testKeyGeneration.h, void findKeys(...)"),os::shared_type);
+		else throw os::descriptiveException("Requested algorithm is not a public key algorithm at "+locString);
 	}
 };
 

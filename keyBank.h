@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.h
  * @author Jonathan Bedard
- * @date   5/15/2016
+ * @date   8/28/2016
  * @brief  Header for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -14,7 +14,8 @@
 
 #ifndef KEY_BANK_H
 #define KEY_BANK_H
-    
+
+#include "Datastructures/Datastructures.h"
 #include "binaryEncryption.h"
 #include "cryptoLogging.h"
 #include "cryptoError.h"
@@ -38,7 +39,7 @@ namespace crypto {
      * because nodes can change their
      * name during operation.
      */
-    class nodeGroup: public os::ptrComp
+    class nodeGroup
     {
 		/**@brief Only keyBank can load a node group
 		 */
@@ -49,10 +50,10 @@ namespace crypto {
         keyBank* _master;
         /** @brief List of all names associated with this node
          */
-        os::asyncAVLTree<nodeNameReference> nameList;
+        os::pointerAVLTreeThreadSafe<nodeNameReference> nameList;
         /** @brief List of all keys associated with this node
          */
-        os::asyncAVLTree<nodeKeyReference> keyList;
+        os::pointerAVLTreeThreadSafe<nodeKeyReference> keyList;
 		/** @brief Lock used for sorting
 	     */
 		std::mutex sortingLock;
@@ -125,7 +126,7 @@ namespace crypto {
          *
          * @return crypto::nodeGroup::nameList.getFirst()
          */
-        os::smart_ptr<os::adnode<nodeNameReference> > getFirstName() {return nameList.getFirst();}
+        os::iterator<nodeNameReference> getFirstName() {return nameList.first();}
         /** @brief Returns first key in the list
         *
         * This function returns an alphabetical
@@ -135,7 +136,7 @@ namespace crypto {
         *
         * @return crypto::nodeGroup::keyList.getFirst()
         */
-        os::smart_ptr<os::adnode<nodeKeyReference> > getFirstKey() {return keyList.getFirst();}
+        os::iterator<nodeKeyReference> getFirstKey() {return keyList.first();}
 
 		/**@brief Merge a node group into this
 		 *
@@ -197,6 +198,12 @@ namespace crypto {
          * @return Root of tree to be saved
          */
         os::smartXMLNode buildXML();
+        
+        #undef CURRENT_CLASS
+        #define CURRENT_CLASS nodeGroup
+        POINTER_HASH_CAST
+        POINTER_COMPARE
+        COMPARE_OPERATORS
     };
     
     /** @brief Name storage node
@@ -235,7 +242,8 @@ namespace crypto {
          */
         uint64_t _timestamp;
     
-        /** @brief Name reference node constructor
+    public:
+		/** @brief Name reference node constructor
          *
          * @param [in/out] master Reference to the 'master' group
          * @param [in] groupName Group name of the node being registered
@@ -249,8 +257,7 @@ namespace crypto {
          * @param [in] name Name of the node being registered
          */
         nodeNameReference(std::string groupName,std::string name);
-    public:
-		 
+
         /** @brief Virtual destructor
          *
          * Destructor must be virtual, if an object
@@ -288,42 +295,15 @@ namespace crypto {
          */
         int compare(const nodeNameReference& comp)const;
         
-        /** @brief Equality operator
-         *
-         * @param [in] comp Name reference to compare against
-         * @return true if equal, else, false
+        /** @brief Cast nodeNameReference to size_t
+         * @return Hashed location of nodeNameReference
          */
-        bool operator==(const nodeNameReference& comp) const{return compare(comp)==0;}
-        /** @brief Not-equals operator
-         *
-         * @param [in] comp Name reference to compare against
-         * @return true if not equal, else, false
-         */
-        bool operator!=(const nodeNameReference& comp) const{return compare(comp)!=0;}
-        /** @brief Greater-than operator
-         *
-         * @param [in] comp Name reference to compare against
-         * @return true if greater than, else, false
-         */
-        bool operator>(const nodeNameReference& comp) const{return compare(comp)==1;}
-        /** @brief Greater-than/equals to operator
-         *
-         * @param [in] comp Name reference to compare against
-         * @return true if greater than or equal to, else, false
-         */
-        bool operator>=(const nodeNameReference& comp) const{return compare(comp)!=-1;}
-        /** @brief Less-than operator
-         *
-         * @param [in] comp Name reference to compare against
-         * @return true if less than, else, false
-         */
-        bool operator<(const nodeNameReference& comp) const{return compare(comp)==-1;}
-        /** @brief Less-than/equals to operator
-         *
-         * @param [in] comp Name reference to compare against
-         * @return true if less than or equal to, else, false
-         */
-        bool operator<=(const nodeNameReference& comp) const{return compare(comp)!=1;}
+        inline operator size_t() const
+        {return os::hashData(_groupName.c_str(),_groupName.length()) ^ os::hashData(_name.c_str(),_name.length());}
+        
+        #undef CURRENT_CLASS
+        #define CURRENT_CLASS nodeNameReference
+        COMPARE_OPERATORS
     };
     
     /** @brief Key storage node
@@ -365,6 +345,7 @@ namespace crypto {
          */
         uint64_t _timestamp;
     
+    public:
         /** @brief Key reference node constructor
         *
         * @param [in/out] master Reference to the 'master' group
@@ -381,7 +362,6 @@ namespace crypto {
          * @param [in] keySize Size of the key provided
          */
         nodeKeyReference(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize);
-    public:
 		
         /** @brief Virtual destructor
          *
@@ -424,42 +404,15 @@ namespace crypto {
          */
         int compare(const nodeKeyReference& comp)const;
         
-        /** @brief Equality operator
-         *
-         * @param [in] comp Key reference to compare against
-         * @return true if equal, else, false
+        /** @brief Cast nodeNameReference to size_t
+         * @return Hashed location of nodeNameReference
          */
-        bool operator==(const nodeKeyReference& comp) const{return compare(comp)==0;}
-        /** @brief Not-equals operator
-         *
-         * @param [in] comp Key reference to compare against
-         * @return true if not equal, else, false
-         */
-        bool operator!=(const nodeKeyReference& comp) const{return compare(comp)!=0;}
-        /** @brief Greater-than operator
-         *
-         * @param [in] comp Key reference to compare against
-         * @return true if greater than, else, false
-         */
-        bool operator>(const nodeKeyReference& comp) const{return compare(comp)==1;}
-        /** @brief Greater-than/equals to operator
-         *
-         * @param [in] comp Key reference to compare against
-         * @return true if greater than or equal to, else, false
-         */
-        bool operator>=(const nodeKeyReference& comp) const{return compare(comp)!=-1;}
-        /** @brief Less-than operator
-         *
-         * @param [in] comp Key reference to compare against
-         * @return true if less than, else, false
-         */
-        bool operator<(const nodeKeyReference& comp) const{return compare(comp)==-1;}
-        /** @brief Less-than/equals to operator
-         *
-         * @param [in] comp Key reference to compare against
-         * @return true if less than or equal to, else, false
-         */
-        bool operator<=(const nodeKeyReference& comp) const{return compare(comp)!=1;}
+        inline operator size_t() const
+        {return (size_t) *_key;}
+        
+        #undef CURRENT_CLASS
+        #define CURRENT_CLASS nodeKeyReference
+        COMPARE_OPERATORS
     };
     
     
@@ -611,8 +564,7 @@ namespace crypto {
          * @param [in] name Name of the node
          * @return Node group found by arguments
          */
-        virtual os::smart_ptr<nodeGroup> find(std::string groupName,std::string name)
-        {return find(os::smart_ptr<nodeNameReference>(new nodeNameReference(groupName,name),os::shared_type));}
+        virtual os::smart_ptr<nodeGroup> find(std::string groupName,std::string name)=0;
         /** @brief Find by key information
          *
          * @param [in] key Key of node to be added
@@ -620,8 +572,7 @@ namespace crypto {
          * @param [in] keySize Length of key of the node
          * @return Node group found by arguments
          */
-        virtual os::smart_ptr<nodeGroup> find(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
-        {return find(os::smart_ptr<nodeKeyReference>(new nodeKeyReference(key,algoID,keySize),os::shared_type));}
+        virtual os::smart_ptr<nodeGroup> find(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)=0;
 
 	//Setting Encryption--------------------------------------------------
 
@@ -671,13 +622,13 @@ namespace crypto {
     {
         /** @brief List of all names associated with this node
          */
-        os::asyncAVLTree<nodeNameReference> nameTree;
+        os::pointerAVLTreeThreadSafe<nodeNameReference> nameTree;
         /** @brief List of all keys associated with this node
          */
-        os::asyncAVLTree<nodeKeyReference> keyTree;
+        os::pointerAVLTreeThreadSafe<nodeKeyReference> keyTree;
         /** @brief List of all node groups
          */
-        os::asyncAVLTree<nodeGroup> nodeBank;
+        os::rawPointerAVLTreeThreadSafe<nodeGroup> nodeBank;
     protected:
         /** @brief Add name node
          *
@@ -775,7 +726,7 @@ namespace crypto {
          * @return Node group found by arguments
          */
         inline os::smart_ptr<nodeGroup> find(std::string groupName,std::string name)
-        {return keyBank::find(groupName,name);}
+        {return find(os::smart_ptr<nodeNameReference>(new nodeNameReference(groupName,name),os::shared_type));}
         /** @brief Find by key information
          *
          * @param [in] key Key of node to be added
@@ -784,7 +735,7 @@ namespace crypto {
          * @return Node group found by arguments
          */
         inline os::smart_ptr<nodeGroup> find(os::smart_ptr<number> key,uint16_t algoID,uint16_t keySize)
-        {return keyBank::find(key,algoID,keySize);}
+        {return find(os::smart_ptr<nodeKeyReference>(new nodeKeyReference(key,algoID,keySize),os::shared_type));}
     };
 
 }

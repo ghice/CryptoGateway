@@ -1,7 +1,7 @@
 /**
  * @file   cryptoPublicKey.h
  * @author Jonathan Bedard
- * @date   7/13/2016
+ * @date   8/28/2016
  * @brief  Generalized and RSA public keys
  * @bug No known bugs.
  *
@@ -18,7 +18,7 @@
 #include "Datastructures/Datastructures.h"
 #include "cryptoNumber.h"
 #include "streamPackage.h"
-#include "osMechanics.h"
+#include "osMechanics/osMechanics.h"
 
 namespace crypto
 {
@@ -166,13 +166,13 @@ namespace crypto
         
 		/**@ brief List of old public keys
 		 */
-        os::unsortedList<number> oldN;
+        os::pointerUnsortedList<number> oldN;
 		/**@ brief List of old private keys
 		 */
-        os::unsortedList<number> oldD;
+        os::pointerUnsortedList<number> oldD;
 		/**@ brief List of time-stamps for old pairs
 		 */
-		os::unsortedList<uint64_t> _timestamps;
+		os::pointerUnsortedList<uint64_t> _timestamps;
 
 		/** @brief No key constructor
 		 *
@@ -230,18 +230,6 @@ namespace crypto
 		 */
 		inline void readUnlock() {keyLock.decrement();}
 	protected:
-		/** @brief Compare this with another public key
-		 *
-		 * Compares based on the algorithm ID and size of
-		 * the key.  Note that this will return 0 if two
-		 * public keys have the same algorithm ID and size
-		 * even if they have different keys.
-		 *
-		 * @param [in] cmp Public key to compare against
-		 * @return 0 if equal, 1 if greater than, -1 if less than
-		 */
-		int compare(const publicKey& cmp) const;
-
 		/** @brief Bind old keys to history
 		 *
 		 * @param [in] n Old public key
@@ -574,30 +562,26 @@ namespace crypto
 		 */
         void decode(unsigned char* code, size_t codeLength, size_t hist);
 
-		/** @brief Compares equality by size and algorithm
-		 * @return boolean '=='
-		 */
-		bool operator==(const publicKey& cmp) const {return 0==compare(cmp);}
-		/** @brief Compares equality by size and algorithm
-		 * @return boolean '!='
-		 */
-		bool operator!=(const publicKey& cmp) const {return 0!=compare(cmp);}
-		/** @brief Compares equality by size and algorithm
-		 * @return boolean '<'
-		 */
-		bool operator<(const publicKey& cmp) const {return -1==compare(cmp);}
-		/** @brief Compares equality by size and algorithm
-		 * @return boolean '>'
-		 */
-		bool operator>(const publicKey& cmp) const {return 1==compare(cmp);}
-		/** @brief Compares equality by size and algorithm
-		 * @return boolean '<='
-		 */
-		bool operator<=(const publicKey& cmp) const {return 1!=compare(cmp);}
-		/** @brief Compares equality by size and algorithm
-		 * @return boolean '>='
-		 */
-		bool operator>=(const publicKey& cmp) const {return -1!=compare(cmp);}
+        /** @brief Compare this with another public key
+         *
+         * Compares based on the algorithm ID and size of
+         * the key.  Note that this will return 0 if two
+         * public keys have the same algorithm ID and size
+         * even if they have different keys.
+         *
+         * @param [in] cmp Public key to compare against
+         * @return 0 if equal, 1 if greater than, -1 if less than
+         */
+        int compare(const publicKey& cmp) const;
+        
+        /** @brief Cast nodeNameReference to size_t
+         * @return Hashed location of nodeNameReference
+         */
+        inline operator size_t() const {return _size<<4 & _algorithm;}
+        
+        #undef CURRENT_CLASS
+        #define CURRENT_CLASS publicKey
+        COMPARE_OPERATORS
 	};
     ///@cond INTERNAL
 	class RSAKeyGenerator;

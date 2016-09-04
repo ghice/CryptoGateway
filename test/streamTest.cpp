@@ -1,7 +1,7 @@
 /**
  * @file   test/streamTest.cpp
  * @author Jonathan Bedard
- * @date   4/26/2016
+ * @date   9/4/2016
  * @brief  Implementation for stream tests
  * @bug No known bugs.
  *
@@ -45,7 +45,7 @@ using namespace test;
 		{
 			//testout<<(int)algo.getNext()<<std::endl;
 			if(comp[i]!=algo.getNext())
-				throw os::smart_ptr<std::exception>(new generalTestException("Failed to match element "+std::to_string((long long unsigned int)i),locString),os::shared_type);
+				generalTestException::throwException("Failed to match element "+std::to_string((long long unsigned int)i),locString);
 		}
 	}
 	//RC4 Tests

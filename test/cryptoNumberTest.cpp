@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoNumberTest.cpp
  * @author Jonathan Bedard
- * @date   5/26/2016
+ * @date   9/4/2016
  * @brief  Testing crypto::number and crypto::integer
  * @bug No known bugs.
  *
@@ -17,7 +17,7 @@
 #define CRYPTO_NUMBER_TEST_CPP
 
 #include "cryptoTest.h"
-#include "cryptoNumber.h"
+#include "../cryptoNumber.h"
 
 using namespace test;
 using namespace os;
@@ -48,29 +48,29 @@ using namespace crypto;
         
         //Check all types
         if(num.hasCompare())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasCompare failed",locString),shared_type);
+            generalTestException::throwException("hasCompare failed",locString);
         if(num.hasAddition())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasAddition failed",locString),shared_type);
+            generalTestException::throwException("hasAddition failed",locString);
         if(num.hasSubtraction())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasSubtraction failed",locString),shared_type);
+            generalTestException::throwException("hasSubtraction failed",locString);
         if(num.hasRightShift())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasRightShift failed",locString),shared_type);
+            generalTestException::throwException("hasRightShift failed",locString);
         if(num.hasLeftShift())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasLeftShift failed",locString),shared_type);
+            generalTestException::throwException("hasLeftShift failed",locString);
         if(num.hasMultiplication())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasMultiplication failed",locString),shared_type);
+            generalTestException::throwException("hasMultiplication failed",locString);
         if(num.hasDivision())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasDivision failed",locString),shared_type);
+            generalTestException::throwException("hasDivision failed",locString);
         if(num.hasModulo())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasModulo failed",locString),shared_type);
+            generalTestException::throwException("hasModulo failed",locString);
         if(num.hasExponentiation())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasExponentiation failed",locString),shared_type);
+            generalTestException::throwException("hasExponentiation failed",locString);
         if(num.hasModuloExponentiation())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasModuloExponentiation failed",locString),shared_type);
+            generalTestException::throwException("hasModuloExponentiation failed",locString);
         if(num.hasGCD())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasGCD failed",locString),shared_type);
+            generalTestException::throwException("hasGCD failed",locString);
         if(num.hasModInverse())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasModInverse failed",locString),shared_type);
+            generalTestException::throwException("hasModInverse failed",locString);
     }
     //Tests number constructor
     void numberConstructorsTest() throw(os::smart_ptr<std::exception>)
@@ -80,69 +80,69 @@ using namespace crypto;
 		//Basic
 		number num;
 		if(num.numberDefinition()==NULL)
-			throw os::smart_ptr<std::exception>(new generalTestException("NULL Number definition: basic",locString),shared_type);
+			generalTestException::throwException("NULL Number definition: basic",locString);
 		if(num.typeID()!=crypto::numberType::Default)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number type: basic",locString),shared_type);
+			generalTestException::throwException("Unexpected number type: basic",locString);
 		if(num.name()!=std::string(crypto::numberName::Default))
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number name: basic",locString),shared_type);
+			generalTestException::throwException("Unexpected number name: basic",locString);
 		if(num.size()!=1)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number size: basic",locString),shared_type);
+			generalTestException::throwException("Unexpected number size: basic",locString);
 		if(num.data()[0]!=0)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number: basic",locString),shared_type);
+			generalTestException::throwException("Unexpected number: basic",locString);
 
 		//Size constructor
 		number num2(4);
 		if(num2.numberDefinition()==NULL)
-			throw os::smart_ptr<std::exception>(new generalTestException("NULL Number definition: size",locString),shared_type);
+			generalTestException::throwException("NULL Number definition: size",locString);
 		if(num2.typeID()!=crypto::numberType::Default)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number type: size",locString),shared_type);
+			generalTestException::throwException("Unexpected number type: size",locString);
 		if(num2.name()!=std::string(crypto::numberName::Default))
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number name: size",locString),shared_type);
+			generalTestException::throwException("Unexpected number name: size",locString);
 		if(num2.size()!=4)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number size: size",locString),shared_type);
+			generalTestException::throwException("Unexpected number size: size",locString);
 		if(num2.data()[3]!=0 || num2.data()[2]!=0 || num2.data()[1]!=0 || num2.data()[0]!=0)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number: size",locString),shared_type);
+			generalTestException::throwException("Unexpected number: size",locString);
 
 		//Data constructor
 		uint32_t a[3];
 		a[2]=2;	a[1]=1;	a[0]=0;
 		number num3(a,3);
 		if(num3.numberDefinition()==NULL)
-			throw os::smart_ptr<std::exception>(new generalTestException("NULL Number definition: data",locString),shared_type);
+			generalTestException::throwException("NULL Number definition: data",locString);
 		if(num3.typeID()!=crypto::numberType::Default)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number type: data",locString),shared_type);
+			generalTestException::throwException("Unexpected number type: data",locString);
 		if(num3.name()!=std::string(crypto::numberName::Default))
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number name: data",locString),shared_type);
+			generalTestException::throwException("Unexpected number name: data",locString);
 		if(num3.size()!=3)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number size: data",locString),shared_type);
+			generalTestException::throwException("Unexpected number size: data",locString);
 		if(num3.data()[2]!=2 || num3.data()[1]!=1 || num3.data()[0]!=0)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number: data",locString),shared_type);
+			generalTestException::throwException("Unexpected number: data",locString);
 
 		//Copy constructor
 		number num4(num3);
 		if(num4.numberDefinition()==NULL)
-			throw os::smart_ptr<std::exception>(new generalTestException("NULL Number definition: copy",locString),shared_type);
+			generalTestException::throwException("NULL Number definition: copy",locString);
 		if(num4.typeID()!=crypto::numberType::Default)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number type: copy",locString),shared_type);
+			generalTestException::throwException("Unexpected number type: copy",locString);
 		if(num4.name()!=std::string(crypto::numberName::Default))
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number name: copy",locString),shared_type);
+			generalTestException::throwException("Unexpected number name: copy",locString);
 		if(num4.size()!=3)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number size: copy",locString),shared_type);
+			generalTestException::throwException("Unexpected number size: copy",locString);
 		if(num4.data()[2]!=2 || num4.data()[1]!=1 || num4.data()[0]!=0)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number: copy",locString),shared_type);
+			generalTestException::throwException("Unexpected number: copy",locString);
 
 		//Equal constructor
 		number num5=num4;
 		if(num5.numberDefinition()==NULL)
-			throw os::smart_ptr<std::exception>(new generalTestException("NULL Number definition: equal",locString),shared_type);
+			generalTestException::throwException("NULL Number definition: equal",locString);
 		if(num5.typeID()!=crypto::numberType::Default)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number type: equal",locString),shared_type);
+			generalTestException::throwException("Unexpected number type: equal",locString);
 		if(num5.name()!=std::string(crypto::numberName::Default))
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number name: equal",locString),shared_type);
+			generalTestException::throwException("Unexpected number name: equal",locString);
 		if(num5.size()!=3)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number size: equal",locString),shared_type);
+			generalTestException::throwException("Unexpected number size: equal",locString);
 		if(num5.data()[2]!=2 || num5.data()[1]!=1 || num5.data()[0]!=0)
-			throw os::smart_ptr<std::exception>(new generalTestException("Unexpected number: equal",locString),shared_type);
+			generalTestException::throwException("Unexpected number: equal",locString);
 	}
 	//Comparison
 	void numberComparisonTest() throw(os::smart_ptr<std::exception>)
@@ -156,52 +156,52 @@ using namespace crypto;
 		
 		//==
 		num1=number(&tone,1);	num2=number(&tone,1);
-		if(!(num1==num2)) throw os::smart_ptr<std::exception>(new generalTestException("1==1 failed",locString),shared_type);
+		if(!(num1==num2)) generalTestException::throwException("1==1 failed",locString);
 		num1=number(&tone,1);	num2=number(&ttwo,1);
-		if(num1==num2) throw os::smart_ptr<std::exception>(new generalTestException("1==2 succeeded",locString),shared_type);
+		if(num1==num2) generalTestException::throwException("1==2 succeeded",locString);
 
 		//!=
 		num1=number(&tone,1);	num2=number(&tone,1);
-		if(num1!=num2) throw os::smart_ptr<std::exception>(new generalTestException("1!=1 succeeded",locString),shared_type);
+		if(num1!=num2) generalTestException::throwException("1!=1 succeeded",locString);
 		num1=number(&tone,1);	num2=number(&ttwo,1);
-		if(!(num1!=num2)) throw os::smart_ptr<std::exception>(new generalTestException("1!=2 failed",locString),shared_type);
+		if(!(num1!=num2)) generalTestException::throwException("1!=2 failed",locString);
 
 		//>=
 		num1=number(&tone,1);	num2=number(&tone,1);
-		if(!(num1>=num2)) throw os::smart_ptr<std::exception>(new generalTestException("1>=1 failed",locString),shared_type);
+		if(!(num1>=num2)) generalTestException::throwException("1>=1 failed",locString);
 		num1=number(&tone,1);	num2=number(&ttwo,1);
-		if(num1>=num2) throw os::smart_ptr<std::exception>(new generalTestException("1>=2 succeeded",locString),shared_type);
+		if(num1>=num2) generalTestException::throwException("1>=2 succeeded",locString);
 
 		//<=
 		num1=number(&ttwo,1);	num2=number(&tone,1);
-		if(num1<=num2) throw os::smart_ptr<std::exception>(new generalTestException("1<=1 succeeded",locString),shared_type);
+		if(num1<=num2) generalTestException::throwException("1<=1 succeeded",locString);
 		num1=number(&tone,1);	num2=number(&ttwo,1);
-		if(!(num1<=num2)) throw os::smart_ptr<std::exception>(new generalTestException("1<=2 failed",locString),shared_type);
+		if(!(num1<=num2)) generalTestException::throwException("1<=2 failed",locString);
 
 		//>
 		num1=number(&ttwo,1);	num2=number(&tone,1);
-		if(!(num1>num2)) throw os::smart_ptr<std::exception>(new generalTestException("2>1 failed",locString),shared_type);
+		if(!(num1>num2)) generalTestException::throwException("2>1 failed",locString);
 		num1=number(&tone,1);	num2=number(&ttwo,1);
-		if(num1>num2) throw os::smart_ptr<std::exception>(new generalTestException("1>2 succeeded",locString),shared_type);
+		if(num1>num2) generalTestException::throwException("1>2 succeeded",locString);
 
 		//<
 		num1=number(&ttwo,1);	num2=number(&tone,1);
-		if(num1<num2) throw os::smart_ptr<std::exception>(new generalTestException("1<1 succeeded",locString),shared_type);
+		if(num1<num2) generalTestException::throwException("1<1 succeeded",locString);
 		num1=number(&tone,1);	num2=number(&ttwo,1);
-		if(!(num1<num2)) throw os::smart_ptr<std::exception>(new generalTestException("1<2 failed",locString),shared_type);
+		if(!(num1<num2)) generalTestException::throwException("1<2 failed",locString);
 
 		//Double length tests
 		uint32_t arr[2];	arr[1]=2;	arr[0]=1;
 		number big(arr,2);
 
 		//2:1 != 1
-		if(big == num2) throw os::smart_ptr<std::exception>(new generalTestException("2:1 == 1 succeeded",locString),shared_type);
+		if(big == num2) generalTestException::throwException("2:1 == 1 succeeded",locString);
 
 		//2:1 > 1
-		if(big <= num2) throw os::smart_ptr<std::exception>(new generalTestException("2:1 <= 1 succeeded",locString),shared_type);
+		if(big <= num2) generalTestException::throwException("2:1 <= 1 succeeded",locString);
 
 		//1 < 2:1
-		if(num2 >= big) throw os::smart_ptr<std::exception>(new generalTestException("1 >= 2:1 succeeded",locString),shared_type);
+		if(num2 >= big) generalTestException::throwException("1 >= 2:1 succeeded",locString);
 	}
     //Array access
     void numberArrayAccessTest() throw(os::smart_ptr<std::exception>)
@@ -213,17 +213,17 @@ using namespace crypto;
         
         //Test positions
         if(num[0]!=5 && num[1]!=3)
-            throw os::smart_ptr<std::exception>(new generalTestException("Read access failed!",locString),shared_type);
+            generalTestException::throwException("Read access failed!",locString);
         
         //Overflow
         if(num[2]!=0)
-            throw os::smart_ptr<std::exception>(new generalTestException("Overflow failed: "+std::to_string((long long unsigned int)num[2]),locString),shared_type);
+            generalTestException::throwException("Overflow failed: "+std::to_string((long long unsigned int)num[2]),locString);
         
         //Write access
         num[0]=3;
         num[1]=16;
         if(num[0]!=3 && num[1]!=16)
-            throw os::smart_ptr<std::exception>(new generalTestException("Write access failed!",locString),shared_type);
+            generalTestException::throwException("Write access failed!",locString);
     }
     //To string
     void numberToStringTest() throw(os::smart_ptr<std::exception>)
@@ -233,7 +233,7 @@ using namespace crypto;
         
         //All zeros
         if(num.toString()!="00000000:00000000:00000000:00000000")
-            throw os::smart_ptr<std::exception>(new generalTestException("Zero case failure",locString),shared_type);
+            generalTestException::throwException("Zero case failure",locString);
         
         //1, 2, 3, 4
         num[0]=1;
@@ -241,7 +241,7 @@ using namespace crypto;
         num[2]=3;
         num[3]=4;
         if(num.toString()!="00000004:00000003:00000002:00000001")
-            throw os::smart_ptr<std::exception>(new generalTestException("1, 2, 3, 4 case failure",locString),shared_type);
+            generalTestException::throwException("1, 2, 3, 4 case failure",locString);
         
         //5, 6, 7, 8
         num[0]=5;
@@ -249,7 +249,7 @@ using namespace crypto;
         num[2]=7;
         num[3]=8;
         if(num.toString()!="00000008:00000007:00000006:00000005")
-        throw os::smart_ptr<std::exception>(new generalTestException("5, 6, 7, 8 case failure",locString),shared_type);
+        generalTestException::throwException("5, 6, 7, 8 case failure",locString);
         
         //9, A, B, C
         num[0]=9;
@@ -257,7 +257,7 @@ using namespace crypto;
         num[2]=11;
         num[3]=12;
         if(num.toString()!="0000000C:0000000B:0000000A:00000009")
-        throw os::smart_ptr<std::exception>(new generalTestException("9, A, B, C case failure",locString),shared_type);
+        generalTestException::throwException("9, A, B, C case failure",locString);
         
         //D, E, F, 10
         num[0]=13;
@@ -265,7 +265,7 @@ using namespace crypto;
         num[2]=15;
         num[3]=16;
         if(num.toString()!="00000010:0000000F:0000000E:0000000D")
-        throw os::smart_ptr<std::exception>(new generalTestException("D, E, F, 10 case failure",locString),shared_type);
+        generalTestException::throwException("D, E, F, 10 case failure",locString);
         
         //11, 12, 13, 14
         num[0]=17;
@@ -273,7 +273,7 @@ using namespace crypto;
         num[2]=19;
         num[3]=20;
         if(num.toString()!="00000014:00000013:00000012:00000011")
-        throw os::smart_ptr<std::exception>(new generalTestException("11, 12, 13, 14 case failure",locString),shared_type);
+        generalTestException::throwException("11, 12, 13, 14 case failure",locString);
     }
     //From string
     void numberFromStringTest() throw(os::smart_ptr<std::exception>)
@@ -285,13 +285,13 @@ using namespace crypto;
         //Build 0
         misc.fromString("0");
         if(comp!=misc)
-            throw os::smart_ptr<std::exception>(new generalTestException("Zero build failure",locString),shared_type);
+            generalTestException::throwException("Zero build failure",locString);
         
         //Build 1
         comp[0]=1;
         misc.fromString("1");
         if(comp!=misc)
-            throw os::smart_ptr<std::exception>(new generalTestException("One build failure",locString),shared_type);
+            generalTestException::throwException("One build failure",locString);
         
         //4:3:2:1
         comp[3]=4;
@@ -300,7 +300,7 @@ using namespace crypto;
         comp[0]=1;
         misc.fromString("4:3:2:1");
         if(comp!=misc)
-            throw os::smart_ptr<std::exception>(new generalTestException("4:3:2:1 build failure",locString),shared_type);
+            generalTestException::throwException("4:3:2:1 build failure",locString);
         
         //8:7:6:5
         comp[3]=8;
@@ -309,7 +309,7 @@ using namespace crypto;
         comp[0]=5;
         misc.fromString("8:7:6:5");
         if(comp!=misc)
-        throw os::smart_ptr<std::exception>(new generalTestException("8:7:6:5 build failure",locString),shared_type);
+        generalTestException::throwException("8:7:6:5 build failure",locString);
         
         //C:B:A:9
         comp[3]=12;
@@ -318,7 +318,7 @@ using namespace crypto;
         comp[0]=9;
         misc.fromString("C:B:A:9");
         if(comp!=misc)
-        throw os::smart_ptr<std::exception>(new generalTestException("C:B:A:9 build failure",locString),shared_type);
+        generalTestException::throwException("C:B:A:9 build failure",locString);
         
         //10:F:E:D
         comp[3]=16;
@@ -327,7 +327,7 @@ using namespace crypto;
         comp[0]=13;
         misc.fromString("10:F:E:D");
         if(comp!=misc)
-        throw os::smart_ptr<std::exception>(new generalTestException("10:F:E:D build failure",locString),shared_type);
+        generalTestException::throwException("10:F:E:D build failure",locString);
         
         //FFFFFFFF:FFFFFFFF
         comp[3]=0;
@@ -336,7 +336,7 @@ using namespace crypto;
         comp[0]=~0;
         misc.fromString("FFFFFFFF:FFFFFFFF");
         if(comp!=misc)
-            throw os::smart_ptr<std::exception>(new generalTestException("FFFFFFFF:FFFFFFFF build failure",locString),shared_type);
+            generalTestException::throwException("FFFFFFFF:FFFFFFFF build failure",locString);
         
     }
     //Tests size manipulation
@@ -347,43 +347,43 @@ using namespace crypto;
         
         //Default size
         if(num.size()!=1)
-            throw os::smart_ptr<std::exception>(new generalTestException("Default size incorrect",locString),shared_type);
+            generalTestException::throwException("Default size incorrect",locString);
         
         //Expand (1)
         num.expand(3);
         if(num.size()!=3)
-            throw os::smart_ptr<std::exception>(new generalTestException("Expansion 1 failed",locString),shared_type);
+            generalTestException::throwException("Expansion 1 failed",locString);
         if(num[2]!=0 || num[1]!=0 || num[0]!=0)
-            throw os::smart_ptr<std::exception>(new generalTestException("Expansion 1 values wrong",locString),shared_type);
+            generalTestException::throwException("Expansion 1 values wrong",locString);
         
         //Reduce (1)
         num.reduce();
         if(num.size()!=1)
-            throw os::smart_ptr<std::exception>(new generalTestException("Reduce 1 failed, size "+std::to_string((long long unsigned int)num.size())+" value "+num.toString(),locString),shared_type);
+            generalTestException::throwException("Reduce 1 failed, size "+std::to_string((long long unsigned int)num.size())+" value "+num.toString(),locString);
         if(num[0]!=0)
-        throw os::smart_ptr<std::exception>(new generalTestException("Reduce 1 values wrong",locString),shared_type);
+        generalTestException::throwException("Reduce 1 values wrong",locString);
         
         //Expand (2)
         num.expand(3);
         if(num.size()!=3)
-            throw os::smart_ptr<std::exception>(new generalTestException("Expansion 2 failed",locString),shared_type);
+            generalTestException::throwException("Expansion 2 failed",locString);
         num[1]=10;
         if(num[2]!=0 || num[1]!=10 || num[0]!=0)
-            throw os::smart_ptr<std::exception>(new generalTestException("Expansion 2 values wrong",locString),shared_type);
+            generalTestException::throwException("Expansion 2 values wrong",locString);
         
         //Reduce (2)
         num.reduce();
         if(num.size()!=2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Reduce 2 failed",locString),shared_type);
+            generalTestException::throwException("Reduce 2 failed",locString);
         if(num[1]!=10 || num[0]!=0)
-            throw os::smart_ptr<std::exception>(new generalTestException("Reduce 2 values wrong",locString),shared_type);
+            generalTestException::throwException("Reduce 2 values wrong",locString);
         
         //Expand (3)
         num.expand(3);
         if(num.size()!=3)
-        throw os::smart_ptr<std::exception>(new generalTestException("Expansion 3 failed",locString),shared_type);
+        generalTestException::throwException("Expansion 3 failed",locString);
         if(num[2]!=0 || num[1]!=10 || num[0]!=0)
-        throw os::smart_ptr<std::exception>(new generalTestException("Expansion 3 values wrong",locString),shared_type);
+        generalTestException::throwException("Expansion 3 values wrong",locString);
     }
 
     //OR Test
@@ -404,16 +404,16 @@ using namespace crypto;
         
         //4 different size tests
         if((s1|s2)!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 1 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 1 wrong",locString);
         if((s2|s1)!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 2 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 2 wrong",locString);
         hld=s1;
         s1|=s2;
         s2|=hld;
         if(s1!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 3 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 3 wrong",locString);
         if(s2!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 4 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 4 wrong",locString);
         
         //Main test
         for(int i=0;i<20;++i)
@@ -433,13 +433,13 @@ using namespace crypto;
             num2|=t;
                 
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("ans1 wrong",locString),shared_type);
+                generalTestException::throwException("ans1 wrong",locString);
             if(ans2!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("ans2 wrong",locString),shared_type);
+                generalTestException::throwException("ans2 wrong",locString);
             if(num1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("num1 wrong",locString),shared_type);
+                generalTestException::throwException("num1 wrong",locString);
             if(num2!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("num2 wrong",locString),shared_type);
+                generalTestException::throwException("num2 wrong",locString);
         }
     }
     //OR Test
@@ -460,16 +460,16 @@ using namespace crypto;
         
         //4 different size tests
         if((s1&s2)!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 1 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 1 wrong",locString);
         if((s2&s1)!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 2 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 2 wrong",locString);
         hld=s1;
         s1&=s2;
         s2&=hld;
         if(s1!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 3 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 3 wrong",locString);
         if(s2!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 4 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 4 wrong",locString);
         
         //Main test
         for(int i=0;i<20;++i)
@@ -489,13 +489,13 @@ using namespace crypto;
             num2&=t;
             
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("ans1 wrong",locString),shared_type);
+                generalTestException::throwException("ans1 wrong",locString);
             if(ans2!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("ans2 wrong",locString),shared_type);
+                generalTestException::throwException("ans2 wrong",locString);
             if(num1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("num1 wrong",locString),shared_type);
+                generalTestException::throwException("num1 wrong",locString);
             if(num2!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("num2 wrong",locString),shared_type);
+                generalTestException::throwException("num2 wrong",locString);
         }
     }
     //XOR Test
@@ -517,16 +517,16 @@ using namespace crypto;
         
         //4 different size tests
         if((s1^s2)!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 1 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 1 wrong",locString);
         if((s2^s1)!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 2 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 2 wrong",locString);
         hld=s1;
         s1^=s2;
         s2^=hld;
         if(s1!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 3 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 3 wrong",locString);
         if(s2!=comp)
-            throw os::smart_ptr<std::exception>(new generalTestException("size comp 4 wrong",locString),shared_type);
+            generalTestException::throwException("size comp 4 wrong",locString);
         
         //Main test
         for(int i=0;i<20;++i)
@@ -546,16 +546,16 @@ using namespace crypto;
             num2^=t;
             
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("ans1 wrong",locString),shared_type);
+                generalTestException::throwException("ans1 wrong",locString);
             if(ans2!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("ans2 wrong",locString),shared_type);
+                generalTestException::throwException("ans2 wrong",locString);
             if(num1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("num1 wrong",locString),shared_type);
+                generalTestException::throwException("num1 wrong",locString);
             if(num2!=ans3)
             {
                 testout<<num1<<std::endl;
                 testout<<num2<<" == "<<ans3<<std::endl;
-                throw os::smart_ptr<std::exception>(new generalTestException("num2 wrong",locString),shared_type);
+                generalTestException::throwException("num2 wrong",locString);
             }
         }
     }
@@ -569,17 +569,17 @@ using namespace crypto;
             number comp(t);
             
             if(t!=comp)
-                throw os::smart_ptr<std::exception>(new generalTestException("Initial copy failed",locString),shared_type);
+                generalTestException::throwException("Initial copy failed",locString);
             
             t= ~t;
             if(t==comp)
-                throw os::smart_ptr<std::exception>(new generalTestException("Negate equals to prev",locString),shared_type);
+                generalTestException::throwException("Negate equals to prev",locString);
             
             for(int i=0;i<t.size();++i)
                 comp[i]= ~comp[i];
             
             if(t!=comp)
-                throw os::smart_ptr<std::exception>(new generalTestException("Negate comparison failed",locString),shared_type);
+                generalTestException::throwException("Negate comparison failed",locString);
         }
     }
 
@@ -610,31 +610,31 @@ using namespace crypto;
     
         //Check all types
         if(!num.hasCompare())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasCompare failed",locString),shared_type);
+            generalTestException::throwException("hasCompare failed",locString);
         if(!num.hasAddition())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasAddition failed",locString),shared_type);
+            generalTestException::throwException("hasAddition failed",locString);
         if(!num.hasSubtraction())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasSubtraction failed",locString),shared_type);
+            generalTestException::throwException("hasSubtraction failed",locString);
         if(!num.hasRightShift())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasRightShift failed",locString),shared_type);
+            generalTestException::throwException("hasRightShift failed",locString);
         if(!num.hasLeftShift())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasLeftShift failed",locString),shared_type);
+            generalTestException::throwException("hasLeftShift failed",locString);
         if(!num.hasMultiplication())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasMultiplication failed",locString),shared_type);
+            generalTestException::throwException("hasMultiplication failed",locString);
         if(!num.hasDivision())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasDivision failed",locString),shared_type);
+            generalTestException::throwException("hasDivision failed",locString);
         if(!num.hasModulo())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasModulo failed",locString),shared_type);
+            generalTestException::throwException("hasModulo failed",locString);
         if(!num.hasExponentiation())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasExponentiation failed",locString),shared_type);
+            generalTestException::throwException("hasExponentiation failed",locString);
         if(!num.hasModuloExponentiation())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasModuloExponentiation failed",locString),shared_type);
+            generalTestException::throwException("hasModuloExponentiation failed",locString);
         if(!num.hasGCD())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasGCD failed",locString),shared_type);
+            generalTestException::throwException("hasGCD failed",locString);
         if(!num.hasModInverse())
-            throw os::smart_ptr<std::exception>(new generalTestException("hasModInverse failed",locString),shared_type);
+            generalTestException::throwException("hasModInverse failed",locString);
         if(!num.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
     }
     //Integer compare test
     void integerCompareTest() throw(os::smart_ptr<std::exception>)
@@ -646,7 +646,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Basic different size test
         int1.expand(4);
@@ -654,16 +654,16 @@ using namespace crypto;
         int1[3]=2;
         int2[1]=2;
         if(int1<=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Size diff: <= failed",locString),shared_type);
+            generalTestException::throwException("Size diff: <= failed",locString);
         if(int1.compare(&int2)!=1)
-            throw os::smart_ptr<std::exception>(new generalTestException("Size diff: compare == 1 failed",locString),shared_type);
+            generalTestException::throwException("Size diff: compare == 1 failed",locString);
         int1[3]=0;
         int2[0]=5;
         int2[1]=2;
         if(int1>=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Size diff: >= failed",locString),shared_type);
+            generalTestException::throwException("Size diff: >= failed",locString);
         if(int1.compare(&int2)!=-1)
-            throw os::smart_ptr<std::exception>(new generalTestException("Size diff: compare == -1 failed",locString),shared_type);
+            generalTestException::throwException("Size diff: compare == -1 failed",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -679,21 +679,21 @@ using namespace crypto;
             c_ans=nt->compare(src1.data(),src2.data(),src1.size());
             
             if(cpp_ans!=c_ans)
-                throw os::smart_ptr<std::exception>(new generalTestException("src1 comp src2 failed",locString),shared_type);
+                generalTestException::throwException("src1 comp src2 failed",locString);
             if(cpp_ans==0)
             {
                 if(!(src1==src2)||src1!=src2)
-                    throw os::smart_ptr<std::exception>(new generalTestException("Random == failure!",locString),shared_type);
+                    generalTestException::throwException("Random == failure!",locString);
             }
             else if(cpp_ans<0)
             {
                 if(!(src1<src2)||src1>=src2)
-                    throw os::smart_ptr<std::exception>(new generalTestException("Random < failure!",locString),shared_type);
+                    generalTestException::throwException("Random < failure!",locString);
             }
             else
             {
                 if(!(src1>src2)||src1<=src2)
-                    throw os::smart_ptr<std::exception>(new generalTestException("Random > failure!",locString),shared_type);
+                    generalTestException::throwException("Random > failure!",locString);
             }
         }
     }
@@ -707,7 +707,7 @@ using namespace crypto;
     
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Quickly test a variable size example
         int1.expand(4);
@@ -716,7 +716,7 @@ using namespace crypto;
         int2=int1+int2;
         int1[0]=6;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+            generalTestException::throwException("Variable size failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -737,11 +737,11 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
             if(ans1!=src1)
-                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+                generalTestException::throwException("Op= failed",locString);
         }
     }
     //Integer subtraction test
@@ -754,7 +754,7 @@ using namespace crypto;
     
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
     
         //Quickly test a variable size example
         int1.expand(4);
@@ -764,7 +764,7 @@ using namespace crypto;
         int2=int1-int2;
         int1[0]=2;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+            generalTestException::throwException("Variable size failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -786,11 +786,11 @@ using namespace crypto;
         
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
             if(ans1!=src1)
-                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+                generalTestException::throwException("Op= failed",locString);
         }
     }
     //Tests the incrementing and decrementing of an integer
@@ -803,27 +803,27 @@ using namespace crypto;
         int1++;
         int2[0]++;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Increment fail: 1",locString),shared_type);
+            generalTestException::throwException("Increment fail: 1",locString);
         
         int2[0]++;
         if(++int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Increment fail: 2",locString),shared_type);
+            generalTestException::throwException("Increment fail: 2",locString);
         
         if(int1++!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Increment fail: 3",locString),shared_type);
+            generalTestException::throwException("Increment fail: 3",locString);
         int2[0]++;
         
         int1--;
         int2[0]--;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Decrement fail: 1",locString),shared_type);
+            generalTestException::throwException("Decrement fail: 1",locString);
         
         int2[0]--;
         if(--int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Decrement fail: 2",locString),shared_type);
+            generalTestException::throwException("Decrement fail: 2",locString);
         
         if(int1--!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Decrement fail: 3",locString),shared_type);
+            generalTestException::throwException("Decrement fail: 3",locString);
         int2[0]--;
     }
     //Integer subtraction test
@@ -835,7 +835,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -845,7 +845,7 @@ using namespace crypto;
             integer ans1;
             integer ans2;
             integer ans3;
-            uint16_t rshift=rand()%128;
+            unsigned rshift=rand()%128;
             
             generateIntegers(src1, src2);
             ans1=src1;
@@ -858,9 +858,9 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
         }
     }
     //Integer left shift test
@@ -872,7 +872,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -882,7 +882,7 @@ using namespace crypto;
             integer ans1;
             integer ans2;
             integer ans3;
-            uint16_t rshift=rand()%128;
+            unsigned rshift=rand()%128;
             
             generateIntegers(src1, src2);
             ans1=src1;
@@ -895,9 +895,9 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
         }
     }
     //Integer multiplicaiton test
@@ -910,7 +910,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Quickly test a variable size example
         int1.expand(4);
@@ -919,7 +919,7 @@ using namespace crypto;
         int2=int1*int2;
         int1[3]=8;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+            generalTestException::throwException("Variable size failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -940,11 +940,11 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
             if(ans1!=src1)
-                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+                generalTestException::throwException("Op= failed",locString);
         }
     }
     //Integer division test
@@ -957,7 +957,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Quickly test a variable size example
         int1.expand(4);
@@ -966,7 +966,7 @@ using namespace crypto;
         int2=int1/int2;
         int1[3]=3;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+            generalTestException::throwException("Variable size failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -987,11 +987,11 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
             if(ans1!=src1)
-                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+                generalTestException::throwException("Op= failed",locString);
         }
     }
     //Integer modulo test
@@ -1004,7 +1004,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Quickly test a variable size example
         int1.expand(4);
@@ -1015,7 +1015,7 @@ using namespace crypto;
         int1[3]=0;
         int1[0]=3;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+            generalTestException::throwException("Variable size failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -1036,11 +1036,11 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
             if(ans1!=src1)
-                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+                generalTestException::throwException("Op= failed",locString);
         }
     }
     //Integer exponentiation test
@@ -1053,7 +1053,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Quickly test a variable size example
         int1.expand(4);
@@ -1064,7 +1064,7 @@ using namespace crypto;
         int1[1]=0;
         int1[3]=27;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+            generalTestException::throwException("Variable size failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -1087,11 +1087,11 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
             if(ans1!=src1)
-                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+                generalTestException::throwException("Op= failed",locString);
         }
     }
     //Integer mod-exponentiation test
@@ -1105,7 +1105,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Quickly test a variable size example
         int1.expand(4);
@@ -1117,7 +1117,7 @@ using namespace crypto;
         int1[1]=0;
         int1[0]=1;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+            generalTestException::throwException("Variable size failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -1140,11 +1140,11 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
             if(ans1!=src1)
-                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+                generalTestException::throwException("Op= failed",locString);
         }
     }
     //Integer gcd test
@@ -1157,7 +1157,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Quickly test a variable size example
         int1.expand(4);
@@ -1167,7 +1167,7 @@ using namespace crypto;
         int1[3]=0;
         int1[0]=2;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+            generalTestException::throwException("Variable size failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -1188,11 +1188,11 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
             if(ans1!=src1)
-                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+                generalTestException::throwException("Op= failed",locString);
         }
     }
     //Integer modInver test
@@ -1205,7 +1205,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Quickly test a variable size example
         int1.expand(4);
@@ -1216,7 +1216,7 @@ using namespace crypto;
         int1[3]=0;
         int1[0]=13;
         if(int1!=int2)
-            throw os::smart_ptr<std::exception>(new generalTestException("Variable size failed!",locString),shared_type);
+            generalTestException::throwException("Variable size failed!",locString);
         
         //Run compare tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -1237,11 +1237,11 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
             if(ans1!=ans3)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO operator failed!",locString),shared_type);
+                generalTestException::throwException("OO operator failed!",locString);
             if(ans1!=src1)
-                throw os::smart_ptr<std::exception>(new generalTestException("Op= failed",locString),shared_type);
+                generalTestException::throwException("Op= failed",locString);
         }
     }
     //Prime test
@@ -1253,7 +1253,7 @@ using namespace crypto;
         
         //Check if the integer target is valid
         if(!int1.checkType())
-            throw os::smart_ptr<std::exception>(new generalTestException("Integer type check failed!",locString),shared_type);
+            generalTestException::throwException("Integer type check failed!",locString);
         
         //Run prime tests, 20 iterations
         for(int i=0;i<20;++i)
@@ -1270,7 +1270,7 @@ using namespace crypto;
             
             //ans1 is the ref value
             if(ans1!=ans2)
-                throw os::smart_ptr<std::exception>(new generalTestException("OO function failed!",locString),shared_type);
+                generalTestException::throwException("OO function failed!",locString);
         }
     }
 

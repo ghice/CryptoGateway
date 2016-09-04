@@ -1,7 +1,7 @@
 /**
  * @file   cryptoNumber.h
  * @author Jonathan Bedard
- * @date   6/7/2016
+ * @date   8/28/2016
  * @brief  Defines basic number types
  * @bug No known bugs.
  *
@@ -16,6 +16,7 @@
 #ifndef CRYPTO_NUMBER_H
 #define CRYPTO_NUMBER_H
 
+#include "Datastructures/Datastructures.h"
 #include "hexConversion.h"
 #include "cryptoConstants.h"
 #include "cryptoCHeaders.h"
@@ -485,6 +486,13 @@ namespace crypto
 		 * @return crypto::number::_numDef->name
 		 */
         inline std::string name() const {return std::string(_numDef->name);}
+        
+        /** @brief Cast to a size_t for hashing
+         * ALlows data structures to cast this
+         * object to a size_t for hash tables.
+         * @return void
+         */
+        inline operator size_t() const {return os::hashData((const char*)_data, sizeof(uint32_t)*_size);}
     };
     
     /** @brief Integer number definition
@@ -589,12 +597,12 @@ namespace crypto
 		 * @param [in] n Number of bits to shift
 		 * @return this >> n
 		 */
-        integer operator>>(uint16_t n) const;
+        integer operator>>(unsigned n) const;
 		/** @brief Left shift operator
 		 * @param [in] n Number of bits to shift
 		 * @return this << n
 		 */
-        integer operator<<(uint16_t n) const;
+        integer operator<<(unsigned n) const;
         
 		/** @brief Integer multiplication operator
 		 * @param [in] n Integer to be multiplied
