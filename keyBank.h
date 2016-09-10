@@ -171,12 +171,12 @@ namespace crypto {
 		 *
 		 * @return crypto::nodeGroup::nameList.size()
 		 */
-		unsigned int numberOfNames() const {return nameList.size();}
+		size_t numberOfNames() const {return nameList.size();}
 		/** @brief Returns the number of keys
 		 *
 		 * @return crypto::nodeGroup::keyList.size()
 		 */
-		unsigned int numberOfKeys() const {return keyList.size();}
+		size_t numberOfKeys() const {return keyList.size();}
 
 		/** @brief Returns names sorted by timestamp
 		 * @param [out] size Size of array to be returned

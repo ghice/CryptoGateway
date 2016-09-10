@@ -88,7 +88,7 @@ extern "C" {
         uint64_t borrow = 0;
         for(int cnt=0;cnt<length;cnt++)
         {
-            uint32_t t = src1[cnt] - (src2[cnt]+borrow);
+            uint32_t t = src1[cnt] - (src2[cnt]+(uint32_t)borrow);
             if((uint64_t)src1[cnt]>=(uint64_t)src2[cnt]+borrow)
                 borrow = 0;
             else
@@ -566,7 +566,7 @@ extern "C" {
 		int cnt=0;
 
 		//Preform the test
-		srand(time(NULL));
+		srand((unsigned)time(NULL));
 		while(cnt<test_iteration && algoStatus)
 		{
 			if(cnt==0) test[0]=2;

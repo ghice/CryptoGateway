@@ -289,7 +289,7 @@ namespace crypto {
 	os::smart_ptr<os::smart_ptr<nodeNameReference> > nodeGroup::namesByTimestamp(unsigned int& size)
 	{
 		sortingLock.lock();
-		size=nameList.size();
+		size=(unsigned)nameList.size();
 		os::smart_ptr<os::smart_ptr<nodeNameReference> > ret=sortedNames;
 		sortingLock.unlock();
 		return ret;
@@ -298,7 +298,7 @@ namespace crypto {
 	os::smart_ptr<os::smart_ptr<nodeKeyReference> > nodeGroup::keysByTimestamp(unsigned int& size)
 	{
 		sortingLock.lock();
-		size=keyList.size();
+		size=(unsigned)keyList.size();
 		os::smart_ptr<os::smart_ptr<nodeKeyReference> > ret=sortedKeys;
 		sortingLock.unlock();
 		return ret;

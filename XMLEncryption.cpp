@@ -73,7 +73,7 @@ namespace crypto {
 		//Number of children
 		if(head->getChildren()->size()>0)
 		{
-			data=head->getChildren()->size();
+			data=(uint16_t)head->getChildren()->size();
 			data=os::to_comp_mode(data);
 			memcpy(headerData+2,&data,2);
 		}

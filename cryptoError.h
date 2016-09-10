@@ -916,11 +916,11 @@ namespace crypto {
 		/** @brief Return length of log
 		 * @return crypto::errorSender::_logLength
 		 */
-		unsigned int logLength() const {return _logLength;}
+		size_t logLength() const {return _logLength;}
 		/** @brief Return number of errors in log
 		 * @return crypto::errorSender::errorLog.size()
 		 */
-		unsigned int numberErrors() const {return errorLog.size();}
+		size_t numberErrors() const {return errorLog.size();}
         
         #undef CURRENT_CLASS
         #define CURRENT_CLASS errorSender
