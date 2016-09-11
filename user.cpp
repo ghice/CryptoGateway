@@ -88,7 +88,10 @@ namespace crypto {
         //Load files
         
 		//Meta data read
-        os::smart_ptr<os::XMLNode> readTree(new os::XMLNode(os::XMLNode::read(_saveDir+"/"+_username+"/"+META_FILE)),os::shared_type);
+        os::smart_ptr<os::XMLNode> readTree;
+        try {
+            readTree = os::smart_ptr<os::XMLNode>(new os::XMLNode(os::XMLNode::read(_saveDir+"/"+_username+"/"+META_FILE)),os::shared_type);
+        } catch (...) {}
         os::pointerUnsortedList<os::XMLNode> xmlList;
 		
 		//Only relevant if the file existed
