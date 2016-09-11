@@ -1,7 +1,7 @@
 /**
  * @file   cryptoNumber.cpp
  * @author Jonathan Bedard
- * @date   8/28/2016
+ * @date   9/10/2016
  * @brief  Implements basic number types
  * @bug No known bugs.
  *
@@ -378,8 +378,7 @@ using namespace crypto;
         //Check if our compare function is even defined
         if(!hasCompare())
         {
-            cryptoerr<<"Called compare when no compare function exists!"<<std::endl;
-            return 0;
+            return ((long) this) - ((long) n2);
         }
         
         //See if sizes need to be rectified
