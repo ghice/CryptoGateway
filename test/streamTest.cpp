@@ -1,7 +1,7 @@
 /**
  * @file   test/streamTest.cpp
  * @author Jonathan Bedard
- * @date   9/4/2016
+ * @date   9/10/2016
  * @brief  Implementation for stream tests
  * @bug No known bugs.
  *
@@ -26,7 +26,7 @@ using namespace test;
  ================================================================*/
 
 	 //Basic xor test
-    void RC4NULLTest() throw(os::smart_ptr<std::exception>)
+    void RC4NULLTest()
     {
 		std::string locString = "streamTest.cpp, RC4NULLTest()";
 		uint8_t val[16];

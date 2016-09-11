@@ -88,13 +88,13 @@ namespace crypto {
         //Load files
         
 		//Meta data read
-		os::smartXMLNode readTree=os::XML_Input(_saveDir+"/"+_username+"/"+META_FILE);
-		os::smartXMLNodeList xmlList;
+        os::smart_ptr<os::XMLNode> readTree(new os::XMLNode(os::XMLNode::read(_saveDir+"/"+_username+"/"+META_FILE)),os::shared_type);
+        os::pointerUnsortedList<os::XMLNode> xmlList;
 		
 		//Only relevant if the file existed
 		if(readTree)
 		{
-			if(readTree->getID()!="userData")
+			if(readTree->id()!="userData")
 			{
 				logError(errorPointer(new fileFormatError(),os::shared_type));
 				return;
@@ -102,40 +102,40 @@ namespace crypto {
 
 			//Stream package
 			{
-				xmlList=readTree->findElement("streamPackage");
-				if(xmlList->size()!=1)
+				xmlList=readTree->searchList("streamPackage");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				os::smartXMLNode stmpckg=&xmlList->first();
+				os::smart_ptr<os::XMLNode> stmpckg=&xmlList.first();
 
 				//Stream algorithm
-				xmlList=stmpckg->findElement("stream");
-				if(xmlList->size()!=1)
+				xmlList=stmpckg->searchList("stream");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				std::string strStreamAlgo=xmlList->first()->getData();
+				std::string strStreamAlgo=xmlList.first()->data();
 
 				//Hash
-				xmlList=stmpckg->findElement("hash");
-				if(xmlList->size()!=1)
+				xmlList=stmpckg->searchList("hash");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				os::smartXMLNode hshNode=&xmlList->first();
-				xmlList=hshNode->findElement("algo");
-				if(xmlList->size()!=1)
+				os::smart_ptr<os::XMLNode> hshNode=&xmlList.first();
+				xmlList=hshNode->searchList("algo");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				std::string strHashAlgo=xmlList->first()->getData();
-				xmlList=hshNode->findElement("size");
-				if(xmlList->size()!=1)
+				std::string strHashAlgo=xmlList.first()->data();
+				xmlList=hshNode->searchList("size");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
@@ -143,7 +143,7 @@ namespace crypto {
 				int intHashSize;
 				try
 				{
-					intHashSize=std::stoi(xmlList->first()->getData())/8;
+					intHashSize=std::stoi(xmlList.first()->data())/8;
 				}
 				catch(...)
 				{
@@ -161,35 +161,35 @@ namespace crypto {
 
 			//Check name/password
 			{
-				xmlList=readTree->findElement("user");
-				if(xmlList->size()!=1)
+				xmlList=readTree->searchList("user");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				os::smartXMLNode usrDat=&xmlList->first();
+				os::smart_ptr<os::XMLNode> usrDat=&xmlList.first();
 
 				//Check username
-				xmlList=usrDat->findElement("name");
-				if(xmlList->size()!=1)
+				xmlList=usrDat->searchList("name");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				if(xmlList->first()->getData()!=_username)
+				if(xmlList.first()->data()!=_username)
 				{
 					logError(errorPointer(new customError("Username Mis-match","Constructed username and saved username do not match"),os::shared_type));
 					return;
 				}
 
 				//Check password
-				xmlList=usrDat->findElement("password");
-				if(xmlList->size()!=1)
+				xmlList=usrDat->searchList("password");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				if(xmlList->first()->getData()=="NULL")
+				if(xmlList.first()->data()=="NULL")
 				{
 					if(_password!=NULL)
 					{
@@ -205,7 +205,7 @@ namespace crypto {
 						return;
 					}
 					hash hshFile=_streamPackage->hashEmpty();
-					hshFile.fromString(xmlList->first()->getData());
+					hshFile.fromString(xmlList.first()->data());
 					hash hshPass=_streamPackage->hashData(_password,_passwordLength);
 					if(hshFile!=hshPass)
 					{
@@ -218,55 +218,55 @@ namespace crypto {
 			//Pull public keys
 			{
 				//Super-holder first
-				xmlList=readTree->findElement("publicKeys");
-				if(xmlList->size()!=1)
+				xmlList=readTree->searchList("publicKeys");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				os::smartXMLNode pubKeys=&xmlList->first();
+				os::smart_ptr<os::XMLNode> pubKeys=&xmlList.first();
 
 				//List of nodes
-				xmlList=pubKeys->findElement("list");
-				if(xmlList->size()!=1)
+				xmlList=pubKeys->searchList("list");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				os::smartXMLNode nodeList=&xmlList->first();
-				xmlList=nodeList->findElement("node");
+				os::smart_ptr<os::XMLNode> nodeList=&xmlList.first();
+				xmlList=nodeList->searchList("node");
 
 				//Seed password
 				os::smart_ptr<unsigned char> streamArr;
 				if(_password!=NULL && _passwordLength>0)
 				{
 					os::smart_ptr<streamCipher> strm = _streamPackage->buildStream(_password,_passwordLength);
-					streamArr=os::smart_ptr<unsigned char>(new unsigned char[BLOCK_SIZE*xmlList->size()],os::shared_type_array);
-					for(unsigned int i=0;i<BLOCK_SIZE*xmlList->size();++i)
+					streamArr=os::smart_ptr<unsigned char>(new unsigned char[BLOCK_SIZE*xmlList.size()],os::shared_type_array);
+					for(unsigned int i=0;i<BLOCK_SIZE*xmlList.size();++i)
 						streamArr[i]=strm->getNext();
 				}
 
 				//Iterate through all nodes
 				unsigned int trc=0;
-				for(auto it=xmlList->first();it;++it)
+				for(auto it=xmlList.first();it;++it)
 				{
 					std::string publicKeyName;
 					std::string algoNameTemp;
-					os::smartXMLNodeList tempList=it->findElement("algo");
-					if(tempList->size()!=1)
+					auto tempList=it->searchList("algo");
+					if(tempList.size()!=1)
 					{
 						logError(errorPointer(new fileFormatError(),os::shared_type));
 						return;
 					}
-					algoNameTemp=tempList->first()->getData();
+					algoNameTemp=tempList.first()->data();
 					publicKeyName=algoNameTemp;
-					tempList=it->findElement("size");
-					if(tempList->size()!=1)
+					tempList=it->searchList("size");
+					if(tempList.size()!=1)
 					{
 						logError(errorPointer(new fileFormatError(),os::shared_type));
 						return;
 					}
-					publicKeyName+="_"+tempList->first()->getData();
+					publicKeyName+="_"+tempList.first()->data();
 					publicKeyName+="_"+std::string(PUBLIC_KEY_FILE);
 					
 					//Load new key
@@ -302,26 +302,26 @@ namespace crypto {
 				//Default public key
 				if(_publicKeys.size()>0)
 				{
-					xmlList=pubKeys->findElement("default");
-					if(xmlList->size()!=1)
+					xmlList=pubKeys->searchList("default");
+					if(xmlList.size()!=1)
 					{
 						logError(errorPointer(new fileFormatError(),os::shared_type));
 						return;
 					}
-					os::smartXMLNode defNode=&xmlList->first();
+					os::smart_ptr<os::XMLNode> defNode=&xmlList.first();
 
 					//Algorithm
-					xmlList=defNode->findElement("algo");
-					if(xmlList->size()!=1)
+					xmlList=defNode->searchList("algo");
+					if(xmlList.size()!=1)
 					{
 						logError(errorPointer(new fileFormatError(),os::shared_type));
 						return;
 					}
-					std::string defStr=xmlList->first()->getData();
+					std::string defStr=xmlList.first()->data();
 
 					//Algorithm
-					xmlList=defNode->findElement("size");
-					if(xmlList->size()!=1)
+					xmlList=defNode->searchList("size");
+					if(xmlList.size()!=1)
 					{
 						logError(errorPointer(new fileFormatError(),os::shared_type));
 						return;
@@ -329,7 +329,7 @@ namespace crypto {
 					unsigned int defSize;
 					try
 					{
-						defSize=std::stoi(xmlList->first()->getData())/32;
+						defSize=std::stoi(xmlList.first()->data())/32;
 						os::smart_ptr<publicKeyPackageFrame> pkFrame=publicKeyTypeBank::singleton()->findPublicKey(defStr);
 						pkFrame->setKeySize(defSize);
 						os::smart_ptr<publicKey> pk=findPublicKey(pkFrame);
@@ -348,17 +348,17 @@ namespace crypto {
 			//Build settings (can only do this if public keys are defined
 			if(_publicKeys.size()>0)
 			{
-				xmlList=readTree->findElement("gatewaySettings");
-				if(xmlList->size()!=1)
+				xmlList=readTree->searchList("gatewaySettings");
+				if(xmlList.size()!=1)
 				{
 					logError(errorPointer(new fileFormatError(),os::shared_type));
 					return;
 				}
-				os::smartXMLNode gateNode=&xmlList->first();
-				xmlList=gateNode->findElement("node");
-				for(auto it=xmlList->first();it;++it)
+				os::smart_ptr<os::XMLNode> gateNode=&xmlList.first();
+				xmlList=gateNode->searchList("node");
+				for(auto it=xmlList.first();it;++it)
 				{
-					os::smart_ptr<gatewaySettings> gtws=insertSettings(it->getData());
+					os::smart_ptr<gatewaySettings> gtws=insertSettings(it->data());
 					if(gtws) gtws->load();
 				}
 			}
@@ -378,85 +378,85 @@ namespace crypto {
 		if(_password!=NULL) delete [] _password;
 	}
     //Generate an XML tree for saving
-    os::smartXMLNode user::generateSaveTree()
+    os::smart_ptr<os::XMLNode> user::generateSaveTree()
     {
-		os::smartXMLNode ret(new os::XML_Node("userData"),os::shared_type);
-        os::smartXMLNode lv1(new os::XML_Node("streamPackage"),os::shared_type);
+		os::smart_ptr<os::XMLNode> ret(new os::XMLNode("userData"),os::shared_type);
+        os::smart_ptr<os::XMLNode> lv1(new os::XMLNode("streamPackage"),os::shared_type);
         
 		//Stream
-		os::smartXMLNode lv2(new os::XML_Node("stream"),os::shared_type);
+		os::smart_ptr<os::XMLNode> lv2(new os::XMLNode("stream"),os::shared_type);
 		lv2->setData(_streamPackage->streamAlgorithmName());
-        lv1->addElement(lv2);
+        lv1->addChild(*lv2);
 
 		//Hash
-		lv2=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
-		os::smartXMLNode lv3(new os::XML_Node("algo"),os::shared_type);
+		lv2=os::smart_ptr<os::XMLNode>(new os::XMLNode("hash"),os::shared_type);
+		os::smart_ptr<os::XMLNode> lv3(new os::XMLNode("algo"),os::shared_type);
 		lv3->setData(_streamPackage->hashAlgorithmName());
-		lv2->addElement(lv3);
-		lv3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+		lv2->addChild(*lv3);
+		lv3=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 		lv3->setData(std::to_string((long long unsigned int)_streamPackage->hashSize()*8));
-		lv2->addElement(lv3);
+		lv2->addChild(*lv3);
 
-        lv1->addElement(lv2);
-		ret->addElement(lv1);
+        lv1->addChild(*lv2);
+		ret->addChild(*lv1);
 
 		//User
-		lv1=os::smartXMLNode(new os::XML_Node("user"),os::shared_type);
+		lv1=os::smart_ptr<os::XMLNode>(new os::XMLNode("user"),os::shared_type);
 
         //Name
-        lv2=os::smartXMLNode(new os::XML_Node("name"),os::shared_type);
+        lv2=os::smart_ptr<os::XMLNode>(new os::XMLNode("name"),os::shared_type);
         lv2->setData(_username);
-        lv1->addElement(lv2);
+        lv1->addChild(*lv2);
         
         //Password hash
-        lv2=os::smartXMLNode(new os::XML_Node("password"),os::shared_type);
+        lv2=os::smart_ptr<os::XMLNode>(new os::XMLNode("password"),os::shared_type);
         if(_password==NULL) lv2->setData("NULL");
         else
         {
             hash hsh=_streamPackage->hashData(_password, _passwordLength);
             lv2->setData(hsh.toString());
         }
-        lv1->addElement(lv2);
-        ret->addElement(lv1);
+        lv1->addChild(*lv2);
+        ret->addChild(*lv1);
 
 		//Public keys
-		lv1=os::smartXMLNode(new os::XML_Node("publicKeys"),os::shared_type);
-		lv2=os::smartXMLNode(new os::XML_Node("default"),os::shared_type);
-		lv3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+		lv1=os::smart_ptr<os::XMLNode>(new os::XMLNode("publicKeys"),os::shared_type);
+		lv2=os::smart_ptr<os::XMLNode>(new os::XMLNode("default"),os::shared_type);
+		lv3=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 		if(_defaultKey==NULL) lv3->setData("NULL");
 		else lv3->setData(_defaultKey->algorithmName());
-		lv2->addElement(lv3);
-		lv3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+		lv2->addChild(*lv3);
+		lv3=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 		if(_defaultKey==NULL) lv3->setData("NULL");
 		else lv3->setData(std::to_string((long long unsigned int)_defaultKey->size()*32));
-		lv2->addElement(lv3);
+		lv2->addChild(*lv3);
 
-		lv1->addElement(lv2);
-		lv2=os::smartXMLNode(new os::XML_Node("list"),os::shared_type);
+		lv1->addChild(*lv2);
+		lv2=os::smart_ptr<os::XMLNode>(new os::XMLNode("list"),os::shared_type);
 		for(auto it=_publicKeys.first();it;++it)
 		{
-			lv3=os::smartXMLNode(new os::XML_Node("node"),os::shared_type);
-			os::smartXMLNode lv4(new os::XML_Node("algo"),os::shared_type);
+			lv3=os::smart_ptr<os::XMLNode>(new os::XMLNode("node"),os::shared_type);
+			os::smart_ptr<os::XMLNode> lv4(new os::XMLNode("algo"),os::shared_type);
 			lv4->setData(it->algorithmName());
-			lv3->addElement(lv4);
-			lv4=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+			lv3->addChild(*lv4);
+			lv4=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 			lv4->setData(std::to_string((long long unsigned int)it->size()*32));
-			lv3->addElement(lv4);
-			lv2->addElement(lv3);
+			lv3->addChild(*lv4);
+			lv2->addChild(*lv3);
 		}
-		lv1->addElement(lv2);
+		lv1->addChild(*lv2);
 
-		ret->addElement(lv1);
+		ret->addChild(*lv1);
 
 		//List of gateway settings
-		lv1=os::smartXMLNode(new os::XML_Node("gatewaySettings"),os::shared_type);
+		lv1=os::smart_ptr<os::XMLNode>(new os::XMLNode("gatewaySettings"),os::shared_type);
 		for(auto it=_settings.first();it;++it)
 		{
-			lv2=os::smartXMLNode(new os::XML_Node("node"),os::shared_type);
+			lv2=os::smart_ptr<os::XMLNode>(new os::XMLNode("node"),os::shared_type);
 			lv2->setData(it->groupID());
-			lv1->addElement(lv2);
+			lv1->addChild(*lv2);
 		}
-		ret->addElement(lv1);
+		ret->addChild(*lv1);
 
         return ret;
     }
@@ -474,8 +474,8 @@ namespace crypto {
 		//Save self first
 		if(_wasConstructed)
 		{
-			os::smartXMLNode svTree=generateSaveTree();
-			os::XML_Output(_saveDir+"/"+_username+"/"+META_FILE, svTree);
+			os::smart_ptr<os::XMLNode> svTree=generateSaveTree();
+            os::XMLNode::write(_saveDir+"/"+_username+"/"+META_FILE, *svTree);
 		}
         
         //Save all listeners

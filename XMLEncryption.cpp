@@ -1,7 +1,7 @@
 /**
  * @file	XMLEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	8/26/2016
+ * @date   	9/10/2016
  * @brief	Implements encrypted XML functions
  * @bug	None
  *
@@ -24,17 +24,19 @@
 namespace crypto {
 
     //Generate arguments list
-	static std::vector<std::string> generateArgumentList(os::smartXMLNode head)
+    static os::objectVector<std::string> generateArgumentList(os::smart_ptr<os::XMLNode> head)
 	{
-		std::vector<std::string> ret;
+		os::objectVector<std::string> ret;
 		unsigned int trc1=0;
 		unsigned int trc2=0;
 
-		ret.push_back(head->getID());
-		std::vector<std::string> temp;
-		for(auto it=head->getChildren()->first();it;++it)
+		ret.insert(head->id());
+        if(!head->hasChildren())
+            return ret;
+        
+		for(auto it=head->first();it;++it)
 		{
-			temp=generateArgumentList(&it);
+			os::objectVector<std::string> temp(generateArgumentList(&it));
 			for(trc1=0;trc1<temp.size();trc1++)
 			{
 				bool found=false;
@@ -43,14 +45,13 @@ namespace crypto {
 					if(ret[trc2]==temp[trc1])
 						found=true;
 				}
-				if(!found) ret.push_back(temp[trc1]);
+				if(!found) ret.insert(temp[trc1]);
 			}
 		}
-
 		return ret;
 	}
     //Given an XML node, a stream encryptor, an argument vector and a file, print it
-	static void recursiveXMLPrinting(os::smartXMLNode head,os::smart_ptr<streamCipher> strm,std::vector<std::string> args,std::ofstream& ofs)
+    static void recursiveXMLPrinting(os::smart_ptr<os::XMLNode> head,os::smart_ptr<streamCipher> strm,os::objectVector<std::string>& args,std::ofstream& ofs)
 	{
 		//Throw -1 if error
 		if(!head) throw errorPointer(new NULLDataError(),os::shared_type);
@@ -64,16 +65,16 @@ namespace crypto {
 		//Index
 		for(unsigned int i=0;i<args.size()&&data>args.size();++i)
 		{
-			if(args[i]==head->getID())
+			if(args[i]==head->id())
 				data=i;
 		}
 		data=os::to_comp_mode(data);
 		memcpy(headerData,&data,2);
 
 		//Number of children
-		if(head->getChildren()->size()>0)
+		if(head->hasChildren())
 		{
-			data=(uint16_t)head->getChildren()->size();
+			data=(uint16_t)head->children().size();
 			data=os::to_comp_mode(data);
 			memcpy(headerData+2,&data,2);
 		}
@@ -81,10 +82,8 @@ namespace crypto {
 		else
 		{
 			data=0;
-			if(head->getData()!="")
-				data=1;
-			else if(head->getDataList().size()>0)
-				data=(uint16_t)head->getDataList().size();
+			if(head->hasData())
+				data=head->dataList().size();
 			data=os::to_comp_mode(data);
 			memcpy(headerData+4,&data,2);
 		}
@@ -94,44 +93,44 @@ namespace crypto {
 		ofs.write((char*)headerData,6);
 
 		//Output children
-		if(head->getChildren()->size()>0)
+		if(head->hasChildren())
 		{
-			for(auto trc=head->getChildren()->first();trc;++trc)
+			for(auto trc=head->first();trc;++trc)
 				recursiveXMLPrinting(&trc,strm,args,ofs);
 		}
 		//Output data
 		else
 		{
 			os::smart_ptr<unsigned char> dataptr;
-			if(head->getData()!="")
+			if(head->dataList().size()==1)
 			{
-				dataptr=os::smart_ptr<unsigned char>(new unsigned char[head->getData().size()+2],os::shared_type_array);
-				data=(uint16_t)head->getData().size();
+				dataptr=os::smart_ptr<unsigned char>(new unsigned char[head->data().size()+2],os::shared_type_array);
+				data=(uint16_t)head->data().size();
 				data=os::to_comp_mode(data);
 				memcpy(dataptr.get(),&data,2);
-				memcpy(dataptr.get()+2,head->getData().c_str(),head->getData().size());
-				for(unsigned int en=0;en<head->getData().size()+2;en++)
+				memcpy(dataptr.get()+2,head->data().c_str(),head->data().size());
+				for(unsigned int en=0;en<head->data().size()+2;en++)
 					dataptr[en]=dataptr[en]^strm->getNext();
-				ofs.write((char*)dataptr.get(),head->getData().size()+2);
+				ofs.write((char*)dataptr.get(),head->data().size()+2);
 			}
 			else
 			{
-				for(unsigned int i=0;i<head->getDataList().size();++i)
+				for(unsigned int i=0;i<head->dataList().size();++i)
 				{
-					dataptr=os::smart_ptr<unsigned char>(new unsigned char[head->getDataList()[i].size()+2],os::shared_type_array);
-					data=(uint16_t)head->getDataList()[i].size();
+					dataptr=os::smart_ptr<unsigned char>(new unsigned char[head->dataList()[i].size()+2],os::shared_type_array);
+					data=(uint16_t)head->dataList()[i].size();
 					data=os::to_comp_mode(data);
 					memcpy(dataptr.get(),&data,2);
-					memcpy(dataptr.get()+2,head->getDataList()[i].c_str(),head->getDataList()[i].size());
-					for(unsigned int en=0;en<head->getDataList()[i].size()+2;en++)
+					memcpy(dataptr.get()+2,head->dataList()[i].c_str(),head->dataList()[i].size());
+					for(unsigned int en=0;en<head->dataList()[i].size()+2;en++)
 						dataptr[en]=dataptr[en]^strm->getNext();
-					ofs.write((char*)dataptr.get(),head->getDataList()[i].size()+2);
+					ofs.write((char*)dataptr.get(),head->dataList()[i].size()+2);
 				}
 			}
 		}
 	}
 	//Build an XML tree from an EXML file
-	static os::smartXMLNode recursiveXMLBuilding(os::smart_ptr<streamCipher> strm,std::vector<std::string> args,std::ifstream& ifs)
+    static os::smart_ptr<os::XMLNode> recursiveXMLBuilding(os::smart_ptr<streamCipher> strm,const os::objectVector<std::string>& args,std::ifstream& ifs)
 	{
 		if(!strm)
 			throw errorPointer(new NULLDataError(),os::shared_type);
@@ -150,7 +149,7 @@ namespace crypto {
 		data=os::from_comp_mode(data);
 		if(data>=args.size())
 			throw errorPointer(new customError("ID Index out-of-bound","Expected index less than "+std::to_string((long long unsigned int)args.size())+" but found index "+std::to_string((long long unsigned int)data)),os::shared_type);
-		os::smartXMLNode ret(new os::XML_Node(args[data]),os::shared_type);
+		os::smart_ptr<os::XMLNode> ret(new os::XMLNode(args[data]),os::shared_type);
 
 		//Number of children
 		memcpy(&data,headerData+2,2);
@@ -161,7 +160,7 @@ namespace crypto {
 			{
 				if(!ifs.good())
 					throw errorPointer(new actionOnFileError(),os::shared_type);
-				ret->addElement(recursiveXMLBuilding(strm,args,ifs));
+				ret->addChild(*recursiveXMLBuilding(strm,args,ifs));
 			}
 			return ret;
 		}
@@ -169,7 +168,7 @@ namespace crypto {
 		//Amount of data
 		memcpy(&data,headerData+4,2);
 		data=os::from_comp_mode(data);
-		std::vector<std::string> pData;
+        os::objectVector<std::string> pData;
 		for(unsigned int i=0;i<data;++i)
 		{
 			if(!ifs.good())
@@ -187,25 +186,21 @@ namespace crypto {
 			for(unsigned s=0;s<strLen;s++)
 				str[s]=str[s]^strm->getNext();
 			str[strLen]='\0';
-			pData.push_back(std::string(str));
+			pData.insert(std::string(str));
 			delete [] str;
 		}
 		if(pData.size()==1) ret->setData(pData[0]);
-		else
-		{
-			for(unsigned int i=0;i<pData.size();++i)
-				ret->getDataList().push_back(pData[i]);
-		}
+		else ret->addData(pData);
 
 		return ret;
 	}
 
 	//Raw password output
-    bool EXML_Output(std::string path, os::smartXMLNode head, std::string password, os::smart_ptr<streamPackageFrame> spf)
+    bool EXML_Output(std::string path, os::smart_ptr<os::XMLNode> head, std::string password, os::smart_ptr<streamPackageFrame> spf)
 	{
 		return EXML_Output(path,head,(unsigned char*) password.c_str(),password.length(),spf);
 	}
-    bool EXML_Output(std::string path, os::smartXMLNode head, unsigned char* symKey,size_t passwordLength, os::smart_ptr<streamPackageFrame> spf)
+    bool EXML_Output(std::string path, os::smart_ptr<os::XMLNode> head, unsigned char* symKey,size_t passwordLength, os::smart_ptr<streamPackageFrame> spf)
 	{
 		try
 		{
@@ -226,51 +221,51 @@ namespace crypto {
         
 			//Output header
 			fileout<<"<?exml version=\"1.0\" encoding=\"UTF-8\"?>"<<std::endl;
-			os::smartXMLNode encryHead(new os::XML_Node("header"),os::shared_type);
+			os::smart_ptr<os::XMLNode> encryHead(new os::XMLNode("header"),os::shared_type);
         
 			//Public key type
-			os::smartXMLNode trc1(new os::XML_Node("public_key"),os::shared_type);
-			os::smartXMLNode trc2;
+			os::smart_ptr<os::XMLNode> trc1(new os::XMLNode("public_key"),os::shared_type);
+			os::smart_ptr<os::XMLNode> trc2;
 			trc1->setData("none");
-			encryHead->addElement(trc1);
+			encryHead->addChild(*trc1);
         
 			//Stream
-			trc1=os::smartXMLNode(new os::XML_Node("stream"),os::shared_type);
-			trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("stream"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 			trc2->setData(spf->streamAlgorithmName());
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
         
 			//Hash
-			trc1=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
-			trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("hash"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 			trc2->setData(spf->hashAlgorithmName());
-			trc1->addElement(trc2);
-			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+			trc1->addChild(*trc2);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 			trc2->setData(std::to_string((long long unsigned int)spf->hashSize()*8));
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
         
 			//Key
-			trc1=os::smartXMLNode(new os::XML_Node("key"),os::shared_type);
-			trc2=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("key"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("hash"),os::shared_type);
 			hash hsh=spf->hashData(symKey,passwordLength);
 			trc2->setData(hsh.toString());
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
 
 			//Data list
-			std::vector<std::string> argList=generateArgumentList(head);
-			trc1=os::smartXMLNode(new os::XML_Node("argList"),os::shared_type);
+            os::objectVector<std::string> argList(generateArgumentList(head));
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("argList"),os::shared_type);
 			for(unsigned int i=0;i<argList.size();++i)
-				trc1->getDataList().push_back(argList[i]);
-			encryHead->addElement(trc1);
+				trc1->addData(argList[i]);
+			encryHead->addChild(*trc1);
 
-			os::xml::writeNode(fileout,encryHead,0);
+            os::XMLNode::writeNode(fileout,*encryHead);
 
 			os::smart_ptr<streamCipher> strm=spf->buildStream(symKey,passwordLength);
 			if(!strm) throw errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type);
-			fileout<<'>';
+			fileout<<"<data>";
 			recursiveXMLPrinting(head,strm,argList,fileout);
 		}
 		catch(errorPointer e)
@@ -282,7 +277,7 @@ namespace crypto {
         return true;
     }
     //Public key encryption output
-    bool EXML_Output(std::string path, os::smartXMLNode head, os::smart_ptr<publicKey> pbk, unsigned int lockType, os::smart_ptr<streamPackageFrame> spf)
+    bool EXML_Output(std::string path, os::smart_ptr<os::XMLNode> head, os::smart_ptr<publicKey> pbk, unsigned int lockType, os::smart_ptr<streamPackageFrame> spf)
     {
 		//Encrypt with public key
 		if(lockType==file::PRIVATE_UNLOCK)
@@ -304,37 +299,37 @@ namespace crypto {
         
 			//Output header
 			fileout<<"<?exml version=\"1.0\" encoding=\"UTF-8\"?>"<<std::endl;
-			os::smartXMLNode encryHead(new os::XML_Node("header"),os::shared_type);
+			os::smart_ptr<os::XMLNode> encryHead(new os::XMLNode("header"),os::shared_type);
         
 			//Public key type
-			os::smartXMLNode trc1(new os::XML_Node("public_key"),os::shared_type);
-			os::smartXMLNode trc2(new os::XML_Node("algo"),os::shared_type);
+			os::smart_ptr<os::XMLNode> trc1(new os::XMLNode("public_key"),os::shared_type);
+			os::smart_ptr<os::XMLNode> trc2(new os::XMLNode("algo"),os::shared_type);
 			trc2->setData(pbk->algorithmName());
-			trc1->addElement(trc2);
-			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+			trc1->addChild(*trc2);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 			trc2->setData(std::to_string((long long unsigned int)pbk->size()*32));
-			trc1->addElement(trc2);
-			trc2=os::smartXMLNode(new os::XML_Node("type"),os::shared_type);
+			trc1->addChild(*trc2);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("type"),os::shared_type);
 			trc2->setData(std::to_string((long long unsigned int)lockType));
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
         
 			//Stream
-			trc1=os::smartXMLNode(new os::XML_Node("stream"),os::shared_type);
-			trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("stream"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 			trc2->setData(spf->streamAlgorithmName());
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
         
 			//Hash
-			trc1=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
-			trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("hash"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 			trc2->setData(spf->hashAlgorithmName());
-			trc1->addElement(trc2);
-			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+			trc1->addChild(*trc2);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 			trc2->setData(std::to_string((long long unsigned int)spf->hashSize()*8));
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
 
 			//Generate key, and hash
 			srand((unsigned)time(NULL));
@@ -387,19 +382,19 @@ namespace crypto {
 			}
 
 			//Key
-			trc1=os::smartXMLNode(new os::XML_Node("key"),os::shared_type);
-			trc2=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("key"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("hash"),os::shared_type);
 			trc2->setData(hsh.toString());
-			trc1->addElement(trc2);
+			trc1->addChild(*trc2);
 
 			//Either hash the public key or print the public key
 			if(lockType==file::PUBLIC_UNLOCK)
 			{
-				trc2=os::smartXMLNode(new os::XML_Node("publicKey"),os::shared_type);
+				trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("publicKey"),os::shared_type);
 				auto tem=pbk->getN();
 				tem->reduce();
 				trc2->setData(tem->toString());
-				trc1->addElement(trc2);
+				trc1->addChild(*trc2);
 			}
 			//Else, output a hash of the public key
 			else
@@ -407,33 +402,33 @@ namespace crypto {
 				size_t tArrLen;
 				os::smart_ptr<unsigned char> tempArr=pbk->getN()->getCompCharData(tArrLen);
 				hsh=spf->hashData(tempArr.get(),tArrLen);
-				trc2=os::smartXMLNode(new os::XML_Node("publicKeyHash"),os::shared_type);
+				trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("publicKeyHash"),os::shared_type);
 				trc2->setData(hsh.toString());
-				trc1->addElement(trc2);
+				trc1->addChild(*trc2);
 			}
 
-			trc2=os::smartXMLNode(new os::XML_Node("encryptedKey"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("encryptedKey"),os::shared_type);
 			if(lockType==file::DOUBLE_LOCK)
 			{
-				trc2->getDataList().push_back(num1->toString());
-				trc2->getDataList().push_back(num2->toString());
+				trc2->addData(num1->toString());
+				trc2->addData(num2->toString());
 			}
 			else trc2->setData(num1->toString());
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
 
 			//Data list
-			std::vector<std::string> argList=generateArgumentList(head);
-			trc1=os::smartXMLNode(new os::XML_Node("argList"),os::shared_type);
+            os::objectVector<std::string> argList(generateArgumentList(head));
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("argList"),os::shared_type);
 			for(unsigned int i=0;i<argList.size();++i)
-				trc1->getDataList().push_back(argList[i]);
-			encryHead->addElement(trc1);
+				trc1->addData(argList[i]);
+			encryHead->addChild(*trc1);
         
-			os::xml::writeNode(fileout,encryHead,0);
+			os::XMLNode::writeNode(fileout,*encryHead);
 
 			os::smart_ptr<streamCipher> strm=spf->buildStream(raw_key.get(),keylen);
 			if(!strm) throw errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type);
-			fileout<<'>';
+			fileout<<"<data>";
 			recursiveXMLPrinting(head,strm,argList,fileout);
 		}
 		catch(errorPointer e)
@@ -453,7 +448,7 @@ namespace crypto {
         pbk->readUnlock();
         return true;
     }
-    bool EXML_Output(std::string path, os::smartXMLNode head, os::smart_ptr<number> publicKey,unsigned int pkAlgo,size_t pkSize,os::smart_ptr<streamPackageFrame> spf)
+    bool EXML_Output(std::string path, os::smart_ptr<os::XMLNode> head, os::smart_ptr<number> publicKey,unsigned int pkAlgo,size_t pkSize,os::smart_ptr<streamPackageFrame> spf)
 	{
 		//Other types of encryption
 		try
@@ -474,37 +469,37 @@ namespace crypto {
         
 			//Output header
 			fileout<<"<?exml version=\"1.0\" encoding=\"UTF-8\"?>"<<std::endl;
-			os::smartXMLNode encryHead(new os::XML_Node("header"),os::shared_type);
+			os::smart_ptr<os::XMLNode> encryHead(new os::XMLNode("header"),os::shared_type);
         
 			//Public key type
-			os::smartXMLNode trc1(new os::XML_Node("public_key"),os::shared_type);
-			os::smartXMLNode trc2(new os::XML_Node("algo"),os::shared_type);
+			os::smart_ptr<os::XMLNode> trc1(new os::XMLNode("public_key"),os::shared_type);
+			os::smart_ptr<os::XMLNode> trc2(new os::XMLNode("algo"),os::shared_type);
 			trc2->setData(pkframe->algorithmName());
-			trc1->addElement(trc2);
-			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+			trc1->addChild(*trc2);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 			trc2->setData(std::to_string((long long unsigned int)pkframe->keySize()*32));
-			trc1->addElement(trc2);
-			trc2=os::smartXMLNode(new os::XML_Node("type"),os::shared_type);
+			trc1->addChild(*trc2);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("type"),os::shared_type);
 			trc2->setData(std::to_string((long long unsigned int)file::PRIVATE_UNLOCK));
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
         
 			//Stream
-			trc1=os::smartXMLNode(new os::XML_Node("stream"),os::shared_type);
-			trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("stream"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 			trc2->setData(spf->streamAlgorithmName());
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
         
 			//Hash
-			trc1=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
-			trc2=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("hash"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 			trc2->setData(spf->hashAlgorithmName());
-			trc1->addElement(trc2);
-			trc2=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+			trc1->addChild(*trc2);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 			trc2->setData(std::to_string((long long unsigned int)spf->hashSize()*8));
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
 
 			//Generate key, and hash
 			srand((unsigned)time(NULL));
@@ -522,35 +517,35 @@ namespace crypto {
 			num->reduce();
 
 			//Key
-			trc1=os::smartXMLNode(new os::XML_Node("key"),os::shared_type);
-			trc2=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("key"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("hash"),os::shared_type);
 			trc2->setData(hsh.toString());
-			trc1->addElement(trc2);
+			trc1->addChild(*trc2);
 			
 			size_t tArrLen;
 			os::smart_ptr<unsigned char> tempArr=publicKey->getCompCharData(tArrLen);
 			hsh=spf->hashData(tempArr.get(),tArrLen);
-			trc2=os::smartXMLNode(new os::XML_Node("publicKeyHash"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("publicKeyHash"),os::shared_type);
 			trc2->setData(hsh.toString());
-			trc1->addElement(trc2);
+			trc1->addChild(*trc2);
 
-			trc2=os::smartXMLNode(new os::XML_Node("encryptedKey"),os::shared_type);
+			trc2=os::smart_ptr<os::XMLNode>(new os::XMLNode("encryptedKey"),os::shared_type);
 			trc2->setData(num->toString());
-			trc1->addElement(trc2);
-			encryHead->addElement(trc1);
+			trc1->addChild(*trc2);
+			encryHead->addChild(*trc1);
 
 			//Data list
-			std::vector<std::string> argList=generateArgumentList(head);
-			trc1=os::smartXMLNode(new os::XML_Node("argList"),os::shared_type);
+            os::objectVector<std::string> argList(generateArgumentList(head));
+			trc1=os::smart_ptr<os::XMLNode>(new os::XMLNode("argList"),os::shared_type);
 			for(unsigned int i=0;i<argList.size();++i)
-				trc1->getDataList().push_back(argList[i]);
-			encryHead->addElement(trc1);
+				trc1->addData(argList[i]);
+			encryHead->addChild(*trc1);
         
-			os::xml::writeNode(fileout,encryHead,0);
+			os::XMLNode::writeNode(fileout,*encryHead);
 
 			os::smart_ptr<streamCipher> strm=spf->buildStream(raw_key.get(),keylen);
 			if(!strm) throw errorPointer(new illegalAlgorithmBind("NULL Stream"),os::shared_type);
-			fileout<<'>';
+			fileout<<"<data>";
 			recursiveXMLPrinting(head,strm,argList,fileout);
 		}
 		catch(errorPointer e)
@@ -562,13 +557,13 @@ namespace crypto {
         return true;
 	}
 	//Decrypt with password
-    os::smartXMLNode EXML_Input(std::string path, std::string password)
+    os::smart_ptr<os::XMLNode> EXML_Input(std::string path, std::string password)
     {
 		return EXML_Input(path,(unsigned char*) password.c_str(),password.length());
 	}
-	os::smartXMLNode EXML_Input(std::string path, unsigned char* symKey,size_t passwordLength)
+	os::smart_ptr<os::XMLNode> EXML_Input(std::string path, unsigned char* symKey,size_t passwordLength)
 	{
-		os::smartXMLNode ret;
+		os::smart_ptr<os::XMLNode> ret;
 		try
 		{
 			//Basic checks
@@ -583,63 +578,64 @@ namespace crypto {
 				throw errorPointer(new passwordSmallError(),os::shared_type);
 
 			//Check header
-			os::xml::readTillTag(filein);
-			std::string temp = os::xml::readThroughTag(filein);
-			if(temp != "?exml") throw errorPointer(new fileFormatError(),os::shared_type);
+			os::XMLNode::readTillTag(filein);
+			std::string temp = os::XMLNode::readThroughTag(filein);
+			if(temp != "?exml version=\"1.0\" encoding=\"UTF-8\"?") throw errorPointer(new fileFormatError(),os::shared_type);
+            os::XMLNode::readTillTag(filein);
 
 			//Parse header
-			os::smartXMLNode enhead=os::xml::parseNode(filein);
-			os::smartXMLNode trc1;
-			os::smartXMLNode trc2;
+            os::smart_ptr<os::XMLNode> enhead(new os::XMLNode(os::XMLNode::parseNode(filein)),os::shared_type);
+			os::smart_ptr<os::XMLNode> trc1;
+			os::smart_ptr<os::XMLNode> trc2;
 			std::string streamID;
 			std::string hashID;
 			unsigned int hashSize;
 
 			//Test ID
 			if(!enhead) throw errorPointer(new fileOpenError(),os::shared_type);
-			if(enhead->getID()!="header") throw errorPointer(new fileFormatError(),os::shared_type);
+			if(enhead->id()!="header") throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Public key
-			auto fnd=enhead->findElement("public_key")->first();
+			auto fnd=enhead->searchList("public_key").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			if(trc1->getData()!="none") throw errorPointer(new illegalAlgorithmBind("Expected NULL Public Key"),os::shared_type);
+			if(trc1->data()!="none") throw errorPointer(new illegalAlgorithmBind("Expected NULL Public Key"),os::shared_type);
 
 			//Stream
-			fnd=enhead->findElement("stream")->first();
+			fnd=enhead->searchList("stream").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			if(trc1->getData()!="") throw errorPointer(new fileOpenError(),os::shared_type);
+			if(!trc1->hasChildren()) throw errorPointer(new fileOpenError(),os::shared_type);
 			
 				//Algorithm
-				fnd=trc1->findElement("algo")->first();
+				fnd=trc1->searchList("algo").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				streamID=trc2->getData();
+				streamID=trc2->data();
 
 			//Hash
-			fnd=enhead->findElement("hash")->first();
+			fnd=enhead->searchList("hash").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			if(trc1->getData()!="") throw errorPointer(new fileOpenError(),os::shared_type);
+			if(!trc1->hasChildren()) throw errorPointer(new fileOpenError(),os::shared_type);
 			
 				//Algorithm
-				fnd=trc1->findElement("algo")->first();
+				fnd=trc1->searchList("algo").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				hashID=trc2->getData();
+				hashID=trc2->data();
 
 				//Size
-				fnd=trc1->findElement("size")->first();
+				fnd=trc1->searchList("size").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				hashSize = std::stoi(trc2->getData())/8;
+				hashSize = std::stoi(trc2->data())/8;
 
 			//Bind encryption stream
 			os::smart_ptr<streamPackageFrame> spf=streamPackageTypeBank::singleton()->findStream(streamID,hashID);
@@ -648,34 +644,34 @@ namespace crypto {
 			spf->setHashSize(hashSize);
 
 			//Key manipulation
-			fnd=enhead->findElement("key")->first();
+			fnd=enhead->searchList("key").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			if(trc1->getData()!="") throw errorPointer(new fileOpenError(),os::shared_type);
+			if(!trc1->hasChildren()) throw errorPointer(new fileOpenError(),os::shared_type);
 			
 				//Hash
-				fnd=trc1->findElement("hash")->first();
+				fnd=trc1->searchList("hash").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 				hash refHash=spf->hashData(symKey,passwordLength);
 				hash compHash(refHash);
-				compHash.fromString(trc2->getData());
+				compHash.fromString(trc2->data());
 				if(refHash!=compHash) throw errorPointer(new hashCompareError(),os::shared_type);
 
 			//Arg list
-			fnd=enhead->findElement("argList")->first();
+			fnd=enhead->searchList("argList").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			std::vector<std::string> argList;
-			if(trc1->getData()=="")
-				argList=trc1->getDataList();
-			else
-				argList.push_back(trc1->getData());
+            os::objectVector<std::string> argList(trc1->dataList());
 			
-			while(filein.get()!='>');
+			while(filein.get()!='>')
+            {
+                if(!filein.good())
+                    throw errorPointer(new fileFormatError(),os::shared_type);
+            }
 			ret=recursiveXMLBuilding(spf->buildStream(symKey,passwordLength),argList,filein);
 		}
 		catch(errorPointer e)
@@ -687,9 +683,9 @@ namespace crypto {
         return ret;
     }
 	//Decrypt with public key
-    os::smartXMLNode EXML_Input(std::string path, os::smart_ptr<publicKey> pbk,os::smart_ptr<keyBank> kyBank,os::smart_ptr<nodeGroup>& author)
+    os::smart_ptr<os::XMLNode> EXML_Input(std::string path, os::smart_ptr<publicKey> pbk,os::smart_ptr<keyBank> kyBank,os::smart_ptr<nodeGroup>& author)
     {
-		os::smartXMLNode ret;
+		os::smart_ptr<os::XMLNode> ret;
 		try
 		{
 			//Basic checks
@@ -698,51 +694,52 @@ namespace crypto {
 			if(!filein.good()) throw errorPointer(new fileOpenError(),os::shared_type);
 		
 			//Check header
-			os::xml::readTillTag(filein);
-			std::string temp = os::xml::readThroughTag(filein);
-			if(temp != "?exml")
+			os::XMLNode::readTillTag(filein);
+			std::string temp = os::XMLNode::readThroughTag(filein);
+			if(temp != "?exml version=\"1.0\" encoding=\"UTF-8\"?")
 				throw errorPointer(new fileFormatError(),os::shared_type);
+            os::XMLNode::readTillTag(filein);
 
 			//Parse header
-			os::smartXMLNode enhead=os::xml::parseNode(filein);
-			os::smartXMLNode trc1;
-			os::smartXMLNode trc2;
+            os::smart_ptr<os::XMLNode> enhead(new os::XMLNode(os::XMLNode::parseNode(filein)),os::shared_type);
+			os::smart_ptr<os::XMLNode> trc1;
+			os::smart_ptr<os::XMLNode> trc2;
 			std::string streamID;
 			std::string hashID;
 			unsigned int hashSize;
 
 			//Test ID
 			if(!enhead) throw errorPointer(new fileFormatError(),os::shared_type);
-			if(enhead->getID()!="header") throw errorPointer(new fileFormatError(),os::shared_type);
+			if(enhead->id()!="header") throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Public key
-			auto fnd=enhead->findElement("public_key")->first();
+			auto fnd=enhead->searchList("public_key").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			if(trc1->getData()!="") throw errorPointer(new fileFormatError(),os::shared_type);
+			if(!trc1->hasChildren()) throw errorPointer(new fileFormatError(),os::shared_type);
 
 				//Algorithm
 				std::string algoName;
-				fnd=trc1->findElement("algo")->first();
+				fnd=trc1->searchList("algo").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				algoName=trc2->getData();
+				algoName=trc2->data();
 
 				//Size
-				fnd=trc1->findElement("size")->first();
+				fnd=trc1->searchList("size").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				unsigned int pkSize=std::stoi(trc2->getData())/32;
+				unsigned int pkSize=std::stoi(trc2->data())/32;
 
 				//Encryption type
-				fnd=trc1->findElement("type")->first();
+				fnd=trc1->searchList("type").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				unsigned int pkType=std::stoi(trc2->getData());
+				unsigned int pkType=std::stoi(trc2->data());
 
 				os::smart_ptr<publicKeyPackageFrame> pkframe=publicKeyTypeBank::singleton()->findPublicKey(algoName);
 				if(!pkframe) throw errorPointer(new illegalAlgorithmBind("Public key algorithm: "+algoName),os::shared_type);
@@ -750,39 +747,39 @@ namespace crypto {
 				pkframe->setKeySize(pkSize);
 
 			//Stream
-			fnd=enhead->findElement("stream")->first();
+			fnd=enhead->searchList("stream").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			if(trc1->getData()!="") throw errorPointer(new fileFormatError(),os::shared_type);
+			if(!trc1->hasChildren()) throw errorPointer(new fileFormatError(),os::shared_type);
 			
 				//Algorithm
-				fnd=trc1->findElement("algo")->first();
+				fnd=trc1->searchList("algo").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				streamID=trc2->getData();
+				streamID=trc2->data();
 
 			//Hash
-			fnd=enhead->findElement("hash")->first();
+			fnd=enhead->searchList("hash").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			if(trc1->getData()!="") throw errorPointer(new fileFormatError(),os::shared_type);
+			if(!trc1->hasChildren()) throw errorPointer(new fileFormatError(),os::shared_type);
 			
 				//Algorithm
-				fnd=trc1->findElement("algo")->first();
+				fnd=trc1->searchList("algo").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				hashID=trc2->getData();
+				hashID=trc2->data();
 
 				//Size
-				fnd=trc1->findElement("size")->first();
+				fnd=trc1->searchList("size").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-				hashSize = std::stoi(trc2->getData())/8;
+				hashSize = std::stoi(trc2->data())/8;
 
 			//Bind encryption stream
 			os::smart_ptr<streamPackageFrame> spf=streamPackageTypeBank::singleton()->findStream(streamID,hashID);
@@ -791,11 +788,11 @@ namespace crypto {
 			spf->setHashSize(hashSize);
 
 			//Key manipulation
-			fnd=enhead->findElement("key")->first();
+			fnd=enhead->searchList("key").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			if(trc1->getData()!="") throw errorPointer(new fileFormatError(),os::shared_type);
+			if(!trc1->hasChildren()) throw errorPointer(new fileFormatError(),os::shared_type);
 			
 				size_t histInd;
 				bool tLock;
@@ -812,23 +809,23 @@ namespace crypto {
 						throw errorPointer(new illegalAlgorithmBind(std::to_string((long long unsigned int)pbk->size()*32)+" vs "+std::to_string((long long unsigned int)pkframe->keySize()*32)),os::shared_type);
 
 					//Public key hash
-					fnd=trc1->findElement("publicKeyHash")->first();
+					fnd=trc1->searchList("publicKeyHash").first();
 					if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 					trc2=&fnd;
 					if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 					hash pkHash=spf->hashEmpty();
-					pkHash.fromString(trc2->getData());
+					pkHash.fromString(trc2->data());
 
 					if(!pbk->searchKey(pkHash,histInd,tLock)) throw errorPointer(new keyMissing(),os::shared_type);
 				}
 				else
 				{
-					fnd=trc1->findElement("publicKey")->first();
+					fnd=trc1->searchList("publicKey").first();
 					if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 					trc2=&fnd;
 					if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
 					readKey=os::smart_ptr<number>(new number(),os::shared_type);
-					readKey->fromString(trc2->getData());
+					readKey->fromString(trc2->data());
 
 					//Check key validity
 					bool found=false;
@@ -847,7 +844,7 @@ namespace crypto {
 				}
 
 				//Raw Key
-				fnd=trc1->findElement("encryptedKey")->first();
+				fnd=trc1->searchList("encryptedKey").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
@@ -856,13 +853,13 @@ namespace crypto {
 				if(pkType==file::DOUBLE_LOCK)
 				{
 					num2=os::smart_ptr<number>(new number(),os::shared_type);
-					if(trc2->getDataList().size()!=2) throw errorPointer(new fileFormatError(),os::shared_type);
-					num1->fromString(trc2->getDataList()[0]);
-					num2->fromString(trc2->getDataList()[1]);
+					if(trc2->dataList().size()!=2) throw errorPointer(new fileFormatError(),os::shared_type);
+					num1->fromString(trc2->dataList()[0]);
+					num2->fromString(trc2->dataList()[1]);
 					num1->reduce();
 					num2->reduce();
 				}
-				else num1->fromString(trc2->getData());
+				else num1->fromString(trc2->data());
 
 				//Unlock with private key
 				if(pkType==file::PRIVATE_UNLOCK)
@@ -896,7 +893,7 @@ namespace crypto {
 				
 
 				//Hash
-				fnd=trc1->findElement("hash")->first();
+				fnd=trc1->searchList("hash").first();
 				if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 				trc2=&fnd;
 				if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
@@ -916,24 +913,23 @@ namespace crypto {
 
 				hash refHash=spf->hashData(raw_key.get(),keylen);
 				hash compHash(refHash);
-				compHash.fromString(trc2->getData());
+				compHash.fromString(trc2->data());
 				if(refHash!=compHash)
 					throw errorPointer(new hashCompareError(),os::shared_type);
 
 			//Arg list
-			fnd=enhead->findElement("argList")->first();
+			fnd=enhead->searchList("argList").first();
 			if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 			trc1=&fnd;
 			if(!trc1) throw errorPointer(new fileFormatError(),os::shared_type);
-			std::vector<std::string> argList;
-			if(trc1->getData()=="")
-				argList=trc1->getDataList();
-			else
-				argList.push_back(trc1->getData());
+            os::objectVector<std::string> argList(trc1->dataList());
 
-			while(filein.get()!='>');
-
-			ret=ret=recursiveXMLBuilding(spf->buildStream((unsigned char*) raw_key.get(),keylen),argList,filein);
+            while(filein.get()!='>')
+            {
+                if(!filein.good())
+                    throw errorPointer(new fileFormatError(),os::shared_type);
+            }
+			ret=recursiveXMLBuilding(spf->buildStream((unsigned char*) raw_key.get(),keylen),argList,filein);
 		}
 		catch(errorPointer e1)
 		{throw e1;}
@@ -945,17 +941,17 @@ namespace crypto {
     }
 
 	//Call master EXML public key decryptor
-	os::smartXMLNode EXML_Input(std::string path, os::smart_ptr<publicKey> pbk)
+	os::smart_ptr<os::XMLNode> EXML_Input(std::string path, os::smart_ptr<publicKey> pbk)
 	{
 		os::smart_ptr<nodeGroup> aut;
 		return EXML_Input(path, pbk,NULL,aut);
 	}
-	os::smartXMLNode EXML_Input(std::string path, os::smart_ptr<keyBank> kyBank)
+	os::smart_ptr<os::XMLNode> EXML_Input(std::string path, os::smart_ptr<keyBank> kyBank)
 	{
 		os::smart_ptr<nodeGroup> aut;
 		return EXML_Input(path, NULL,kyBank,aut);
 	}
-	os::smartXMLNode EXML_Input(std::string path, os::smart_ptr<keyBank> kyBank,os::smart_ptr<nodeGroup>& author)
+	os::smart_ptr<os::XMLNode> EXML_Input(std::string path, os::smart_ptr<keyBank> kyBank,os::smart_ptr<nodeGroup>& author)
 	{return EXML_Input(path, NULL,kyBank,author);}
 }
 

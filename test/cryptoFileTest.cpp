@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.cpp
  * @author Jonathan Bedard
- * @date   9/4/2016
+ * @date   9/10/2016
  * @brief  Implementation for cryptographic file testing
  * @bug No known bugs.
  *
@@ -32,7 +32,7 @@ using namespace test;
  ------------------------------------------------------------*/
 
 	//Package test
-	void packageTest() throw(os::smart_ptr<std::exception>)
+	void packageTest()
 	{
 		std::string locString = "cryptoFileTest.cpp, packageTest()";
 
@@ -54,7 +54,7 @@ using namespace test;
 	{
 		streamPackage=spf;
 	}
-	void binaryFileSaveTest::test() throw(os::smart_ptr<std::exception>)
+	void binaryFileSaveTest::test()
 	{
 		std::string locString = "cryptoFileTest.cpp, binaryFileSaveTest::test()";
 
@@ -106,7 +106,7 @@ using namespace test;
 	{
 		pubkey=pk;
 	}
-	void publicKeyFileSaveTest::test() throw(os::smart_ptr<std::exception>)
+	void publicKeyFileSaveTest::test()
 	{
 		std::string locString = "cryptoFileTest.cpp, binaryFileSaveTest::test()";
 
@@ -153,7 +153,7 @@ using namespace test;
 	}
 
 	//Public header
-	void binaryPublicHeader() throw(os::smart_ptr<std::exception>)
+	void binaryPublicHeader()
 	{
 		std::string locString = "cryptoFileTest.cpp, binaryPublicHeader()";
 
@@ -225,7 +225,7 @@ using namespace test;
 		os::delete_file("testExample.bin");
 	}
 	//Public header
-	void binaryDoubleLock() throw(os::smart_ptr<std::exception>)
+	void binaryDoubleLock()
 	{
 		std::string locString = "cryptoFileTest.cpp, binaryDoubleLock()";
 
@@ -345,45 +345,45 @@ using namespace test;
  ------------------------------------------------------------*/
 
     //Build an XML tree
-    static os::smartXMLNode generateReferenceTree()
+    static os::smart_ptr<os::XMLNode> generateReferenceTree()
     {
-        os::smartXMLNode ret(new os::XML_Node("testTree"),os::shared_type);
-		os::smartXMLNode temp1(new os::XML_Node("cake"),os::shared_type);
-		os::smartXMLNode temp2;
+        os::smart_ptr<os::XMLNode> ret(new os::XMLNode("testTree"),os::shared_type);
+		os::smart_ptr<os::XMLNode> temp1(new os::XMLNode("cake"),os::shared_type);
+		os::smart_ptr<os::XMLNode> temp2;
 
 		//List of cake
-		temp2=os::smartXMLNode(new os::XML_Node("flavor"),os::shared_type);
+		temp2=os::smart_ptr<os::XMLNode>(new os::XMLNode("flavor"),os::shared_type);
 		temp2->setData("chocolate");
-		temp1->addElement(temp2);
+		temp1->addChild(*temp2);
 
-		temp2=os::smartXMLNode(new os::XML_Node("gluten"),os::shared_type);
+		temp2=os::smart_ptr<os::XMLNode>(new os::XMLNode("gluten"),os::shared_type);
 		temp2->setData("yes");
-		temp1->addElement(temp2);
+		temp1->addChild(*temp2);
 
-		temp2=os::smartXMLNode(new os::XML_Node("dairy"),os::shared_type);
+		temp2=os::smart_ptr<os::XMLNode>(new os::XMLNode("dairy"),os::shared_type);
 		temp2->setData("yes");
-		temp1->addElement(temp2);
-		ret->addElement(temp1);
+		temp1->addChild(*temp2);
+		ret->addChild(*temp1);
 
 		//List of pancake
-		temp1=os::smartXMLNode(new os::XML_Node("pancake"),os::shared_type);
-        temp2=os::smartXMLNode(new os::XML_Node("authors"),os::shared_type);
-        temp2->getDataList().push_back("Jonathan Bedard");
-        temp2->getDataList().push_back("Tom Ostrander");
-        temp1->addElement(temp2);
+		temp1=os::smart_ptr<os::XMLNode>(new os::XMLNode("pancake"),os::shared_type);
+        temp2=os::smart_ptr<os::XMLNode>(new os::XMLNode("authors"),os::shared_type);
+        temp2->addData("Jonathan Bedard");
+        temp2->addData("Tom Ostrander");
+        temp1->addChild(*temp2);
 
-		temp2=os::smartXMLNode(new os::XML_Node("buttermilk"),os::shared_type);
+		temp2=os::smart_ptr<os::XMLNode>(new os::XMLNode("buttermilk"),os::shared_type);
 		temp2->setData("yes");
-		temp1->addElement(temp2);
+		temp1->addChild(*temp2);
 
-		temp2=os::smartXMLNode(new os::XML_Node("gluten"),os::shared_type);
+		temp2=os::smart_ptr<os::XMLNode>(new os::XMLNode("gluten"),os::shared_type);
 		temp2->setData("no");
-		temp1->addElement(temp2);
+		temp1->addChild(*temp2);
 
-		temp2=os::smartXMLNode(new os::XML_Node("dairy"),os::shared_type);
+		temp2=os::smart_ptr<os::XMLNode>(new os::XMLNode("dairy"),os::shared_type);
 		temp2->setData("yes");
-		temp1->addElement(temp2);
-		ret->addElement(temp1);
+		temp1->addChild(*temp2);
+		ret->addChild(*temp1);
 
 		return ret;
     }
@@ -395,21 +395,21 @@ using namespace test;
         streamPackage=spf;
     }
     //Run test
-    void exmlFileSaveTest::test() throw(os::smart_ptr<std::exception>)
+    void exmlFileSaveTest::test()
     {
         std::string locString = "cryptoFileTest.cpp, exmlFileSaveTest::test()";
         
 		try
 		{
-			os::smartXMLNode xmn=generateReferenceTree();
+			os::smart_ptr<os::XMLNode> xmn=generateReferenceTree();
 			if(!crypto::EXML_Output("testFile.xml",xmn,"password",streamPackage))
 				generalTestException::throwException("EXML write failure",locString);
 
-			os::smartXMLNode xmlParse=crypto::EXML_Input("testFile.xml","password");
+			os::smart_ptr<os::XMLNode> xmlParse=crypto::EXML_Input("testFile.xml","password");
 			if(!xmlParse)
 				generalTestException::throwException("EXML read failure",locString);
 
-			if(!os::xml::compareTrees(xmn,xmlParse))
+			if(*xmn!=*xmlParse)
 				generalTestException::throwException("Tree comparison failed",locString);
 		}
 		catch(os::smart_ptr<std::exception> e)
@@ -437,21 +437,21 @@ using namespace test;
         pubkey=pbk;
     }
     //Run test
-    void exmlPublicKeySaveTest::test() throw(os::smart_ptr<std::exception>)
+    void exmlPublicKeySaveTest::test()
     {
         std::string locString = "cryptoFileTest.cpp, exmlFileSaveTest::test()";
         
 		try
 		{
-			os::smartXMLNode xmn=generateReferenceTree();
+			os::smart_ptr<os::XMLNode> xmn=generateReferenceTree();
 			if(!crypto::EXML_Output("pubTest.xml",xmn,pubkey))
 				generalTestException::throwException("EXML write failure",locString);
 
-			os::smartXMLNode xmlParse=crypto::EXML_Input("pubTest.xml",pubkey);
+			os::smart_ptr<os::XMLNode> xmlParse=crypto::EXML_Input("pubTest.xml",pubkey);
 			if(!xmlParse)
 				generalTestException::throwException("EXML read failure",locString);
 
-			if(!os::xml::compareTrees(xmn,xmlParse))
+			if(*xmn!=*xmlParse)
 				generalTestException::throwException("Tree comparison failed",locString);
 		}
 		catch(os::smart_ptr<std::exception> e)
@@ -473,7 +473,7 @@ using namespace test;
     }
 
 	//Public header
-	void exlPublicHeader() throw(os::smart_ptr<std::exception>)
+	void exlPublicHeader()
 	{
 		std::string locString = "cryptoFileTest.cpp, binaryPublicHeader()";
 
@@ -488,23 +488,23 @@ using namespace test;
 			pkg->setKeySize(size::public128);
 			findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
 			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
-			os::smartXMLNode xmn=generateReferenceTree();
+			os::smart_ptr<os::XMLNode> xmn=generateReferenceTree();
 			if(!crypto::EXML_Output("pubTest.xml",xmn,kys,file::PUBLIC_UNLOCK))
 				generalTestException::throwException("EXML write failure",locString);
 
-			os::smartXMLNode xmlParse1=crypto::EXML_Input("pubTest.xml",kys);
+			os::smart_ptr<os::XMLNode> xmlParse1=crypto::EXML_Input("pubTest.xml",kys);
 			if(!xmlParse1)
 				generalTestException::throwException("EXML read failure (unlock with self)",locString);
-			if(!os::xml::compareTrees(xmn,xmlParse1))
+			if(*xmn!=*xmlParse1)
 				generalTestException::throwException("Tree comparison failed",locString);
 
 			avlKeyBank kybnk;
 			os::smart_ptr<nodeGroup> ng=kybnk.addPair("No-G","Me",kys->getN(),kys->algorithm(),kys->size());
 			os::smart_ptr<nodeGroup> ntemp;
-			os::smartXMLNode xmlParse2=crypto::EXML_Input("pubTest.xml",&kybnk,ntemp);
+			os::smart_ptr<os::XMLNode> xmlParse2=crypto::EXML_Input("pubTest.xml",&kybnk,ntemp);
 			if(!xmlParse2)
 				generalTestException::throwException("EXML read failure (unlock with bank)",locString);
-			if(!os::xml::compareTrees(xmn,xmlParse2))
+			if(*xmn!=*xmlParse1)
 				generalTestException::throwException("Tree comparison failed",locString);
 			if(!ntemp || ntemp->name() != ng->name())
 				generalTestException::throwException("Failed to confirm author",locString);
@@ -527,7 +527,7 @@ using namespace test;
 		os::delete_file("pubTest.xml");
 	}
 	//Public header
-	void exmlDoubleLock() throw(os::smart_ptr<std::exception>)
+	void exmlDoubleLock()
 	{
 		std::string locString = "cryptoFileTest.cpp, exmlDoubleLock()";
 
@@ -542,15 +542,15 @@ using namespace test;
 			pkg->setKeySize(size::public128);
 			findKeysRaw(n,d,pkg->algorithm(),pkg->keySize());
 			os::smart_ptr<publicKey> kys=pkg->bindKeys(n,d);
-			os::smartXMLNode xmn=generateReferenceTree();
+			os::smart_ptr<os::XMLNode> xmn=generateReferenceTree();
 			if(!crypto::EXML_Output("pubTest.xml",xmn,kys,file::DOUBLE_LOCK))
 				generalTestException::throwException("EXML write failure",locString);
 
-			os::smartXMLNode xmlParse=crypto::EXML_Input("pubTest.xml",kys);
+			os::smart_ptr<os::XMLNode> xmlParse=crypto::EXML_Input("pubTest.xml",kys);
 			if(!xmlParse)
 				generalTestException::throwException("EXML read failure",locString);
 
-			if(!os::xml::compareTrees(xmn,xmlParse))
+			if(*xmn!=*xmlParse)
 				generalTestException::throwException("Tree comparison failed",locString);
 		}
 		catch(os::smart_ptr<std::exception> e)

@@ -1,7 +1,7 @@
 /**
  * @file   test/publicKeyTest.h
  * @author Jonathan Bedard
- * @date   8/29/2016
+ * @date   9/10/2016
  * @brief  Public Key tests
  * @bug No known bugs.
  *
@@ -32,7 +32,7 @@ namespace test
     public:
         generationTest():singleTest("Generation"){}
         virtual ~generationTest(){}
-		void test() throw(os::smart_ptr<std::exception>)
+		void test()
         {
 			std::string locString = "publicKeyTest.h, generationTest::test()";
 
@@ -106,7 +106,7 @@ namespace test
         basicPublicKeyTest(uint16_t pl):singleTest("Basic Test: "+std::to_string((long long unsigned int)pl*32)){publicLen=pl;}
         virtual ~basicPublicKeyTest(){}
         
-        void test() throw(os::smart_ptr<std::exception>)
+        void test()
         {
 			std::string locString = "publicKeyTest.h, basicPublicKeyTest::test()";
 
@@ -147,7 +147,7 @@ namespace test
         byteKeyTest(uint16_t pl):singleTest("Byte Test: "+std::to_string((long long unsigned int)pl*32)){publicLen=pl;}
         virtual ~byteKeyTest(){}
         
-        void test() throw(os::smart_ptr<std::exception>)
+        void test()
         {
 			std::string locString = "publicKeyTest.h, byteKeyTest::test()";
 
@@ -186,7 +186,7 @@ namespace test
         publicKeySearchTest(uint16_t pl):singleTest("Search Test: "+std::to_string((long long unsigned int)pl*32)){publicLen=pl;}
         virtual ~publicKeySearchTest(){}
         
-        void test() throw(os::smart_ptr<std::exception>)
+        void test()
         {
 			std::string locString = "publicKeyTest.h, publicKeySearchTest::test()";
 
@@ -246,7 +246,7 @@ namespace test
         packageSearchTest():singleTest("Package Search"){}
         virtual ~packageSearchTest(){}
         
-        void test() throw(os::smart_ptr<std::exception>)
+        void test()
         {
 			std::string locString = "publicKeyTest.h, packageSearchTest::test()";
 			if(pkType::staticAlgorithm()==crypto::algo::publicNULL)

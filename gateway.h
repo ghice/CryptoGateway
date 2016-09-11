@@ -1,7 +1,7 @@
 /**
  * @file   gateway.h
  * @author Jonathan Bedard
- * @date   9/3/2016
+ * @date   9/10/2016
  * @brief  Defines the gateway
  * @bug No known bugs.
  *
@@ -140,7 +140,7 @@ namespace crypto {
 		/** @brief Generate XML save stream
 		 * @return XML save tree
 		 */
-		os::smartXMLNode generateSaveTree();
+		os::smart_ptr<os::XMLNode> generateSaveTree();
 		/** @brief Ensure preferred algorithms are defined
 		 *
 		 * Uses current information in the class to determine

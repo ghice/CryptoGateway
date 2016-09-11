@@ -1,7 +1,7 @@
 /**
  * @file   test/gatewayTest.cpp
  * @author Jonathan Bedard
- * @date   9/4/2016
+ * @date   9/10/2016
  * @brief  Implementation for end-to-end gateway testing
  * @bug No known bugs.
  *
@@ -33,7 +33,7 @@ using namespace crypto;
  ================================================================*/
 
     //Basic key bank test
-    void basicBankTest() throw(os::smart_ptr<std::exception>)
+    void basicBankTest()
     {
         std::string locString = "gatewayTest.cpp, basicBankTest()";
         avlKeyBank cbank;
@@ -63,7 +63,7 @@ using namespace crypto;
             generalTestException::throwException("Name2's name doesn't match (name)",locString);
     }
     //Save/load test
-    void bankSaveLoadTest() throw(os::smart_ptr<std::exception>)
+    void bankSaveLoadTest()
     {
 		std::string locString = "gatewayTest.cpp, bankSaveLoadTest()";
 		try
@@ -82,7 +82,15 @@ using namespace crypto;
             //Load
 			avlKeyBank newBank("tempout.xml");
 			if(newBank.numberErrors()>0)
+            {
+                auto err = newBank.popError();
+                while(err)
+                {
+                    std::cout<<err->what()<<std::endl;
+                    err = newBank.popError();
+                }
 				generalTestException::throwException("Failed to load XML file",locString);
+            }
 
 			 //Name1 by name
 			os::smart_ptr<nodeGroup> found=newBank.find("GroupA","Name1");
@@ -118,7 +126,7 @@ using namespace crypto;
 		os::delete_file("tempout.xml");
     }
 	//Merge test
-	void bankMergeTest() throw(os::smart_ptr<std::exception>)
+	void bankMergeTest()
 	{
 		std::string locString = "gatewayTest.cpp, bankMergeTest()";
         avlKeyBank cbank;
@@ -157,7 +165,7 @@ using namespace crypto;
 			generalTestException::throwException("Too many merges occured",locString);
 	}
 	//Timestamp test: name
-	void bankNameTimestampTest() throw(os::smart_ptr<std::exception>)
+	void bankNameTimestampTest()
 	{
 		std::string locString = "gatewayTest.cpp, bankNameTimestampTest()";
         avlKeyBank cbank;
@@ -183,7 +191,7 @@ using namespace crypto;
 			generalTestException::throwException("Second node wrong",locString);
 	}
 	//Timestamp test: key
-	void bankKeyTimestampTest() throw(os::smart_ptr<std::exception>)
+	void bankKeyTimestampTest()
 	{
 		std::string locString = "gatewayTest.cpp, bankKeyTimestampTest()";
         avlKeyBank cbank;

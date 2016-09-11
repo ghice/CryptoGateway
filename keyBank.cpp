@@ -1,7 +1,7 @@
 /**
  * @file   keyBank.cpp
  * @author Jonathan Bedard
- * @date   9/3/2016
+ * @date   9/10/2016
  * @brief  Implimentation for the AVL tree based key bank
  * @bug No known bugs.
  *
@@ -28,40 +28,40 @@ namespace crypto {
   -----------------------------------*/
     
     //Constructs a nodeName with an XML tree
-	nodeGroup::nodeGroup(keyBank* master,os::smartXMLNode fileNode)
+	nodeGroup::nodeGroup(keyBank* master,os::smart_ptr<os::XMLNode> fileNode)
 	{
 		if(!master) throw errorPointer(new NULLMaster(),os::shared_type);
 		_master=master;
 		sortingLock.lock();
 		try
 		{
-			if(fileNode->getID()!="nodeGroup") throw errorPointer(new fileFormatError(),os::shared_type);
+			if(fileNode->id()!="nodeGroup") throw errorPointer(new fileFormatError(),os::shared_type);
 			
 			//Names
-			auto list1=fileNode->findElement("names");
-			if(list1->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-			os::smartXMLNode secondLevel=&list1->first();
-			auto list2=secondLevel->findElement("name");
-			if(list2->size()<=0) throw errorPointer(new fileFormatError(),os::shared_type);
+			auto list1=fileNode->searchList("names");
+			if(list1.size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+			os::smart_ptr<os::XMLNode> secondLevel=&list1.first();
+			auto list2=secondLevel->searchList("name");
+			if(list2.size()<=0) throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Insert name block
-			for(auto block=list2->first();block;++block)
+			for(auto block=list2.first();block;++block)
 			{
 				//Group
-				auto parseList=block->findElement("group");
-				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				std::string gn=parseList->first()->getData();
+				auto parseList=block->searchList("group");
+				if(parseList.size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				std::string gn=parseList.first()->data();
 
 				//Name
-				parseList=block->findElement("name");
-				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				std::string nm=parseList->first()->getData();
+				parseList=block->searchList("name");
+				if(parseList.size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				std::string nm=parseList.first()->data();
 
 				//Timestamp
-				parseList=block->findElement("timestamp");
-				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				parseList=block->searchList("timestamp");
+				if(parseList.size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
 				uint64_t times=0;
-				std::stringstream(parseList->first()->getData())>>times;
+				std::stringstream(parseList.first()->data())>>times;
 				if(times==0) throw errorPointer(new fileFormatError(),os::shared_type);
 
 				//Construct
@@ -71,37 +71,38 @@ namespace crypto {
 			}
 
 			//Keys
-			list1=fileNode->findElement("keys");
-			if(list1->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-			secondLevel=&list1->first();
-			list2=secondLevel->findElement("key");
-			if(list2->size()<=0) throw errorPointer(new fileFormatError(),os::shared_type);
+			list1=fileNode->searchList("keys");
+			if(list1.size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+			secondLevel=&list1.first();
+			list2=secondLevel->searchList("key");
+			if(list2.size()<=0) throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Insert key block
-			for(auto block=list2->first();block;++block)
+			for(auto block=list2.first();block;++block)
 			{
 				//Key size
-				auto parseList=block->findElement("keySize");
-				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				uint16_t ks=std::stoi(parseList->first()->getData())/32;
+				auto parseList=block->searchList("keySize");
+				if(parseList.size()!=1)
+                    throw errorPointer(new fileFormatError(),os::shared_type);
+				uint16_t ks=std::stoi(parseList.first()->data())/32;
 
 				//Algo ID
-				parseList=block->findElement("algo");
-				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				std::string ali=parseList->first()->getData();
+				parseList=block->searchList("algo");
+				if(parseList.size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				std::string ali=parseList.first()->data();
 
 				//Timestamp
-				parseList=block->findElement("timestamp");
-				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				parseList=block->searchList("timestamp");
+				if(parseList.size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
 				uint64_t times=0;
-				std::stringstream(parseList->first()->getData())>>times;
+				std::stringstream(parseList.first()->data())>>times;
 				if(times==0) throw errorPointer(new fileFormatError(),os::shared_type);
 
 				//Key
-				parseList=block->findElement("key");
-				if(parseList->size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
-				auto hld=&parseList->first();
-				if(hld->getDataList().size()!=ks) throw errorPointer(new fileFormatError(),os::shared_type);
+				parseList=block->searchList("key");
+				if(parseList.size()!=1) throw errorPointer(new fileFormatError(),os::shared_type);
+				auto hld=&parseList.first();
+				if(hld->dataList().size()!=ks) throw errorPointer(new fileFormatError(),os::shared_type);
 				os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(ali);
 				if(!pkfrm) throw errorPointer(new fileFormatError(),os::shared_type);
 				pkfrm->getCopy();
@@ -109,7 +110,7 @@ namespace crypto {
 				pkfrm->setKeySize(ks);
 				uint32_t* keyArr=new uint32_t[ks];
 				for(unsigned int arrcnt=0;arrcnt<ks;++arrcnt)
-					std::stringstream(hld->getDataList()[arrcnt])>>keyArr[arrcnt];
+					std::stringstream(hld->dataList()[arrcnt])>>keyArr[arrcnt];
 				os::smart_ptr<number> key=pkfrm->convert(keyArr,ks);
 				delete [] keyArr;
 
@@ -305,66 +306,68 @@ namespace crypto {
 	}
 
     //Builds XML tree
-    os::smartXMLNode nodeGroup::buildXML()
+    os::smart_ptr<os::XMLNode> nodeGroup::buildXML()
     {
-        os::smartXMLNode ret(new os::XML_Node("nodeGroup"),os::shared_type);
+        os::smart_ptr<os::XMLNode> ret(new os::XMLNode("nodeGroup"),os::shared_type);
         
         //Name list
-        os::smartXMLNode tlevel(new os::XML_Node("names"),os::shared_type);
+        os::smart_ptr<os::XMLNode> tlevel(new os::XMLNode("names"),os::shared_type);
         for(auto i=nameList.first();i;++i)
         {
-            os::smartXMLNode nlev(new os::XML_Node("name"),os::shared_type);
+            os::smart_ptr<os::XMLNode> nlev(new os::XMLNode("name"),os::shared_type);
             
             //Group
-            os::smartXMLNode temp(new os::XML_Node("group"),os::shared_type);
+            os::smart_ptr<os::XMLNode> temp(new os::XMLNode("group"),os::shared_type);
             temp->setData(i->groupName());
-            nlev->addElement(temp);
+            nlev->addChild(*temp);
             
             //Name
-            temp=os::smartXMLNode(new os::XML_Node("name"),os::shared_type);
+            temp=os::smart_ptr<os::XMLNode>(new os::XMLNode("name"),os::shared_type);
             temp->setData(i->name());
-            nlev->addElement(temp);
+            nlev->addChild(*temp);
             
             //Timestamp
-            temp=os::smartXMLNode(new os::XML_Node("timestamp"),os::shared_type);
+            temp=os::smart_ptr<os::XMLNode>(new os::XMLNode("timestamp"),os::shared_type);
             temp->setData(std::to_string((long long unsigned int)i->timestamp()));
-            nlev->addElement(temp);
+            nlev->addChild(*temp);
             
-            tlevel->addElement(nlev);
+            tlevel->addChild(*nlev);
         }
-        ret->addElement(tlevel);
+        ret->addChild(*tlevel);
         
         //Key list
-        tlevel=os::smartXMLNode(new os::XML_Node("keys"),os::shared_type);
+        tlevel=os::smart_ptr<os::XMLNode>(new os::XMLNode("keys"),os::shared_type);
         for(auto i=keyList.first();i;++i)
         {
-            os::smartXMLNode klev(new os::XML_Node("key"),os::shared_type);
-            tlevel->addElement(klev);
+            os::smart_ptr<os::XMLNode> klev(new os::XMLNode("key"),os::shared_type);
             
             //Key
-            os::smartXMLNode temp(new os::XML_Node("key"),os::shared_type);
+            os::smart_ptr<os::XMLNode> temp(new os::XMLNode("key"),os::shared_type);
             for(unsigned t=0;t<i->keySize();t++)
-                temp->getDataList().push_back(std::to_string((long long unsigned int)(*i->key())[t]));
-            klev->addElement(temp);
+                temp->addData(std::to_string((long long unsigned int)(*i->key())[t]));
+            klev->addChild(*temp);
             
             //Key size
-            temp=os::smartXMLNode(new os::XML_Node("keySize"),os::shared_type);
+            temp=os::smart_ptr<os::XMLNode>(new os::XMLNode("keySize"),os::shared_type);
             temp->setData(std::to_string((long long unsigned int)i->keySize()*32));
-            klev->addElement(temp);
+            klev->addChild(*temp);
             
             //Algorithm
-            temp=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+            temp=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 			os::smart_ptr<publicKeyPackageFrame> pkfrm=publicKeyTypeBank::singleton()->findPublicKey(i->algoID());
 			if(!pkfrm) pkfrm=publicKeyTypeBank::singleton()->defaultPackage();
 			temp->setData(pkfrm->algorithmName());
-            klev->addElement(temp);
+            klev->addChild(*temp);
             
             //Timestamp
-            temp=os::smartXMLNode(new os::XML_Node("timestamp"),os::shared_type);
+            temp=os::smart_ptr<os::XMLNode>(new os::XMLNode("timestamp"),os::shared_type);
             temp->setData(std::to_string((long long unsigned int)i->timestamp()));
-            klev->addElement(temp);
+            klev->addChild(*temp);
+            
+            tlevel->addChild(*klev);
         }
-        ret->addElement(tlevel);
+        
+        ret->addChild(*tlevel);
         
         return ret;
     }
@@ -564,7 +567,7 @@ namespace crypto {
 		if(savePath()=="") return;
 		try
 		{
-			os::smartXMLNode headNode;
+			os::smart_ptr<os::XMLNode> headNode;
 			errorPointer tempE;
 			//First, try public key
 			if(_pubKey)
@@ -582,11 +585,14 @@ namespace crypto {
 			try
 			{
 				//Have a public key
-				if(_pubKey && !_pubKey->generating()) headNode=EXML_Input(savePath(),_pubKey);
+				if(_pubKey && !_pubKey->generating())
+                    headNode=EXML_Input(savePath(),_pubKey);
 				//Have a symetric key
-				if(!headNode && _symKey!=NULL&&_keyLen>0) headNode=EXML_Input(savePath(),_symKey,_keyLen);
+				if(!headNode && _symKey!=NULL&&_keyLen>0)
+                    headNode=EXML_Input(savePath(),_symKey,_keyLen);
 				//No encryption
-				if(!headNode) headNode=os::XML_Input(savePath());
+                if(!headNode)
+                    headNode=os::smart_ptr<os::XMLNode>(new os::XMLNode(os::XMLNode::read(savePath())),os::shared_type);
 			}
 			catch (errorPointer e)
 			{
@@ -601,11 +607,11 @@ namespace crypto {
 
 			if(!headNode)
 				throw errorPointer(new fileOpenError(),os::shared_type);
-			if(headNode->getID()!="keyBank")
+			if(headNode->id()!="keyBank")
 				throw errorPointer(new fileFormatError(),os::shared_type);
 
 			//Iterate through children
-			auto it=headNode->getChildren()->first();
+			auto it=headNode->first();
 			while(it)
 			{
 				os::smart_ptr<nodeGroup> nd=fileLoadHelper(&it);
@@ -626,9 +632,9 @@ namespace crypto {
 		}
 		try
 		{
-            os::smartXMLNode headNode(new os::XML_Node("keyBank"),os::shared_type);
+            os::smart_ptr<os::XMLNode> headNode(new os::XMLNode("keyBank"),os::shared_type);
             for(auto i=nodeBank.first();i;++i)
-				headNode->addElement(i->buildXML());
+				headNode->addChild(*i->buildXML());
 
 			//Use public key first
 			if(_pubKey && !_pubKey->generating())
@@ -645,7 +651,7 @@ namespace crypto {
 			//No encryption
 			else
 			{
-				if(!os::XML_Output(savePath(), headNode))
+                if(!os::XMLNode::write(savePath(), *headNode))
 					throw errorPointer(new fileOpenError(),os::shared_type);
 			}
 		}

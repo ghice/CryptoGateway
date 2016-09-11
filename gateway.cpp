@@ -50,45 +50,45 @@ namespace crypto {
 	{
 	}
 	//Generate the XML save tree
-	os::smartXMLNode gatewaySettings::generateSaveTree()
+	os::smart_ptr<os::XMLNode> gatewaySettings::generateSaveTree()
 	{
-		os::smartXMLNode ret(new os::XML_Node("gatewaySettings"),os::shared_type);
+        os::smart_ptr<os::XMLNode> ret(new os::XMLNode("gatewaySettings"),os::shared_type);
 
-		os::smartXMLNode level1=os::smartXMLNode(new os::XML_Node("group"),os::shared_type);
+		os::smart_ptr<os::XMLNode> level1(new os::XMLNode("group"),os::shared_type);
 		level1->setData(_groupID);
-		ret->addElement(level1);
+		ret->addChild(*level1);
 
-		level1=os::smartXMLNode(new os::XML_Node("name"),os::shared_type);
+		level1=os::smart_ptr<os::XMLNode>(new os::XMLNode("name"),os::shared_type);
 		level1->setData(_nodeName);
-		ret->addElement(level1);
+		ret->addChild(*level1);
 
-		level1=os::smartXMLNode(new os::XML_Node("preferences"),os::shared_type);
+		level1=os::smart_ptr<os::XMLNode>(new os::XMLNode("preferences"),os::shared_type);
 			
-			os::smartXMLNode level2=os::smartXMLNode(new os::XML_Node("publicKey"),os::shared_type);
-				os::smartXMLNode level3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+			os::smart_ptr<os::XMLNode> level2=os::smart_ptr<os::XMLNode>(new os::XMLNode("publicKey"),os::shared_type);
+				os::smart_ptr<os::XMLNode> level3=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 				level3->setData(std::to_string((long long unsigned int)_prefferedPublicKeyAlgo));
-				level2->addElement(level3);
-				level3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+				level2->addChild(*level3);
+				level3=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 				level3->setData(std::to_string((long long unsigned int)_prefferedPublicKeySize));
-				level2->addElement(level3);
-			level1->addElement(level2);
+				level2->addChild(*level3);
+			level1->addChild(*level2);
 
-			level2=os::smartXMLNode(new os::XML_Node("hash"),os::shared_type);
-				level3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+			level2=os::smart_ptr<os::XMLNode>(new os::XMLNode("hash"),os::shared_type);
+				level3=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 				level3->setData(std::to_string((long long unsigned int)_prefferedHashAlgo));
-				level2->addElement(level3);
-				level3=os::smartXMLNode(new os::XML_Node("size"),os::shared_type);
+				level2->addChild(*level3);
+				level3=os::smart_ptr<os::XMLNode>(new os::XMLNode("size"),os::shared_type);
 				level3->setData(std::to_string((long long unsigned int)_prefferedHashSize));
-				level2->addElement(level3);
-			level1->addElement(level2);
+				level2->addChild(*level3);
+			level1->addChild(*level2);
 
-			level2=os::smartXMLNode(new os::XML_Node("stream"),os::shared_type);
-				level3=os::smartXMLNode(new os::XML_Node("algo"),os::shared_type);
+			level2=os::smart_ptr<os::XMLNode>(new os::XMLNode("stream"),os::shared_type);
+				level3=os::smart_ptr<os::XMLNode>(new os::XMLNode("algo"),os::shared_type);
 				level3->setData(std::to_string((long long unsigned int)_prefferedStreamAlgo));
-				level2->addElement(level3);
-			level1->addElement(level2);
+				level2->addChild(*level3);
+			level1->addChild(*level2);
 
-		ret->addElement(level1);
+		ret->addChild(*level1);
 
 		return ret;
 	}
@@ -145,8 +145,8 @@ namespace crypto {
 			finishedSaving();
 			return;
 		}
-		os::smartXMLNode nd=generateSaveTree();
-		os::XML_Output(_filePath,nd);
+		os::smart_ptr<os::XMLNode> nd=generateSaveTree();
+        os::XMLNode::write(_filePath,*nd);
 		finishedSaving();
 	}
 	//Loads gateway settings from file

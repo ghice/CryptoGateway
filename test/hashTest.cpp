@@ -1,7 +1,7 @@
 /**
  * @file   test/hashTest.cpp
  * @author Jonathan Bedard
- * @date   9/4/2016
+ * @date   9/10/2016
  * @brief  Implementation for hash tests
  * @bug No known bugs.
  *
@@ -26,7 +26,7 @@ using namespace test;
  ================================================================*/
 
     //Basic xor test
-    void basicXORTest() throw(os::smart_ptr<std::exception>)
+    void basicXORTest()
     {
         std::string locString = "hashTest.cpp, basicXORTest()";
         
@@ -54,7 +54,7 @@ using namespace test;
  ================================================================*/
 
     //Basic xor test
-    void basicRC4Test() throw(os::smart_ptr<std::exception>)
+    void basicRC4Test()
     {
         std::string locString = "hashTest.cpp, basicRC4Test()";
         

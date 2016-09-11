@@ -1,7 +1,7 @@
 /**
  * @file   test/c_cryptoTesting.cpp
  * @author Jonathan Bedard
- * @date   9/4/2016
+ * @date   9/10/2016
  * @brief  Implementation for C file testing
  * @bug No known bugs.
  *
@@ -25,7 +25,7 @@ using namespace os;
 using namespace crypto;
 
     //Confirms NULL value
-    void nullNumberType() throw(os::smart_ptr<std::exception>)
+    void nullNumberType()
     {
         std::string locString = "c_cryptoTesting.cpp, nullNumberType()";
         struct numberType* _nullType = buildNullNumberType();
@@ -144,12 +144,12 @@ using namespace crypto;
         
         return _baseType;
     }
-    void typeCheckBase10Test() throw(os::smart_ptr<std::exception>)
+    void typeCheckBase10Test()
     {
         typeCheckBase10(true);
     }
     //Compare test
-    void base10compareTest() throw(os::smart_ptr<std::exception>)
+    void base10compareTest()
     {
         struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10compareTest()";
@@ -203,7 +203,7 @@ using namespace crypto;
             generalTestException::throwException("2:0:0:4==2:0:0:4 failed!",locString);
     }
     //Addition test
-    void base10additionTest() throw(os::smart_ptr<std::exception>)
+    void base10additionTest()
     {
         struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10additionTest()";
@@ -274,7 +274,7 @@ using namespace crypto;
             generalTestException::throwException("Overflow failed!",locString);
     }
     //Subtraction test
-    void base10subtractionTest() throw(os::smart_ptr<std::exception>)
+    void base10subtractionTest()
     {
         struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10subtractionTest()";
@@ -309,7 +309,7 @@ using namespace crypto;
             generalTestException::throwException("Overflow carries from 0-4 are incorrect!",locString);
     }
     //Left shift test
-    void base10leftShiftTest() throw(os::smart_ptr<std::exception>)
+    void base10leftShiftTest()
     {
         struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10rightShiftTest()";
@@ -377,7 +377,7 @@ using namespace crypto;
         
     }
     //Right shift test
-    void base10rightShiftTest() throw(os::smart_ptr<std::exception>)
+    void base10rightShiftTest()
     {
         struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10leftShiftTest()";
@@ -429,7 +429,7 @@ using namespace crypto;
             generalTestException::throwException("0:3:0:0>>33 failed!",locString);
     }
     //Multiplication test
-    void base10multiplicationTest() throw(os::smart_ptr<std::exception>)
+    void base10multiplicationTest()
     {
         struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10multiplicationTest()";
@@ -486,7 +486,7 @@ using namespace crypto;
 			generalTestException::throwException("Overflow 2 failed!",locString);
     }
     //Division test
-    void base10divisionTest() throw(os::smart_ptr<std::exception>)
+    void base10divisionTest()
     {
         struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10divisionTest()";
@@ -560,7 +560,7 @@ using namespace crypto;
             generalTestException::throwException("0:0:2:2/0:0:1:1 failed!",locString);
     }
 	//Modulo
-	void base10moduloTest() throw(os::smart_ptr<std::exception>)
+	void base10moduloTest()
 	{
 		struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10moduloTest()";
@@ -627,7 +627,7 @@ using namespace crypto;
 
 	}
 	//Base 10 exponentiation
-	void base10exponentiationTest() throw(os::smart_ptr<std::exception>)
+	void base10exponentiationTest()
 	{
 		struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10exponentiationTest()";
@@ -737,7 +737,7 @@ using namespace crypto;
             generalTestException::throwException("Overflow failed!",locString);
 	}
 	//Base 10 modular exponentiation
-	void base10modularExponentiationTest() throw(os::smart_ptr<std::exception>)
+	void base10modularExponentiationTest()
 	{
 		struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10modularExponentiationTest()";
@@ -851,7 +851,7 @@ using namespace crypto;
             generalTestException::throwException("Overflow failed!",locString);
 	}
 	//Base 10 GCD test
-	void base10GCDTest() throw(os::smart_ptr<std::exception>)
+	void base10GCDTest()
 	{
 		struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10GCDTest()";
@@ -916,7 +916,7 @@ using namespace crypto;
             generalTestException::throwException("9 gcd 6 failed!",locString);
 	}
 	//Base 10 Modular Inverse Test
-	void base10ModularInverseTest() throw(os::smart_ptr<std::exception>)
+	void base10ModularInverseTest()
 	{
 		struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10ModularInverseTest()";
@@ -962,7 +962,7 @@ using namespace crypto;
             generalTestException::throwException("(6 mod 8)^-1 failed!",locString);
 	}
 	//Base 10 Primality test
-	void base10PrimealityTest() throw(os::smart_ptr<std::exception>)
+	void base10PrimealityTest()
 	{
 		struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10PrimealityTest()";

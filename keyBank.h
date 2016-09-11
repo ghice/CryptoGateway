@@ -80,7 +80,7 @@ namespace crypto {
          * @param [in/out] master Reference to the 'master' group holder
          * @param [in] fileNode XML root which defines the group
          */
-        nodeGroup(keyBank* master,os::smartXMLNode fileNode);
+        nodeGroup(keyBank* master,os::smart_ptr<os::XMLNode> fileNode);
     public:
         /** @brief Node group constructor
          *
@@ -197,7 +197,7 @@ namespace crypto {
          *
          * @return Root of tree to be saved
          */
-        os::smartXMLNode buildXML();
+        os::smart_ptr<os::XMLNode> buildXML();
         
         #undef CURRENT_CLASS
         #define CURRENT_CLASS nodeGroup
@@ -496,7 +496,7 @@ namespace crypto {
          * @param [in] xmlTree XML tree from file
 		 * @return Node group constructed with tree
          */
-		os::smart_ptr<nodeGroup> fileLoadHelper(os::smartXMLNode xmlTree) {return os::smart_ptr<nodeGroup> (new nodeGroup(this,xmlTree),os::shared_type);}
+		os::smart_ptr<nodeGroup> fileLoadHelper(os::smart_ptr<os::XMLNode> xmlTree) {return os::smart_ptr<nodeGroup> (new nodeGroup(this,xmlTree),os::shared_type);}
         /** @brief Construct with save path and key
          *
          * @param [in] savePath Path to save file

@@ -86,7 +86,7 @@ namespace crypto {
          *
          * @return XML tree for saving
          */
-        os::smartXMLNode generateSaveTree();
+        os::smart_ptr<os::XMLNode> generateSaveTree();
 	public:
 		/** @brief Returns the construction state of the user
 		 * @return crypto::bool::_wasConstructed

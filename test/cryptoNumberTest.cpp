@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoNumberTest.cpp
  * @author Jonathan Bedard
- * @date   9/4/2016
+ * @date   9/10/2016
  * @brief  Testing crypto::number and crypto::integer
  * @bug No known bugs.
  *
@@ -40,7 +40,7 @@ using namespace crypto;
     }
 
     //Number type test
-    void numberTypeTest() throw(os::smart_ptr<std::exception>)
+    void numberTypeTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberTypeTest()";
         
@@ -73,7 +73,7 @@ using namespace crypto;
             generalTestException::throwException("hasModInverse failed",locString);
     }
     //Tests number constructor
-    void numberConstructorsTest() throw(os::smart_ptr<std::exception>)
+    void numberConstructorsTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberConstructorsTest()";
 
@@ -145,7 +145,7 @@ using namespace crypto;
 			generalTestException::throwException("Unexpected number: equal",locString);
 	}
 	//Comparison
-	void numberComparisonTest() throw(os::smart_ptr<std::exception>)
+	void numberComparisonTest()
 	{
 		std::string locString = "cryptoNumberTest.cpp, numberComparisonTest()";
 
@@ -204,7 +204,7 @@ using namespace crypto;
 		if(num2 >= big) generalTestException::throwException("1 >= 2:1 succeeded",locString);
 	}
     //Array access
-    void numberArrayAccessTest() throw(os::smart_ptr<std::exception>)
+    void numberArrayAccessTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberArrayAccessTest()";
         uint32_t arr[3];
@@ -226,7 +226,7 @@ using namespace crypto;
             generalTestException::throwException("Write access failed!",locString);
     }
     //To string
-    void numberToStringTest() throw(os::smart_ptr<std::exception>)
+    void numberToStringTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberToStringTest()";
         number num(4);
@@ -276,7 +276,7 @@ using namespace crypto;
         generalTestException::throwException("11, 12, 13, 14 case failure",locString);
     }
     //From string
-    void numberFromStringTest() throw(os::smart_ptr<std::exception>)
+    void numberFromStringTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberFromStringTest()";
         number comp(4);
@@ -340,7 +340,7 @@ using namespace crypto;
         
     }
     //Tests size manipulation
-    void numberSizeManipulation() throw(os::smart_ptr<std::exception>)
+    void numberSizeManipulation()
     {
         std::string locString = "cryptoNumberTest.cpp, numberSizeManipulation()";
         number num;
@@ -387,7 +387,7 @@ using namespace crypto;
     }
 
     //OR Test
-    void numberORTest() throw(os::smart_ptr<std::exception>)
+    void numberORTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberORTest()";
         
@@ -443,7 +443,7 @@ using namespace crypto;
         }
     }
     //OR Test
-    void numberANDTest() throw(os::smart_ptr<std::exception>)
+    void numberANDTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberANDTest()";
         
@@ -499,7 +499,7 @@ using namespace crypto;
         }
     }
     //XOR Test
-    void numberXORTest() throw(os::smart_ptr<std::exception>)
+    void numberXORTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberANDTest()";
         
@@ -560,7 +560,7 @@ using namespace crypto;
         }
     }
     //Tests negation
-    void numberNegateTest() throw(os::smart_ptr<std::exception>)
+    void numberNegateTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberNegateTest()";
         for(int i=0;i<20;++i)
@@ -602,7 +602,7 @@ using namespace crypto;
     }
 
     //Integer type test
-    void integerTypeTest() throw(os::smart_ptr<std::exception>)
+    void integerTypeTest()
     {
         std::string locString = "cryptoNumberTest.cpp, numberTypeTest()";
     
@@ -637,7 +637,7 @@ using namespace crypto;
             generalTestException::throwException("Integer type check failed!",locString);
     }
     //Integer compare test
-    void integerCompareTest() throw(os::smart_ptr<std::exception>)
+    void integerCompareTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerCompareTest()";
         integer int1;
@@ -698,7 +698,7 @@ using namespace crypto;
         }
     }
     //Integer addition test
-    void integerAdditionTest() throw(os::smart_ptr<std::exception>)
+    void integerAdditionTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerAdditionTest()";
         integer int1;
@@ -745,7 +745,7 @@ using namespace crypto;
         }
     }
     //Integer subtraction test
-    void integerSubtractionTest() throw(os::smart_ptr<std::exception>)
+    void integerSubtractionTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerSubtractionTest()";
         integer int1;
@@ -794,7 +794,7 @@ using namespace crypto;
         }
     }
     //Tests the incrementing and decrementing of an integer
-    void integerIncrementTest() throw(os::smart_ptr<std::exception>)
+    void integerIncrementTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerIncrementTest()";
         integer int1;
@@ -827,7 +827,7 @@ using namespace crypto;
         int2[0]--;
     }
     //Integer subtraction test
-    void integerRightShiftTest() throw(os::smart_ptr<std::exception>)
+    void integerRightShiftTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerRightShiftTest()";
         integer int1;
@@ -864,7 +864,7 @@ using namespace crypto;
         }
     }
     //Integer left shift test
-    void integerLeftShiftTest() throw(os::smart_ptr<std::exception>)
+    void integerLeftShiftTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerLeftShiftTest()";
         integer int1;
@@ -901,7 +901,7 @@ using namespace crypto;
         }
     }
     //Integer multiplicaiton test
-    void integerMultiplicationTest() throw(os::smart_ptr<std::exception>)
+    void integerMultiplicationTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerMultiplicationTest()";
         integer int1;
@@ -948,7 +948,7 @@ using namespace crypto;
         }
     }
     //Integer division test
-    void integerDivisionTest() throw(os::smart_ptr<std::exception>)
+    void integerDivisionTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerDivisionTest()";
         integer int1;
@@ -995,7 +995,7 @@ using namespace crypto;
         }
     }
     //Integer modulo test
-    void integerModuloTest() throw(os::smart_ptr<std::exception>)
+    void integerModuloTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerModuloTest()";
         integer int1;
@@ -1044,7 +1044,7 @@ using namespace crypto;
         }
     }
     //Integer exponentiation test
-    void integerExponentiationTest() throw(os::smart_ptr<std::exception>)
+    void integerExponentiationTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerModuloTest()";
         integer int1;
@@ -1095,7 +1095,7 @@ using namespace crypto;
         }
     }
     //Integer mod-exponentiation test
-    void integerModuloExponentiationTest() throw(os::smart_ptr<std::exception>)
+    void integerModuloExponentiationTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerModuloExponentiationTest()";
         integer int1;
@@ -1148,7 +1148,7 @@ using namespace crypto;
         }
     }
     //Integer gcd test
-    void integerGCDTest() throw(os::smart_ptr<std::exception>)
+    void integerGCDTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerGCDTest()";
         integer int1;
@@ -1196,7 +1196,7 @@ using namespace crypto;
         }
     }
     //Integer modInver test
-    void integerModInverseTest() throw(os::smart_ptr<std::exception>)
+    void integerModInverseTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerModInverseTest()";
         integer int1;
@@ -1245,7 +1245,7 @@ using namespace crypto;
         }
     }
     //Prime test
-    void integerPrimeTest() throw(os::smart_ptr<std::exception>)
+    void integerPrimeTest()
     {
         std::string locString = "cryptoNumberTest.cpp, integerPrimeTest()";
         integer int1;

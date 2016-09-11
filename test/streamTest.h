@@ -1,7 +1,7 @@
 /**
  * @file   test/streamTest.h
  * @author Jonathan Bedard
- * @date   8/29/2016
+ * @date   9/10/2016
  * @brief  Header for stream testing
  * @bug No known bugs.
  *
@@ -58,7 +58,7 @@ namespace test {
 		streamNameTest(std::string streamName):streamTest<streamType>("Name Test",streamName){}
 		virtual ~streamNameTest(){}
 
-		void test() throw(os::smart_ptr<std::exception>)
+		void test()
         {
             std::string locString = "streamTest.h, streamNameTest::test()";
 			if(streamTest<streamType>::_cipher->algorithmName() == "NULL Algorithm")
@@ -77,7 +77,7 @@ namespace test {
 		streamIDTest(std::string streamName, int streamInt):streamTest<streamType>("ID Test",streamName){_streamInt=streamInt;}
 		virtual ~streamIDTest(){}
 
-		void test() throw(os::smart_ptr<std::exception>)
+		void test()
         {
             std::string locString = "streamTest.h, streamIDTest::test()";
 			if(streamTest<streamType>::_cipher->algorithm() == crypto::algo::streamNULL)
@@ -97,7 +97,7 @@ namespace test {
 			streamTest<streamType>("Stream Block ("+std::to_string((long long unsigned int)iteration)+")",streamName,seed,seedLen){_iteration=iteration;}
 		virtual ~streamBlockTest(){}
 
-		void test() throw(os::smart_ptr<std::exception>)
+		void test()
         {
             std::string locString = "streamTest.h, streamBlockTest::test(), iteration "+std::to_string((long long unsigned int)_iteration);
 

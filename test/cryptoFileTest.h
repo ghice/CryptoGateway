@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoFileTest.h
  * @author Jonathan Bedard
- * @date   8/29/2016
+ * @date   9/10/2016
  * @brief  Header for cryptographic file testing
  * @bug No known bugs.
  *
@@ -32,7 +32,7 @@ namespace test {
 		binaryFileSaveTest(os::smart_ptr<crypto::streamPackageFrame> spf);
 		virtual ~binaryFileSaveTest(){}
 
-		void test() throw(os::smart_ptr<std::exception>);
+		void test();
 	};
 	//Public key binary file saving
 	class publicKeyFileSaveTest:public singleTest
@@ -42,7 +42,7 @@ namespace test {
 		publicKeyFileSaveTest(os::smart_ptr<crypto::publicKey> pk);
 		virtual ~publicKeyFileSaveTest(){}
 
-		void test() throw(os::smart_ptr<std::exception>);
+		void test();
 	};
 
 	//Crypto File Test
@@ -64,7 +64,7 @@ namespace test {
         exmlFileSaveTest(os::smart_ptr<crypto::streamPackageFrame> spf);
         virtual ~exmlFileSaveTest(){}
         
-        void test() throw(os::smart_ptr<std::exception>);
+        void test();
     };
     //Tests EXML file saving, public key
     class exmlPublicKeySaveTest:public singleTest
@@ -74,7 +74,7 @@ namespace test {
         exmlPublicKeySaveTest(os::smart_ptr<crypto::publicKey> pbk);
         virtual ~exmlPublicKeySaveTest(){}
         
-        void test() throw(os::smart_ptr<std::exception>);
+        void test();
     };
     
     //EXML File Test

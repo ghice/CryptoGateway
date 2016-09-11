@@ -1,7 +1,7 @@
 /**
  * @file   test/hashTest.h
  * @author Jonathan Bedard
- * @date   8/29/2016
+ * @date   9/10/2016
  * @brief  Header for hash testing
  * @bug No known bugs.
  *
@@ -60,7 +60,7 @@ namespace test {
             hashTest<hashClass>(tn,hashName,hashSize){}
         virtual ~hashConstructorTest(){}
         
-        virtual void test() throw(os::smart_ptr<std::exception>)
+        virtual void test()
         {
             std::string locString = "hashTest.h, hashConstructorTest::test()";
             
@@ -89,7 +89,7 @@ namespace test {
             hashTest<hashClass>(tn,hashName,hashSize){}
         virtual ~hashCompareTest(){}
         
-        virtual void test() throw(os::smart_ptr<std::exception>)
+        virtual void test()
         {
             std::string locString = "hashTest.h, hashCompareTest::test()";
             
@@ -124,7 +124,7 @@ namespace test {
         hashTest<hashClass>(tn,hashName,hashSize){}
         virtual ~hashEqualityOperatorTest(){}
         
-        virtual void test() throw(os::smart_ptr<std::exception>)
+        virtual void test()
         {
             std::string locString = "hashTest.h, hashEqualityOperatorTest::test()";
             
@@ -176,7 +176,7 @@ namespace test {
         hashTest<hashClass>(tn,hashName,hashSize){}
         virtual ~hashStringTest(){}
         
-        virtual void test() throw(os::smart_ptr<std::exception>)
+        virtual void test()
         {
             std::string locString = "hashTest.h, hashStringTest::test()";
             
