@@ -824,7 +824,7 @@ namespace crypto {
 					if(!fnd) throw errorPointer(new fileFormatError(),os::shared_type);
 					trc2=&fnd;
 					if(!trc2) throw errorPointer(new fileFormatError(),os::shared_type);
-					readKey=os::smart_ptr<number>(new number(),os::shared_type);
+					readKey=os::smart_ptr<number>(new integer(),os::shared_type);
 					readKey->fromString(trc2->data());
 
 					//Check key validity
