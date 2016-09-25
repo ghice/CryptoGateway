@@ -1,7 +1,7 @@
 /**
  * @file	XMLEncryption.cpp
  * @author	Jonathan Bedard
- * @date   	9/10/2016
+ * @date   	9/25/2016
  * @brief	Implements encrypted XML functions
  * @bug	None
  *
@@ -83,7 +83,7 @@ namespace crypto {
 		{
 			data=0;
 			if(head->hasData())
-				data=head->dataList().size();
+				data=uint16_t(head->dataList().size());
 			data=os::to_comp_mode(data);
 			memcpy(headerData+4,&data,2);
 		}
