@@ -1,7 +1,7 @@
 /**
  * @file    cryptoHash.cpp
  * @author  Jonathan Bedard
- * @date    7/13/2016
+ * @date    4/15/2018
  * @brief   Implementation of crypto hashing
  * @bug None
  *
@@ -84,14 +84,14 @@ using namespace crypto;
     //Return value
     unsigned char crypto::hash::operator[](size_t pos) const
     {
-        if(pos<0 || pos>=_size)
+        if(pos>=_size)
             return 0;
         return _data[pos];
     }
     //Set value
     unsigned char& crypto::hash::operator[](size_t pos)
     {
-        if(pos<0 || pos>=_size)
+        if(pos>=_size)
             return _data[0];
         return _data[pos];
     }

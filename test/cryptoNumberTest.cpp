@@ -1,7 +1,7 @@
 /**
  * @file   test/cryptoNumberTest.cpp
  * @author Jonathan Bedard
- * @date   9/10/2016
+ * @date   4/15/2018
  * @brief  Testing crypto::number and crypto::integer
  * @bug No known bugs.
  *
@@ -1249,7 +1249,6 @@ using namespace crypto;
     {
         std::string locString = "cryptoNumberTest.cpp, integerPrimeTest()";
         integer int1;
-        const struct numberType* nt=int1.numberDefinition();
         
         //Check if the integer target is valid
         if(!int1.checkType())

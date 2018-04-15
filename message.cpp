@@ -1,7 +1,7 @@
 /**
  * @file   message.cpp
  * @author Jonathan Bedard
- * @date   7/14/2016
+ * @date   4/15/2018
  * @brief  Crypto-Gateway message implementation
  * @bug No known bugs.
  *
@@ -79,7 +79,6 @@ namespace crypto {
 		}
 		if(_size+s.length()+1>MAX_EXM)
 			return false;
-		size_t old_len = _size;
 
 		uint8_t* tdat=_data;
 		tdat=new uint8_t[_size+s.length()+1];

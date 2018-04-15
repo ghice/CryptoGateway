@@ -1,7 +1,7 @@
 /**
  * @file   test/c_cryptoTesting.cpp
  * @author Jonathan Bedard
- * @date   9/10/2016
+ * @date   4/15/2018
  * @brief  Implementation for C file testing
  * @bug No known bugs.
  *
@@ -964,7 +964,6 @@ using namespace crypto;
 	//Base 10 Primality test
 	void base10PrimealityTest()
 	{
-		struct numberType* _baseType = typeCheckBase10();
         std::string locString = "c_cryptoTesting.cpp, base10PrimealityTest()";
 	
 		uint32_t src1[4];

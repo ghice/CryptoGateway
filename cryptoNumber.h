@@ -1,7 +1,7 @@
 /**
  * @file   cryptoNumber.h
  * @author Jonathan Bedard
- * @date   8/28/2016
+ * @date   4/15/2018
  * @brief  Defines basic number types
  * @bug No known bugs.
  *
@@ -551,10 +551,6 @@ namespace crypto
 		 */
         bool checkType() const;
         
-        /** @brief Allows integer to be cast as a number
-		 * @return number(*this)
-		 */
-        inline operator number()const{return number((number)*this);}
         /** @brief Integer addition operator
 		 * @param [in] n Integer to be added
 		 * @reutrn this + n

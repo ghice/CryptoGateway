@@ -1,7 +1,7 @@
 /**
  * @file    cryptoHash.h
  * @author  Jonathan Bedard
- * @date    8/28/2016
+ * @date    4/15/2018
  * @brief   Declaration of crypto hashing
  * @bug None
  *
@@ -151,7 +151,7 @@ namespace crypto {
          * @param [in] data Data array to be hashed
          * @param [in] dLen Length of data array
          */
-        virtual void preformHash(unsigned char* data, size_t dLen){}
+        virtual void preformHash(const unsigned char* data, size_t dLen){}
         
         /** @brief Algorithm name string access
          *
